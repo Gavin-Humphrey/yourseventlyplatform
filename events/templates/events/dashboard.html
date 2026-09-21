@@ -1,6 +1,6 @@
 {% extends 'events/landing_base.html' %}
 
-{% block title %}Dashboard | Manage My Event{% endblock %}
+{% block title %}Dashboard | YoursEvently{% endblock %}
 
 {% block content %}
 <div class="dashboard-page-wrapper">
@@ -25,6 +25,38 @@
         <span>Create New Event</span>
       </a>
     </div>
+
+    {% if organizer_profile.stripe_onboarding_complete or has_ticketed_events %}
+    <div class="dashboard-card dashboard-stripe-connect-container mb-6 p-5 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-indigo-500/20 bg-gradient-to-r from-indigo-950/20 via-purple-950/10 to-transparent">
+      <div class="flex items-center gap-4">
+        <div class="dashboard-metric-icon-wrap indigo-glow shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-white tracking-wide">Stripe Payout Infrastructure</h3>
+          {% if organizer_profile.stripe_onboarding_complete %}
+            <p class="text-xs text-emerald-400 mt-0.5 flex items-center gap-1.5 dashboard-stripe-connect-text-p">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block "></span> Connected & ready to receive ticket revenue payouts
+            </p>
+          {% else %}
+            <p class="text-xs text-amber-400 mt-0.5 dashboard-stripe-connect-text-p">Action Required: You have ticketed events, but your payout account is not connected yet.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div>
+        {% if organizer_profile.stripe_onboarding_complete %}
+          <a href="{% url 'events:stripe_dashboard_redirect' %}" class="stripe-manage-btn text-xs py-2 px-4 inline-flex items-center gap-1.5">
+            <span>Manage Stripe Settings</span>
+          </a>
+        {% else %}
+          <a href="{% url 'events:connect_stripe_onboarding' %}" class="stripe-connect-btn">
+            <span>Connect Payout Account</span>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
 
     <!-- Key Metrics Grid -->
     <div class="dashboard-metrics-grid">
@@ -120,4 +152,5 @@
 
   </div>
 </div>
+
 {% endblock %}

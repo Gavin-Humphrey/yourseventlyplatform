@@ -24,38 +24,64 @@
             {% endfor %}
         </div>
     {% endif %}
+
     <!-- Breadcrumb & Top Header Bar -->
     <nav class="flex items-center text-sm text-[var(--text-muted)] mb-6 space-x-2">
-        <a href="{% url 'events:dashboard' %}" class="hover:text-[var(--text-main)] transition">Dashboard</a>
+        <!-- <a href="{% url 'events:dashboard' %}" class="hover:text-[var(--text-main)] transition">Dashboard</a>
         <span>/</span>
         <span class="text-[var(--text-main)] font-medium">{{ event.title }}</span>
-        <span>/</span>
+        <span>/</span> -->
         <span class="dashboard-badge">RSVP Management</span>
     </nav>
-    <div class="dashboard-header-bar">
-      <div class="dashboard-header-titles">
-        <div class="dashboard-eyebrow-wrapper">
-          <span class="dashboard-status-dot"></span>
-          <span class="dashboard-eyebrow">Guest Operations</span>
+
+    <!-- Professional Individual Event Header Card -->
+    <div class="dashboard-card" style="margin-bottom: 2rem; transition: border-color 0.2s ease;">
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        
+        <!-- Event Details & Badges -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div class="dashboard-eyebrow-wrapper mb-2">
+              <span class="dashboard-status-dot"></span>
+              <span class="dashboard-eyebrow">Event Operations Hub</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+              <h1 class="dashboard-title" style="margin: 0; font-size: 1.75rem;">{{ event.title }}</h1>
+              {% if event.is_ticketed %}
+                <span class="dashboard-badge" style="background: rgba(192, 132, 252, 0.15); color: var(--accent-purple); border-color: rgba(192, 132, 252, 0.3);">Ticketed Event</span>
+              {% else %}
+                <span class="dashboard-badge">Free Event</span>
+              {% endif %}
+            </div>
+            <p class="dashboard-subtitle" style="margin-top: 0.25rem;">{{ event.event_date|date:"F j, Y, g:i a" }}</p>
+          </div>
         </div>
-        <h1 class="dashboard-title">RSVP Management</h1>
-        <p class="dashboard-subtitle">Review responses, track total headcount, and manage attendee details in real time.</p>
-      </div>
-      <div class="flex items-center gap-3 flex-wrap">
-        <a href="{% url 'events:manage_event_tiers' event.slug %}" class="dashboard-action-badge" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
-          🎟️ Manage Ticket Tiers
-        </a>
-        <a href="{% url 'events:export_rsvps_csv' event.slug %}" class="dashboard-action-badge" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
-          📥 Export CSV
-        </a>
-        <a href="{% url 'events:door_dashboard' event.slug %}" class="dashboard-clone-btn" style="background-color: rgba(52, 211, 153, 0.12); color: var(--accent-emerald); border-color: rgba(52, 211, 153, 0.3); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
-          🚪 Open Door Dashboard
-        </a>
-        <a href="{% url 'events:public_rsvp' event.slug %}" target="_blank" class="dashboard-action-badge" style="text-decoration: none;">
-          View Public Page &rarr;
-        </a>
+
+        <!-- Action Toolbar & Navigation Links (Forced Right Alignment) -->
+        <div class="flex items-center gap-3 flex-wrap pt-2" style="border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; width: 100%;">
+          <!-- Primary Analytics Action -->
+          <a href="{% url 'events:event_analytics' event.slug %}" class="dashboard-action-badge" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(129, 140, 248, 0.15); color: var(--accent-indigo); border-color: rgba(129, 140, 248, 0.3);">
+            📊 View Analytics & Guests
+          </a>
+          
+          <!-- Management Tools -->
+          <a href="{% url 'events:manage_event_tiers' event.slug %}" class="dashboard-action-badge" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+            🎟️ Manage Ticket Tiers
+          </a>
+          <a href="{% url 'events:export_rsvps_csv' event.slug %}" class="dashboard-action-badge" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+            📥 Export CSV
+          </a>
+          <a href="{% url 'events:door_dashboard' event.slug %}" class="dashboard-clone-btn" style="background-color: rgba(52, 211, 153, 0.12); color: var(--accent-emerald); border-color: rgba(52, 211, 153, 0.3); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+            🚪 Open Door Dashboard
+          </a>
+          <a href="{% url 'events:public_rsvp' event.slug %}" target="_blank" class="dashboard-action-badge" style="text-decoration: none;">
+            View Public Page &rarr;
+          </a>
+        </div>
+
       </div>
     </div>
+
     <!-- Stats Overview Cards -->
     <div class="dashboard-metrics-grid">
       <div class="dashboard-metric-card">
@@ -87,6 +113,7 @@
           <p class="dashboard-metric-value dashboard-metric-success">{{ total_headcount }}</p>
         </div>
       </div>
+      
       {% if event.max_capacity %}
         <div class="dashboard-metric-card">
             <div class="dashboard-metric-icon-wrap 
@@ -110,7 +137,7 @@
                 </p>
             </div>
         </div>
-    {% endif %}
+      {% endif %}
     </div>
 
     <!-- RSVP List Table Card -->
@@ -118,7 +145,7 @@
       <div class="dashboard-card-header">
         <form method="GET" class="flex flex-col sm:flex-row w-full items-center justify-between gap-4">
             <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                <input type="text" name="q" value="{{ search_query }}" placeholder="Search RSVPs..."  class="dashboard-input w-full sm:w-auto"  style="width: 400px; max-width: 55vw;" >
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search RSVPs..." class="dashboard-input w-full sm:w-auto" style="width: 400px; max-width: 55vw;">
               <select name="status" class="dashboard-action-badge cursor-pointer w-full sm:w-auto min-w-[160px] text-center appearance-none transition-all duration-200 focus:outline-none" style="border: none;">  
                   <option value="">All Statuses</option>
                   <option value="ATTENDING" {% if status_filter == 'ATTENDING' %}selected{% endif %}>Attending</option>

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Event, GalleryImage, RSVP, RSVPGuest
+from .models import Event, GalleryImage, OrganizerProfile, RSVP, RSVPGuest
 
 
 class GuestInline(admin.TabularInline):
@@ -24,3 +24,9 @@ class GuestAdmin(admin.ModelAdmin):
     list_filter = ('status', 'event')
     search_fields = ('first_name', 'last_name', 'email', 'event__title')
     list_per_page = 25
+
+@admin.register(OrganizerProfile)
+class OrganizerProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'created_at')  
+    search_fields = ('user__username', 'user__email')
+    list_filter = ('created_at',)

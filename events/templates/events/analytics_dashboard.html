@@ -1,0 +1,104 @@
+{% extends 'events/landing_base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Analytics & Guests | {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="analytics-page-wrapper">
+    
+    <!-- Top Navigation / Back Link -->
+    <div class="analytics-nav-container">
+        <a href="{% url 'events:dashboard' %}" class="analytics-back-link">
+            &larr; Back to Main Dashboard
+        </a>
+    </div>
+
+    <!-- Event Header Section -->
+    <div class="analytics-header-card">
+        <div class="analytics-header-info">
+            <div class="analytics-title-row">
+                <h1 class="analytics-event-title">{{ event.title }}</h1>
+                {% if event.is_ticketed %}
+                    <span class="analytics-badge analytics-badge-purple">Ticketed Event</span>
+                {% else %}
+                    <span class="analytics-badge analytics-badge-gray">Free Event</span>
+                {% endif %}
+            </div>
+            <p class="analytics-event-date">Happening on: {{ event.event_date|date:"F j, Y, g:i A" }}</p>
+        </div>
+        
+        <!-- Quick Action Buttons -->
+        <div class="analytics-action-buttons">
+            <a href="{% url 'events:edit_event' event.slug %}" class="analytics-btn analytics-btn-secondary">
+                Edit Event
+            </a>
+            <a href="{% url 'events:door_dashboard' event.slug %}" class="analytics-btn analytics-btn-primary">
+                Scan Tickets / Check-In
+            </a>
+        </div>
+    </div>
+
+    <!-- Financial & Ticket Metrics Grid -->
+    <div class="analytics-metrics-grid">
+        <!-- Tickets Sold -->
+        <div class="analytics-metric-card">
+            <span class="analytics-metric-label">Total Tickets Sold</span>
+            <span class="analytics-metric-value">{{ tickets_sold|default:0 }}</span>
+        </div>
+
+        <!-- Gross Revenue -->
+        <div class="analytics-metric-card">
+            <span class="analytics-metric-label">Gross Revenue</span>
+            <span class="analytics-metric-value">${{ gross_revenue|floatformat:2 }}</span>
+        </div>
+
+        <!-- Platform Fee -->
+        <div class="analytics-metric-card">
+            <span class="analytics-metric-label">Platform Fee (5%)</span>
+            <span class="analytics-metric-value analytics-text-danger">-${{ platform_fee|floatformat:2 }}</span>
+        </div>
+
+        <!-- Net Payout -->
+        <div class="analytics-metric-card">
+            <span class="analytics-metric-label">Your Net Payout</span>
+            <span class="analytics-metric-value analytics-text-success">${{ net_organizer_payout|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    <!-- Attendance & Engagement Breakdown -->
+    <div class="analytics-content-grid">
+        <!-- Attendance Stats -->
+        <div class="analytics-card">
+            <h3 class="analytics-card-title">Attendee Breakdown</h3>
+            <div class="analytics-stats-list">
+                <div class="analytics-stats-row">
+                    <span class="analytics-stats-key">Total RSVPs / Registrations</span>
+                    <span class="analytics-stats-val">{{ total_rsvps }}</span>
+                </div>
+                <div class="analytics-stats-row">
+                    <span class="analytics-stats-key">Confirmed Guests</span>
+                    <span class="analytics-stats-val">{{ confirmed_guests }}</span>
+                </div>
+                <div class="analytics-stats-row analytics-stats-row-last">
+                    <span class="analytics-stats-key">Checked-In at Event</span>
+                    <span class="analytics-stats-val analytics-text-highlight">{{ checked_in_guests }} / {{ confirmed_guests }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Guests / Quick Management Links -->
+        <div class="analytics-card analytics-card-flex">
+            <div>
+                <h3 class="analytics-card-title">Event Management</h3>
+                <p class="analytics-card-desc">Need to look up specific attendee details, download a CSV export of your guest list, or manually verify a ticket code? Access the full guest manager below.</p>
+            </div>
+                    <a href="{% url 'events:event_rsvps_management' event.slug %}" class="analytics-btn analytics-btn-full">
+                View Full Guest List &rarr;
+            </a>     
+        </div>
+        
+        
+    </div>
+</div>
+
+{% endblock %}

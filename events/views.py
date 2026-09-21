@@ -7,27 +7,32 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from .models import Event, RSVP, RSVPGuest, TicketTier
+from .models import Event, OrganizerProfile, GalleryImage, RSVP, RSVPGuest, TicketTier
 from .forms import EventForm, RSVPForm, TicketTierFormSet, EventTicketingForm
+from django.forms import inlineformset_factory
 from django.utils.text import slugify
 from django.db.models import Q, Value, Sum
 from django.db.models.functions import Concat
-
 import csv
 from .utils import send_rsvp_confirmation
-from .stripe_utils import create_checkout_session
 import stripe
 
+from .stripe_utils import (
+    create_checkout_session,
+    create_stripe_express_account,
+    generate_account_link,
+    check_stripe_onboarding_status,
+    generate_stripe_login_link
+)
+
+
+
 stripe.api_key = settings.STRIPE_SECRET_KEY
-
-
-
 
 
 # -------------------------------------------------------------------
 # PUBLIC & GUEST VIEWS
 # -------------------------------------------------------------------
-
 def home(request):
     return render(request, 'events/home.html')
 
@@ -69,35 +74,6 @@ def event_detail(request, slug):
         'guest_messages': guest_messages,
         'normalized_gallery': normalized_gallery,
     })
-
-
-def submit_rsvp(request, slug):
-    event = get_object_or_404(Event, slug=slug)
-    
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        status = request.POST.get('status')
-        plus_ones_count = int(request.POST.get('plus_ones_count', 0))
-        dietary = request.POST.get('dietary_restrictions', '')
-
-        guest, created = RSVP.objects.update_or_create(
-            event=event,
-            email=email,
-            defaults={
-                'first_name': first_name,
-                'last_name': last_name,
-                'status': status,
-                'plus_ones_count': plus_ones_count,
-                'dietary_restrictions': dietary,
-            }
-        )
-        messages.success(request, f"Thank you {first_name}! Your RSVP has been recorded.")
-        return redirect('event_detail', slug=slug)
-
-    return redirect('event_detail', slug=slug)
-
 
 # -------------------------------------------------------------------
 # HOST AUTHENTICATION VIEWS
@@ -146,42 +122,32 @@ def logout_host(request):
 # -------------------------------------------------------------------
 # HOST DASHBOARD & EVENT MANAGEMENT
 # -------------------------------------------------------------------
-
 @login_required
 def dashboard(request):
     events = Event.objects.filter(host=request.user).order_by('-created_at')
     
-    # Global metrics across all events hosted by this user
+    # Safely get or create the organizer profile so it's never None
+    organizer_profile, created = OrganizerProfile.objects.get_or_create(user=request.user)
+    
+    # Check if the host has created at least one ticketed event
+    has_ticketed_events = events.filter(is_ticketed=True).exists()
+    
     total_events = events.count()
     total_guests = RSVP.objects.filter(event__host=request.user).count()
     attending_guests = RSVP.objects.filter(event__host=request.user, status='ATTENDING').count()
+
+    # Debug print using the safe profile instance
+    print(f"DEBUG DASHBOARD - Onboarding Complete Status: {organizer_profile.stripe_onboarding_complete}")
 
     context = {
         'events': events,
         'total_events': total_events,
         'total_guests': total_guests,
         'attending_guests': attending_guests,
+        'organizer_profile': organizer_profile,
+        'has_ticketed_events': has_ticketed_events,
     }
     return render(request, 'events/dashboard.html', context)
-
-
-# @login_required
-# def create_event(request):
-#     if request.method == 'POST':
-#         form = EventForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             event = form.save(commit=False)
-#             event.host = request.user
-#             event.save()
-#             messages.success(request, f"Event '{event.title}' created successfully!")
-#             return redirect('events:dashboard')
-#     else:
-#         form = EventForm()
-#     return render(request, 'events/event_form.html', {'form': form, 'action': 'Create'})
-
-
-from django.forms import inlineformset_factory
-from .models import Event, GalleryImage
 
 @login_required
 def create_event(request):
@@ -198,6 +164,17 @@ def create_event(request):
         formset = GalleryFormSet(request.POST, request.FILES, prefix='gallery_images')
         
         if form.is_valid() and formset.is_valid():
+            # Check if this is a ticketed event
+            is_ticketed = form.cleaned_data.get('is_ticketed', False)
+            
+            if is_ticketed:
+                # Ensure an organizer profile exists
+                profile, created = OrganizerProfile.objects.get_or_create(user=request.user)
+                
+                if not profile.stripe_onboarding_complete:
+                    messages.warning(request, "You must connect your payout account before publishing a ticketed event.")
+                    return redirect('events:connect_stripe_onboarding') # Adjust namespace/url name as needed
+
             event = form.save(commit=False)
             event.host = request.user
             event.save()
@@ -216,30 +193,6 @@ def create_event(request):
         'formset': formset, 
         'action': 'Create'
     })
-
-# @login_required
-# def edit_event(request, slug=None):
-#     event = get_object_or_404(Event, slug=slug)
-
-#     # Security check: ensure only the host can edit this event
-#     if event.host != request.user:
-#         messages.error(request, "You do not have permission to edit this event.")
-#         return redirect('events:dashboard')
-
-#     if event.is_past:
-#         messages.error(request, "Past events cannot be edited.")
-#         return redirect('events:event_detail', slug=event.slug)
-
-#     if request.method == 'POST':
-#         form = EventForm(request.POST, request.FILES, instance=event)
-#         if form.is_valid():
-#             saved_event = form.save()
-#             messages.success(request, f"Event '{saved_event.title}' updated successfully!")
-#             return redirect('events:event_detail', slug=saved_event.slug)
-#     else:
-#         form = EventForm(instance=event)
-
-#     return render(request, 'events/event_form.html', {'form': form, 'action': 'Edit'})
 
 @login_required
 def edit_event(request, slug=None):
@@ -266,6 +219,16 @@ def edit_event(request, slug=None):
         formset = GalleryFormSet(request.POST, request.FILES, instance=event, queryset=event.gallery_images.all(), prefix='gallery_images')
         
         if form.is_valid() and formset.is_valid():
+            # Check if they are switching/saving it as a ticketed event
+            is_ticketed = form.cleaned_data.get('is_ticketed', False)
+            
+            if is_ticketed:
+                profile, created = OrganizerProfile.objects.get_or_create(user=request.user)
+                
+                if not profile.stripe_onboarding_complete:
+                    messages.warning(request, "You must connect your payout account before publishing or updating a ticketed event.")
+                    return redirect('events:connect_stripe_onboarding')
+
             saved_event = form.save()
             formset.save()  
             
@@ -374,6 +337,7 @@ def public_rsvp(request, slug):
     return render(request, 'events/public_rsvp.html', context)
 
 
+# CONNECT
 def submit_rsvp(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
@@ -513,7 +477,7 @@ def submit_rsvp(request, slug):
             if checkout_url:
                 return redirect(checkout_url, code=303)
             else:
-                messages.error(request, "Could not initiate payment session. Please try again.")
+                messages.error(request, "Could not initiate payment session. Please check if the host has connected their Stripe payout account.")
                 return redirect('events:public_rsvp', slug=event.slug)
 
         try:
@@ -525,6 +489,7 @@ def submit_rsvp(request, slug):
         return redirect('events:rsvp_confirmed', pk=rsvp.pk)
 
     return redirect('events:public_rsvp', slug=slug)
+
 
 @login_required
 def event_rsvps_management(request, slug):
@@ -902,3 +867,142 @@ def export_rsvps_csv(request, slug):
 
 # def story_teller_view(request):
 #     return render(request, 'events/layouts/story_teller_festival.html')
+
+
+
+# CONNECT
+@login_required
+def connect_stripe_onboarding(request):
+    profile, created = OrganizerProfile.objects.get_or_create(user=request.user)
+
+    try:
+        if not profile.stripe_account_id:
+            profile.stripe_account_id = create_stripe_express_account(request.user)
+            profile.save()
+
+        refresh_url = request.build_absolute_uri('/events/stripe/connect/')
+        return_url = request.build_absolute_uri('/events/stripe/return/')
+        
+        onboarding_url = generate_account_link(profile.stripe_account_id, refresh_url, return_url)
+        return redirect(onboarding_url)
+
+    except stripe.error.StripeError as e:
+        # TEMPORARY TRACE: This will show you the exact reason Stripe is failing on your screen
+        print(f"FULL STRIPE ERROR: {str(e)}")
+        raise e
+
+@login_required
+def stripe_onboarding_return(request):
+    profile = get_object_or_404(OrganizerProfile, user=request.user)
+
+    if profile.stripe_account_id:
+        is_complete = check_stripe_onboarding_status(profile.stripe_account_id)
+        
+        if is_complete:
+            profile.stripe_onboarding_complete = True
+            profile.save()
+            messages.success(request, "Your payout account was connected successfully!")
+        else:
+            messages.warning(request, "Onboarding was not completed. Please try again when you're ready.")
+
+    return redirect('events:dashboard')
+
+
+@login_required
+def stripe_dashboard_redirect(request):
+    profile = get_object_or_404(OrganizerProfile, user=request.user)
+    
+    if not profile.stripe_account_id or not profile.stripe_onboarding_complete:
+        messages.warning(request, "Please connect your payout account first.")
+        return redirect('events:connect_stripe_onboarding')
+
+    try:
+        dashboard_url = generate_stripe_login_link(profile.stripe_account_id)
+        return redirect(dashboard_url)
+    except stripe.error.StripeError as e:
+        messages.error(request, f"Could not access Stripe dashboard: {e.user_message}")
+        return redirect('events:dashboard')
+
+
+@login_required
+def stripe_connect_return(request):
+    organizer_profile, created = OrganizerProfile.objects.get_or_create(user=request.user)
+    
+    if organizer_profile.stripe_account_id:
+        try:
+            # Query Stripe to verify completion
+            account = stripe.Account.retrieve(organizer_profile.stripe_account_id)
+            
+            if account.details_submitted:
+                organizer_profile.stripe_onboarding_complete = True
+                organizer_profile.save()
+                messages.success(request, "Payout account successfully connected!")
+            else:
+                messages.warning(request, "Onboarding was not completed yet. Please finish the setup.")
+        except stripe.error.StripeError as e:
+            messages.error(request, f"Stripe error: {e}")
+    else:
+        messages.error(request, "Organizer Stripe Account ID missing.")
+        
+    return redirect('events:dashboard')
+
+@login_required
+def stripe_dashboard_redirect(request):
+    organizer_profile, created = OrganizerProfile.objects.get_or_create(user=request.user)
+
+    if organizer_profile.stripe_account_id:
+        try:
+            login_link = stripe.Account.create_login_link(organizer_profile.stripe_account_id)
+            return redirect(login_link.url)
+        except stripe.error.StripeError as e:
+            messages.error(request, f"Stripe error: {e}")
+    else:
+        messages.error(request, "No connected Stripe account found.")
+        
+    return redirect('events:dashboard')
+
+
+from django.db.models import Count, Sum, Q
+from decimal import Decimal
+from django.shortcuts import get_object_or_404, render
+
+
+@login_required
+def event_analytics_dashboard(request, slug):
+    # Ensure this matches your model's related_name (e.g., event.rsvps or event.rsvp_set)
+    event = get_object_or_404(Event, slug=slug, host=request.user)
+    rsvps_query = event.rsvps  # Adjust to event.rsvp_set if you didn't set a custom related_name
+    
+    # Calculate key metrics
+    total_rsvps = rsvps_query.count()
+    confirmed_guests = rsvps_query.filter(status='ATTENDING').count()
+    checked_in_guests = rsvps_query.filter(checked_in=True).count()
+    
+    # Calculate ticket sales and revenue using the related ticket_tier price
+    ticket_sales_data = rsvps_query.filter(
+        status='ATTENDING', 
+        ticket_tier__isnull=False
+    ).aggregate(
+        total_revenue=Sum('ticket_tier__price'),
+        total_tickets_sold=Count('id')
+    )
+    
+    gross_revenue = ticket_sales_data['total_revenue'] or Decimal('0.00')
+    tickets_sold = ticket_sales_data['total_tickets_sold'] or 0
+    
+    # Platform fee calculation (5%)
+    platform_fee = gross_revenue * Decimal('0.05')
+    net_organizer_payout = gross_revenue - platform_fee
+
+    context = {
+        'event': event,
+        'total_rsvps': total_rsvps,
+        'confirmed_guests': confirmed_guests,
+        'checked_in_guests': checked_in_guests,
+        'gross_revenue': gross_revenue,
+        'tickets_sold': tickets_sold,
+        'platform_fee': platform_fee,
+        'net_organizer_payout': net_organizer_payout,
+    }
+    
+    return render(request, 'events/analytics_dashboard.html', context)

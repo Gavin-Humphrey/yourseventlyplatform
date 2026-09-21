@@ -67,6 +67,13 @@ urlpatterns = [
     path('webhook/', stripe_webhook, name='stripe_webhook'),
     path('events/webhook/', stripe_webhook, name='stripe_webhook'),
 
+    path('events/stripe/connect/', views.connect_stripe_onboarding, name='connect_stripe_onboarding'),
+
+    path('events/stripe/return/', views.stripe_connect_return, name='stripe_connect_return'),
+    path('events/stripe/dashboard/', views.stripe_dashboard_redirect, name='stripe_dashboard_redirect'),
+
+    path('dashboard/events/<slug:slug>/analytics/', views.event_analytics_dashboard, name='event_analytics'),
+
     # path('view/bento/', views.bento_view, name='bento_view'),
     # path('view/editorial_minimalist_view/', views.editorial_minimalist_view, name='editorial_minimalist_view'),
     # path('view/neon_and_dark_view/', views.neon_and_dark_view, name='neon_and_dark_view'),

@@ -62,7 +62,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'manage_my_event.urls'
+ROOT_URLCONF = 'yoursevently.urls'
 
 TEMPLATES = [
     {
@@ -81,7 +81,7 @@ TEMPLATES = [
 ]
 
 
-WSGI_APPLICATION = 'manage_my_event.wsgi.application'
+WSGI_APPLICATION = 'yoursevently.wsgi.application'
 
 
 # Database

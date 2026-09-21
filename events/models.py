@@ -11,6 +11,17 @@ from io import BytesIO
 from django.urls import reverse
 
 
+
+class OrganizerProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    display_name = models.CharField(max_length=255, blank=True, null=True)
+    stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_onboarding_complete = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.display_name or self.user.username
+
 class Event(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='events')
