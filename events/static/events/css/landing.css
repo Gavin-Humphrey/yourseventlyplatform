@@ -5957,6 +5957,31 @@ EVENT RSVP MANAGE POST EVENT VAULT DASHBOARD
   height: 100%;
   object-fit: cover;
 }
+
+.status-filter-select {
+  background: rgba(30, 41, 59, 0.96) !important;
+  color: #e2e8f0 !important;
+  border-radius: 12px;
+
+  color-scheme: dark;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.status-filter-select:hover {
+  background: rgba(51, 65, 85, 0.98) !important;
+  border-color: rgba(148, 163, 184, 0.4) !important;
+}
+
+.status-filter-select:focus {
+  outline: none;
+  border-color: rgba(129, 140, 248, 0.65) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.status-filter-select option {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
 /* ============================== */
 
 /* ================================

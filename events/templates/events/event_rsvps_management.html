@@ -317,7 +317,7 @@
       {% endif %}
     </div>
 
-    <!-- RSVP Management Table / Empty States -->
+    <!--  Table / Empty States -->
     {% if has_any_rsvps %}
       <div class="dashboard-card">
 
@@ -333,23 +333,20 @@
                 class="dashboard-input w-full sm:w-auto"
                 style="width: 400px; max-width: 55vw;"
               >
-
+              
               <select
                 name="status"
-                class="dashboard-action-badge cursor-pointer w-full sm:w-auto min-w-[160px] text-center appearance-none transition-all duration-200 focus:outline-none"
+                class="dashboard-action-badge status-filter-select cursor-pointer w-full sm:w-auto min-w-[160px] text-center appearance-none transition-all duration-200 focus:outline-none"
                 style="border: none;"
               >
                 <option value="">All Statuses</option>
-
                 {% if event.is_ticketed %}
                   <option value="ATTENDING" {% if status_filter == 'ATTENDING' %}selected{% endif %}>
                     Attending
                   </option>
-
                   <option value="refunded" {% if status_filter == 'refunded' %}selected{% endif %}>
                     Refunded
                   </option>
-
                   <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>
                     Cancelled
                   </option>
@@ -357,17 +354,15 @@
                   <option value="ATTENDING" {% if status_filter == 'ATTENDING' %}selected{% endif %}>
                     Attending
                   </option>
-
                   <option value="DECLINED" {% if status_filter == 'DECLINED' %}selected{% endif %}>
                     Declined
                   </option>
-
                   <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>
                     Pending
                   </option>
                 {% endif %}
               </select>
-
+              
               <button
                 type="submit"
                 class="dashboard-action-badge cursor-pointer w-full sm:w-auto text-center transition-all duration-200"
@@ -381,7 +376,7 @@
           </form>
         </div>
 
-        <!-- RSVP Table -->
+        <!-- Table -->
         <div class="rsvp-table-container">
           {% if rsvps %}
             <table class="rsvp-table">
