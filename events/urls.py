@@ -4,6 +4,7 @@ from django.urls import path
 from . import views
 
 from .stripe_utils import stripe_webhook
+from . import wallet
 
 app_name = 'events'
 
@@ -60,12 +61,25 @@ urlpatterns = [
     path('resources/community/', views.organizer_community, name='organizer_community'),
     path('resources/status/', views.system_status, name='system_status'),
 
+    path('pricing/', views.pricing, name='pricing'),
+
     path('events/<slug:slug>/tiers/', views.manage_event_tiers, name='manage_event_tiers'),
 
     path('dashboard/events/<slug:slug>/guests/export/', views.export_rsvps_csv, name='export_rsvps_csv'),
 
+    path('dashboard/upgrade/unlimited/', views.start_dashboard_unlimited_checkout, name='start_dashboard_unlimited_checkout',),
+
     path('webhook/', stripe_webhook, name='stripe_webhook'),
-    path('events/webhook/', stripe_webhook, name='stripe_webhook'),
+    #path('events/webhook/', stripe_webhook, name='stripe_webhook'),
+    ############
+
+    path("rsvp/pending/<int:pending_order_id>/confirmed/", views.pending_rsvp_confirmed_view, name="pending_rsvp_confirmed",),
+
+    path('upgrade/<int:pk>/', views.upgrade_options, name='upgrade_options'),
+    path('upgrade/<int:pk>/checkout/', views.start_upgrade_checkout, name='start_upgrade_checkout'),
+    path('payment/success/', views.payment_success, name='payment_success'),
+    ############
+    path('dashboard/subscription/success/', views.dashboard_subscription_success, name='dashboard_subscription_success'),
 
     path('events/stripe/connect/', views.connect_stripe_onboarding, name='connect_stripe_onboarding'),
 
@@ -73,6 +87,66 @@ urlpatterns = [
     path('events/stripe/dashboard/', views.stripe_dashboard_redirect, name='stripe_dashboard_redirect'),
 
     path('dashboard/events/<slug:slug>/analytics/', views.event_analytics_dashboard, name='event_analytics'),
+
+    path('e/<slug:slug>/feedback/', views.submit_feedback, name='submit_feedback'),
+
+
+    path('rsvp/<slug:slug>/verify-email/', views.verify_rsvp_email, name='verify_rsvp_email'),
+
+    path('event/<slug:event_slug>/certificate/download/', views.download_certificate, name='download_certificate'),
+
+    # path('pass/<uuid:token>/apple/', wallet.download_apple_wallet_pass, name='apple_pass'),
+    
+    path('wallet/pass/<uuid:token>/', views.google_pass_view, name='google_pass_view'),
+    path('ticket/<token>/', views.web_ticket_view, name='web_ticket'),
+
+    # FOLLOW
+    path('organizer/<int:organizer_id>/toggle-follow/', views.toggle_follow_organizer, name='toggle_follow_organizer'),
+    path('feed/following/', views.following_feed, name='following_feed'),
+    path('notifications/preferences/', views.update_follow_notification_preferences, name='update_follow_notification_preferences'),
+    path('notifications/unsubscribe/<uuid:token>/', views.unsubscribe_organizer_notifications, name='unsubscribe_organizer_notifications'),
+
+
+    #==============================
+    path(
+        "visitor/follow/<int:organizer_id>/",
+        views.visitor_follow,
+        name="visitor_follow",
+    ),
+    path(
+        "visitor/follow/<int:organizer_id>/send/",
+        views.request_visitor_follow,
+        name="request_visitor_follow",
+    ),
+    path(
+        "visitor/verify/<uuid:token>/",
+        views.verify_visitor_follow,
+        name="verify_visitor_follow",
+    ),
+    path(
+        "visitor/register/",
+        views.register_visitor,
+        name="visitor_register",
+    ),
+
+    path(
+        "notifications/",
+        views.notifications_inbox,
+        name="notifications_inbox",
+    ),
+    path(
+        "notifications/<int:notification_id>/open/",
+        views.open_notification,
+        name="open_notification",
+    ),
+
+    path(
+        "notifications/mark-all-read/",
+        views.mark_all_notifications_read,
+        name="mark_all_notifications_read",
+    ),
+
+    #==============================
 
     # path('view/bento/', views.bento_view, name='bento_view'),
     # path('view/editorial_minimalist_view/', views.editorial_minimalist_view, name='editorial_minimalist_view'),

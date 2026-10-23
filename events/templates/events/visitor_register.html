@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Visitor Registration | YoursEvently</title>
+</head>
+<body>
+    <main>
+        <h1>Create your visitor account</h1>
+        <p>Your email has been verified. Complete registration to follow the organizer.</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div>
+                <label for="first-name">First name</label>
+                <input
+                    id="first-name"
+                    type="text"
+                    name="first_name"
+                    autocomplete="given-name"
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="last-name">Last name</label>
+                <input
+                    id="last-name"
+                    type="text"
+                    name="last_name"
+                    autocomplete="family-name"
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="email">Verified email</label>
+                <input
+                    id="email"
+                    type="email"
+                    value="{{ email }}"
+                    readonly
+                >
+            </div>
+
+            <div>
+                <label for="password">Create password</label>
+                <input
+                    id="password"
+                    type="password"
+                    name="password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="password-confirm">Confirm password</label>
+                <input
+                    id="password-confirm"
+                    type="password"
+                    name="password_confirm"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                >
+            </div>
+
+            <button type="submit">Register and follow</button>
+        </form>
+    </main>
+</body>
+</html>

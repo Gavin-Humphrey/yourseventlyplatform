@@ -1,0 +1,254 @@
+
+{% extends "events/landing_base.html" %}
+
+{% block title %}Notifications — YoursEvently{% endblock %}
+
+{% block extra_head %}
+
+{% endblock %}
+
+{% block content %}
+<div class="notif-page">
+    <div class="notif-glow notif-glow-one" aria-hidden="true"></div>
+    <div class="notif-glow notif-glow-two" aria-hidden="true"></div>
+
+    <main class="notif-container">
+        <!-- Header -->
+        <header class="notif-header">
+            <div>
+                <div class="notif-eyebrow">
+                    <span class="notif-pulse-dot" aria-hidden="true"></span>
+                    <span>Activity Feed</span>
+                </div>
+
+                <h1 class="notif-title">Notifications</h1>
+
+                <p class="notif-subtitle">
+                    Stay connected with new followers, event updates,
+                    and activity from your community.
+                </p>
+            </div>
+
+            <div>
+                {% if unread_count %}
+                    <span class="notif-unread-badge">
+                        <span aria-hidden="true">●</span>
+                        {{ unread_count }} unread
+                    </span>
+                {% else %}
+                    <span class="notif-caughtup-badge">
+                        <span aria-hidden="true">✓</span>
+                        All caught up
+                    </span>
+                {% endif %}
+            </div>
+        </header>
+
+        <!-- Toolbar -->
+        <section class="notif-toolbar" aria-label="Notification controls">
+            <div class="notif-filter-group" role="group"
+                 aria-label="Filter notifications">
+                <button type="button"
+                        class="notif-filter is-active"
+                        data-notif-filter="all"
+                        aria-pressed="true">
+                    All
+                    <span class="notif-filter-count"
+                          id="notif-all-count">{{ notifications|length }}</span>
+                </button>
+
+                <button type="button"
+                        class="notif-filter"
+                        data-notif-filter="unread"
+                        aria-pressed="false">
+                    Unread
+                    <span class="notif-filter-count"
+                          id="notif-unread-count">{{ unread_count }}</span>
+                </button>
+            </div>
+
+            {% if unread_count %}
+                <form class="notif-mark-all-form"
+                      method="post"
+                      action="{% url 'events:mark_all_notifications_read' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="notif-mark-all">
+                        <span aria-hidden="true">✓</span>
+                        Mark all as read
+                    </button>
+                </form>
+            {% endif %}
+        </section>
+
+        <!-- Notification list -->
+        <section id="notif-list" aria-label="Your notifications"
+                 aria-live="polite">
+            {% for notification in notifications %}
+                <a href="{% url 'events:open_notification' notification_id=notification.pk %}"
+                   class="notif-card {% if notification.is_read %}notif-card-read{% else %}notif-card-unread{% endif %}"
+                   data-notif-item
+                   data-notif-read="{% if notification.is_read %}true{% else %}false{% endif %}">
+
+                    <div class="notif-card-body">
+                        <div class="notif-icon-avatar {% if not notification.is_read %}notif-icon-unread{% endif %}"
+                             aria-hidden="true">
+                            {% if 'follow' in notification.title|lower %}
+                                👥
+                            {% elif 'ticket' in notification.title|lower or 'rsvp' in notification.title|lower or 'boarding' in notification.title|lower %}
+                                🎟️
+                            {% elif 'payment' in notification.title|lower or 'payout' in notification.title|lower %}
+                                💳
+                            {% elif 'publish' in notification.title|lower or 'drop' in notification.title|lower or 'event' in notification.title|lower %}
+                                ✨
+                            {% else %}
+                                🔔
+                            {% endif %}
+                        </div>
+
+                        <div class="notif-content">
+                            <div class="notif-title-row">
+                                <h2 class="notif-item-title">
+                                    {{ notification.title }}
+                                </h2>
+
+                                {% if not notification.is_read %}
+                                    <span class="notif-new-tag">
+                                        New
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <p class="notif-item-message">
+                                {{ notification.message }}
+                            </p>
+
+                            <div class="notif-item-footer">
+                                <time class="notif-item-meta"
+                                      datetime="{{ notification.created_at|date:'c' }}">
+                                    <svg width="13" height="13"
+                                         fill="none" stroke="currentColor"
+                                         viewBox="0 0 24 24"
+                                         aria-hidden="true">
+                                        <circle cx="12" cy="12" r="9"
+                                                stroke-width="2"/>
+                                        <path d="M12 7v5l3 2"
+                                              stroke-width="2"
+                                              stroke-linecap="round"
+                                              stroke-linejoin="round"/>
+                                    </svg>
+                                    {{ notification.created_at|date:"M j, Y · g:i A" }}
+                                </time>
+
+                                <span class="notif-action-hint">
+                                    {% if 'follow' in notification.title|lower %}
+                                        View notification
+                                    {% elif notification.event %}
+                                        View event details
+                                    {% else %}
+                                        View notification
+                                    {% endif %}
+                                    <span aria-hidden="true">→</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        {% if not notification.is_read %}
+                            <span class="notif-unread-orb"
+                                  aria-label="Unread"></span>
+                        {% endif %}
+                    </div>
+                </a>
+            {% empty %}
+                <div class="notif-empty-card" id="notif-empty">
+                    <div class="notif-empty-icon" aria-hidden="true">✓</div>
+
+                    <h2 class="notif-empty-title">
+                        You're all caught up
+                    </h2>
+
+                    <p class="notif-empty-text">
+                        No notifications yet. New followers and updates
+                        from your event community will appear here.
+                    </p>
+
+                    <a href="{% url 'events:home' %}" class="notif-empty-btn">
+                        Explore Upcoming Events
+                        <span aria-hidden="true">→</span>
+                    </a>
+                </div>
+            {% endfor %}
+
+            <div class="notif-empty-card notif-hidden"
+                 id="notif-filter-empty">
+                <div class="notif-empty-icon" aria-hidden="true">✓</div>
+                <h2 class="notif-empty-title" id="notif-filter-empty-title">
+                    You're all caught up
+                </h2>
+                <p class="notif-empty-text" id="notif-filter-empty-text">
+                    There are no notifications in this view.
+                </p>
+            </div>
+        </section>
+
+        <p class="notif-footer-note">
+            YoursEvently · Your event community, all in one place.
+        </p>
+    </main>
+</div>
+
+<script>
+(function () {
+    const filterButtons = document.querySelectorAll("[data-notif-filter]");
+    const notificationItems = Array.from(
+        document.querySelectorAll("[data-notif-item]")
+    );
+    const filterEmpty = document.getElementById("notif-filter-empty");
+    const filterEmptyTitle = document.getElementById("notif-filter-empty-title");
+    const filterEmptyText = document.getElementById("notif-filter-empty-text");
+
+    if (!filterButtons.length) return;
+
+    function applyFilter(filter) {
+        let visibleCount = 0;
+
+        notificationItems.forEach(function (item) {
+            const isUnread = item.dataset.notifRead === "false";
+            const visible = filter === "all" || isUnread;
+
+            item.classList.toggle("notif-hidden", !visible);
+
+            if (visible) visibleCount++;
+        });
+
+        filterButtons.forEach(function (button) {
+            const active = button.dataset.notifFilter === filter;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+
+        if (filterEmpty) {
+            const showFilterEmpty = notificationItems.length > 0
+                && visibleCount === 0;
+
+            filterEmpty.classList.toggle("notif-hidden", !showFilterEmpty);
+
+            if (filter === "unread") {
+                filterEmptyTitle.textContent = "You're all caught up";
+                filterEmptyText.textContent =
+                    "You have no unread notifications. Switch to All to see your notification history.";
+            } else {
+                filterEmptyTitle.textContent = "No notifications yet";
+                filterEmptyText.textContent =
+                    "New followers and updates from your event community will appear here.";
+            }
+        }
+    }
+
+    filterButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            applyFilter(button.dataset.notifFilter);
+        });
+    });
+})();
+</script>
+{% endblock %}

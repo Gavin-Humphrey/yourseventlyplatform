@@ -1,0 +1,677 @@
+{% extends 'events/landing_base.html' %}
+
+{% block title %}Pricing & Host Plans — Free Bee, $19 Pro Event & Unlimited Pro | YoursEvently{% endblock %}
+
+{% block content %}
+
+
+<div class="prc-page-shell">
+
+    <!-- ================= 1. HERO HEADER SECTION ================= -->
+    <section class="prc-hero-header prc-layout-container">
+        <div class="prc-eyebrow-pill">
+            <span class="prc-pulse-dot"></span>
+            <span>Transparent Host Pricing · Start Free, Upgrade Anytime</span>
+        </div>
+
+        <h1 class="prc-hero-title">
+            Craft Unforgettable Events.
+            <span class="prc-gradient-span">Pay Only for the Power You Need.</span>
+        </h1>
+
+        <p class="prc-hero-subtitle">
+            Whether you are hosting an intimate gathering with <strong>Free Bee</strong>, unlocking full <strong style="color: #fcd34d;">★ PRO</strong> capabilities for a single milestone celebration at <strong>$19</strong>, or running events year-round with <strong style="color: var(--electric-green);">Unlimited Pro</strong>—you are always in complete control.
+        </p>
+
+        <div class="prc-quick-nav">
+            <a href="#plans-grid" class="prc-nav-chip">Compare 3 Host Plans</a>
+            <a href="#upgrade-pathways" class="prc-nav-chip">How Host Upgrades Work</a>
+            <a href="#ticketing-fee-section" class="prc-nav-chip prc-nav-chip--emerald">5% Ticketing Fee Explained</a>
+            <a href="#feature-matrix" class="prc-nav-chip">Full Feature Matrix</a>
+        </div>
+    </section>
+
+    <!-- ================= 2. THREE CORE PLANS GRID ================= -->
+    <section id="plans-grid" class="prc-block-section prc-layout-container" style="padding-top: 1rem;">
+        <div class="prc-plans-grid">
+
+            <!-- PLAN 1: FREE BEE -->
+            <div class="prc-plan-card">
+                <div class="prc-card-topbar prc-card-topbar--free"></div>
+
+                <div>
+                    <div class="prc-plan-header">
+                        <div>
+                            <span class="prc-tier-label" style="color: var(--text-muted);">Starter Tier</span>
+                            <h2 class="prc-plan-name">🐝 Free Bee</h2>
+                        </div>
+                        <span class="prc-plan-badge prc-plan-badge--free">Forever Free</span>
+                    </div>
+
+                    <div class="prc-price-row">
+                        <span class="prc-price-amount">$0</span>
+                        <div class="prc-price-meta">
+                            <strong style="color: var(--text-main);">forever free</strong>
+                            <span>No credit card required</span>
+                        </div>
+                    </div>
+
+                    <div class="prc-desc-box">
+                        <span class="prc-desc-title">Built for effortless everyday gatherings:</span>
+                        Ideal for hosts organizing casual parties, community meetups, dinners, or private celebrations who need a custom-branded public RSVP page, full color &amp; layout customization, and live guestlist tracking at zero cost.
+                    </div>
+
+                    <p class="prc-checklist-heading" style="color: var(--text-muted);">What’s Included in Free Bee:</p>
+                    <ul class="prc-feature-list">
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Unlimited Free RSVP Events</strong> with instant public invite links</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Full Theme &amp; Color Studio</strong> — customize Page BG, Section Card BG, Primary Accent, Heading, Body &amp; Muted colors</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>All 8 Signature Layouts</strong> including Showcase, Summit, Nightlife, Editorial &amp; Split Screen</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Venue Capacity &amp; Plus-One Controls</strong> with automatic capacity cutoffs</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Google Calendar &amp; .ICS</strong> pass downloads + interactive Venue Map</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Flexible Upgrades Anytime</strong> to $19 Pro One-Time Event or Unlimited Pro</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="prc-plan-footer">
+                    <a href="{% url 'events:create_event' %}" class="prc-plan-btn prc-plan-btn--outline">
+                        <span>Start With Free Bee</span>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                    <p class="prc-plan-footnote">Default plan for all new accounts · Upgrade individual events anytime</p>
+                </div>
+            </div>
+
+            <!-- PLAN 2: $19 PRO ONE-TIME EVENT -->
+            <div class="prc-plan-card prc-plan-card--pro-single">
+                <div class="prc-card-topbar prc-card-topbar--pro"></div>
+
+                <div>
+                    <div class="prc-plan-header">
+                        <div>
+                            <span class="prc-tier-label" style="color: var(--accent-indigo);">Pay-Per-Event Pass</span>
+                            <h2 class="prc-plan-name">Pro One-Time Event</h2>
+                        </div>
+                        <span class="prc-plan-badge prc-plan-badge--amber">★ SINGLE EVENT PRO</span>
+                    </div>
+
+                    <div class="prc-price-row">
+                        <span class="prc-price-amount">$19</span>
+                        <div class="prc-price-meta">
+                            <strong style="color: var(--accent-indigo);">one-time payment per event</strong>
+                            <span>No monthly recurring charge</span>
+                        </div>
+                    </div>
+
+                    <div class="prc-desc-box prc-desc-box--pro">
+                        <span class="prc-desc-title" style="color: #c7d2fe;">Built for milestone one-off events:</span>
+                        Perfect when you are hosting a special wedding, gala, conference, workshop, or VIP party and want every <strong style="color: #fcd34d;">★ PRO</strong> feature unlocked permanently for that single event—without committing to a recurring subscription.
+                    </div>
+
+                    <p class="prc-checklist-heading" style="color: var(--accent-indigo);">Everything in Free Bee, Plus For 1 Event:</p>
+                    <ul class="prc-feature-list">
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--accent-indigo);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Paid Ticketing &amp; Multi-Tier Passes</strong> via Stripe Checkout (VIP, Early Bird, General Admission)</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--accent-indigo);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Digital QR Ticket Passes &amp; Live Door Scanner</strong> interface for instant guest check-in</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--accent-indigo);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Host Bio, Hero Banner &amp; 5-Slide Photo Gallery</strong> + Password-Protected Post-Event Photo Vault</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--accent-indigo);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Guestbook &amp; Celebrant Message Carousel</strong> for warm attendee wishes</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--accent-indigo);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Real-Time Public Announcement Banner</strong> for live schedule or venue broadcasts</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--accent-indigo);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Resource Downloads &amp; Attendance Certificates</strong> for summits and seminars</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="prc-plan-footer">
+                    <a href="{% url 'events:create_event' %}" class="prc-plan-btn prc-plan-btn--indigo">
+                        <span>Create or Upgrade 1 Event ($19)</span>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                    <p class="prc-plan-footnote">Upgrade directly from Free Bee when saving an event with ★ PRO features</p>
+                </div>
+            </div>
+
+            <!-- PLAN 3: UNLIMITED PRO -->
+            <div class="prc-plan-card prc-plan-card--unlimited">
+                <div class="prc-card-topbar prc-card-topbar--unlimited"></div>
+
+                <div>
+                    <div class="prc-plan-header">
+                        <div>
+                            <span class="prc-tier-label" style="color: var(--electric-green);">All-Access Organizer Tier</span>
+                            <h2 class="prc-plan-name">Unlimited Pro</h2>
+                        </div>
+                        <span class="prc-plan-badge prc-plan-badge--emerald">★ MOST POWERFUL</span>
+                    </div>
+
+                    <div class="prc-price-row">
+                        <span class="prc-price-amount">${{ unlimited_pro_price|default:"29" }}</span>
+                        <div class="prc-price-meta">
+                            <strong style="color: var(--electric-green);">per month · unlimited Pro events</strong>
+                            <span>Cancel or switch plans anytime</span>
+                        </div>
+                    </div>
+
+                    <div class="prc-desc-box prc-desc-box--unlimited">
+                        <span class="prc-desc-title" style="color: var(--electric-green);">Built for frequent hosts, promoters &amp; brands:</span>
+                        Designed for organizers hosting multiple events, recurring nightlife series, workshops, or client productions who want <strong style="color: #fcd34d;">★ PRO</strong> unlocked across every single event automatically—without ever paying $19 per event again.
+                    </div>
+
+                    <p class="prc-checklist-heading" style="color: var(--electric-green);">Everything in $19 Pro Event, Plus Unlimited Scale:</p>
+                    <ul class="prc-feature-list">
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Unlimited ★ PRO Events</strong> — publish as many Pro events as you want with zero per-event fees</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Instant Pro Activation</strong> — all new and existing Free Bee events on your account gain full Pro features immediately</span>
+                        </li>
+                        <li class="prc-feature-item prc-feature-item--spotlight">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span>
+                                <strong style="color: #ffffff;">YoursEvently Favorite Upcoming Events Homepage Spotlight.</strong>
+                                <span style="display: block; margin-top: 0.2rem; color: var(--text-muted); font-size: 0.82rem;">
+                                    Get an upcoming event displayed directly on the YoursEvently &ldquo;Favorite Upcoming Events&rdquo; discovery showcase to boost visibility and attract more attendees.
+                                </span>
+                                <span class="prc-feature-eligibility">*Based on eligibility</span>
+                            </span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Unlimited Paid Ticketing &amp; QR Check-In Scanners</strong> across concurrent events</span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Unlimited Photo Vaults, Lookbooks &amp; Guestbook Carousels</strong></span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Unlimited Digital Certificates &amp; Presentation Hubs</strong></span>
+                        </li>
+                        <li class="prc-feature-item">
+                            <svg class="prc-check-icon" width="18" height="18" style="color: var(--electric-green);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Priority Host Support</strong> &amp; seamless account-wide Pro status</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="prc-plan-footer">
+                    <a href="{% url 'events:dashboard' %}" class="prc-plan-btn prc-plan-btn--emerald">
+                        <span>Upgrade to Unlimited Pro</span>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                    <p class="prc-plan-footnote">Pays for itself as soon as you host 3 or more Pro events</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ================= 3. FLEXIBLE HOST UPGRADE PATHWAYS SECTION ================= -->
+    <section id="upgrade-pathways" class="prc-block-section prc-layout-container">
+        <div class="prc-surface-panel">
+            <div class="prc-section-header">
+                <span class="prc-section-kicker" style="color: var(--accent-purple);">Seamless Upgrade Progression</span>
+                <h2 class="prc-section-title">Start on Free Bee. Upgrade Per-Event or Go Unlimited Anytime.</h2>
+                <p class="prc-section-subtitle">
+                    YoursEvently never locks your events into a rigid tier. Every host starts with <strong style="color: #ffffff;">Free Bee</strong> and can upgrade a single event to <strong style="color: var(--accent-indigo);">$19 Pro One-Time Event</strong> or elevate their entire account to <strong style="color: var(--electric-green);">Unlimited Pro</strong> whenever their needs grow.
+                </p>
+            </div>
+
+            <div class="prc-pathways-grid">
+                <!-- Pathway 1 -->
+                <div class="prc-pathway-card">
+                    <div>
+                        <div class="prc-pathway-top">
+                            <span class="prc-pathway-step" style="color: var(--accent-indigo);">Pathway 01</span>
+                            <span class="prc-pathway-route">Free Bee → $19 Pro Event</span>
+                        </div>
+                        <h3 class="prc-pathway-title">Upgrade a Single Event On-Demand</h3>
+                        <p class="prc-pathway-text">
+                            Draft or publish your event on <strong style="color: #ffffff;">Free Bee</strong> first. Whenever you want to add Paid Ticketing, QR Door Check-ins, a 5-slide Photo Gallery, Guestbook, or Live Announcements, simply check any <strong style="color: #fcd34d;">★ PRO</strong> box in the Event Form. Upon saving, you complete a one-time <strong style="color: #ffffff;">$19</strong> checkout that permanently unlocks Pro for that specific event.
+                        </p>
+                    </div>
+                    <div class="prc-pathway-meta" style="color: var(--accent-indigo);">
+                        <span>Permanent for that event</span>
+                        <span>$19 One-Time</span>
+                    </div>
+                </div>
+
+                <!-- Pathway 2 -->
+                <div class="prc-pathway-card">
+                    <div>
+                        <div class="prc-pathway-top">
+                            <span class="prc-pathway-step" style="color: var(--electric-green);">Pathway 02</span>
+                            <span class="prc-pathway-route">Free Bee → Unlimited Pro</span>
+                        </div>
+                        <h3 class="prc-pathway-title">Jump Straight to All-Access Pro</h3>
+                        <p class="prc-pathway-text">
+                            Hosting multiple events or managing an organization? Upgrade directly from <strong style="color: #ffffff;">Free Bee</strong> to <strong style="color: var(--electric-green);">Unlimited Pro</strong>. Every existing draft or live Free Bee event on your dashboard—and every new event you create—immediately unlocks all <strong style="color: #fcd34d;">★ PRO</strong> features without any per-event checkout steps.
+                        </p>
+                    </div>
+                    <div class="prc-pathway-meta" style="color: var(--electric-green);">
+                        <span>Unlocks all account events</span>
+                        <span>Unlimited Events</span>
+                    </div>
+                </div>
+
+                <!-- Pathway 3 -->
+                <div class="prc-pathway-card">
+                    <div>
+                        <div class="prc-pathway-top">
+                            <span class="prc-pathway-step" style="color: var(--accent-purple);">Pathway 03</span>
+                            <span class="prc-pathway-route">$19 Pro → Unlimited Pro</span>
+                        </div>
+                        <h3 class="prc-pathway-title">Scale From Single Event to Unlimited</h3>
+                        <p class="prc-pathway-text">
+                            Started with a <strong style="color: var(--accent-indigo);">$19 Pro One-Time Event</strong> and loved the experience? You can upgrade to <strong style="color: var(--electric-green);">Unlimited Pro</strong> at any time from your dashboard or during your next event upgrade prompt. Your previously purchased $19 Pro events remain permanently active, and you never pay per-event again.
+                        </p>
+                    </div>
+                    <div class="prc-pathway-meta" style="color: var(--accent-purple);">
+                        <span>Seamless account elevation</span>
+                        <span>Zero Data Loss</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 4. PAID TICKETING EVENTS & 5% PLATFORM CHARGE SECTION ================= -->
+    <section id="ticketing-fee-section" class="prc-block-section prc-layout-container">
+        <div class="prc-ticketing-panel">
+            <div class="prc-card-topbar prc-card-topbar--unlimited"></div>
+
+            <div class="prc-ticketing-grid">
+                <!-- Left Column: Details & Plan-Independence Clarification -->
+                <div>
+                    <span class="prc-plan-badge prc-plan-badge--emerald" style="margin-bottom: 0.9rem;">🎟️ PAID TICKETING &amp; REVENUE TRANSPARENCY</span>
+                    <h2 class="prc-section-title">Selling Tickets? Simple 5% Platform Fee Per Paid Ticket.</h2>
+                    <p class="prc-section-subtitle">
+                        When you enable <strong style="color: #ffffff;">Paid Ticketing</strong> on a Pro event, your public event page automatically transforms its RSVP form into a secure, multi-tier Stripe checkout flow with instant QR pass delivery.
+                    </p>
+
+                    <!-- Important Clarification Banner -->
+                    <div class="prc-policy-callout">
+                        <div class="prc-policy-header">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Important Policy: 100% Independent of Your Host Plan</span>
+                        </div>
+                        <p style="margin: 0; font-size: 0.9rem; color: var(--text-main);">
+                            Our <strong style="color: var(--electric-green);">5% platform charge per ticket</strong> applies strictly to paid tickets sold on any ticketed event and <strong style="color: #ffffff; text-decoration: underline;">has nothing to do with which plan the host subscribed to</strong>.
+                        </p>
+                        <ul class="prc-policy-list">
+                            <li>
+                                <span style="color: var(--electric-green);">●</span>
+                                <span>Whether you unlocked ticketing via the <strong style="color: #ffffff;">$19 Pro One-Time Event</strong> pass or you are subscribed to <strong style="color: #ffffff;">Unlimited Pro</strong>, the platform fee on paid tickets is the exact same flat <strong style="color: #ffffff;">5% per ticket sold</strong>.</span>
+                            </li>
+                            <li>
+                                <span style="color: var(--electric-green);">●</span>
+                                <span>Hosting a <strong style="color: #ffffff;">free-entry RSVP event</strong> (even on $19 Pro or Unlimited Pro)? You pay <strong style="color: var(--electric-green);">$0 (0%) in ticket fees</strong>—the 5% charge only ever applies when money is collected for a paid ticket.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="prc-mini-features-grid">
+                        <div class="prc-mini-feature-card">
+                            <h3 class="prc-mini-feature-title">
+                                <span class="prc-pulse-dot" style="background-color: var(--electric-green);"></span>
+                                Multi-Tier Ticket Types
+                            </h3>
+                            <p class="prc-mini-feature-desc">Create Early Bird, General Admission, VIP Tables, or Backstage Passes with individual prices and inventory caps.</p>
+                        </div>
+
+                        <div class="prc-mini-feature-card">
+                            <h3 class="prc-mini-feature-title">
+                                <span class="prc-pulse-dot" style="background-color: var(--accent-indigo); box-shadow: none;"></span>
+                                Automated QR Boarding Passes
+                            </h3>
+                            <p class="prc-mini-feature-desc">Every verified ticket purchase generates a tamper-proof QR code pass ready for scanning at the door.</p>
+                        </div>
+
+                        <div class="prc-mini-feature-card">
+                            <h3 class="prc-mini-feature-title">
+                                <span class="prc-pulse-dot" style="background-color: var(--accent-purple); box-shadow: none;"></span>
+                                Real-Time Inventory Protection
+                            </h3>
+                            <p class="prc-mini-feature-desc">Live capacity tracking prevents overselling and automatically marks tiers as Sold Out when limits are reached.</p>
+                        </div>
+
+                        <div class="prc-mini-feature-card">
+                            <h3 class="prc-mini-feature-title">
+                                <span class="prc-pulse-dot" style="background-color: var(--accent-pink); box-shadow: none;"></span>
+                                Direct Stripe Checkout
+                            </h3>
+                            <p class="prc-mini-feature-desc">Guests pay securely via credit card, Apple Pay, or Google Pay with instant confirmation and receipt delivery.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Interactive 5% Fee Calculator -->
+                <div class="prc-calc-card">
+                    <div class="prc-calc-header">
+                        <div>
+                            <span class="prc-tier-label" style="color: var(--electric-green); margin-bottom: 0.15rem;">Interactive Estimator</span>
+                            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #ffffff;">5% Ticket Fee Calculator</h3>
+                        </div>
+                        <span class="prc-plan-badge prc-plan-badge--emerald">5% Flat Rate</span>
+                    </div>
+
+                    <div class="prc-slider-group">
+                        <div class="prc-slider-label-row">
+                            <label for="calcTicketPrice" style="color: var(--text-muted); font-weight: 600;">Ticket Price (USD)</label>
+                            <span id="calcTicketPriceDisplay" class="prc-slider-value">$50.00</span>
+                        </div>
+                        <input type="range" id="calcTicketPrice" min="5" max="500" step="5" value="50" class="prc-range-slider" oninput="updateTicketFeeCalculator()">
+                        <div class="prc-slider-ticks">
+                            <span>$5</span>
+                            <span>$100</span>
+                            <span>$250</span>
+                            <span>$500</span>
+                        </div>
+                    </div>
+
+                    <div class="prc-slider-group">
+                        <div class="prc-slider-label-row">
+                            <label for="calcTicketQty" style="color: var(--text-muted); font-weight: 600;">Estimated Tickets Sold</label>
+                            <span id="calcTicketQtyDisplay" class="prc-slider-value">100 tickets</span>
+                        </div>
+                        <input type="range" id="calcTicketQty" min="10" max="1000" step="10" value="100" class="prc-range-slider" oninput="updateTicketFeeCalculator()">
+                        <div class="prc-slider-ticks">
+                            <span>10</span>
+                            <span>250</span>
+                            <span>500</span>
+                            <span>1,000</span>
+                        </div>
+                    </div>
+
+                    <div class="prc-calc-results">
+                        <div class="prc-calc-line">
+                            <span style="color: var(--text-muted);">5% Platform Charge Per Ticket:</span>
+                            <span id="calcFeePerTicket" style="font-family: monospace; font-weight: 700; color: #fcd34d;">$2.50 / ticket</span>
+                        </div>
+                        <div class="prc-calc-line">
+                            <span style="color: var(--text-muted);">Gross Ticket Sales:</span>
+                            <span id="calcGrossRevenue" style="font-family: monospace; font-weight: 700; color: #ffffff;">$5,000.00</span>
+                        </div>
+                        <div class="prc-calc-line">
+                            <span style="color: var(--text-muted);">Total 5% Platform Charge:</span>
+                            <span id="calcTotalPlatformFee" style="font-family: monospace; font-weight: 700; color: var(--accent-rose);">-$250.00</span>
+                        </div>
+                        <div class="prc-calc-line prc-calc-line--total">
+                            <span style="color: #ffffff;">Estimated Host Payout:</span>
+                            <span id="calcNetPayout" style="font-family: monospace; font-size: 1.15rem; color: var(--electric-green);">$4,750.00</span>
+                        </div>
+                    </div>
+
+                    <p style="margin: 0; font-size: 0.74rem; color: var(--text-dimmed); line-height: 1.5;">
+                        * The 5% YoursEvently platform charge applies per paid ticket regardless of whether your event uses the <strong style="color: var(--text-muted);">$19 Pro One-Time Event</strong> plan or <strong style="color: var(--text-muted);">Unlimited Pro</strong>. Standard Stripe payment processing rates apply separately at checkout.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 5. FULL FEATURE COMPARISON MATRIX ================= -->
+    <section id="feature-matrix" class="prc-block-section prc-layout-container">
+        <div style="text-align: center; max-width: 720px; margin: 0 auto 2.25rem auto;">
+            <span class="prc-section-kicker" style="color: var(--accent-indigo);">Side-By-Side Breakdown</span>
+            <h2 class="prc-section-title">Compare Every Feature Across Plans</h2>
+            <p class="prc-section-subtitle">
+                Inspect every capability across Free Bee, $19 Pro One-Time Event, and Unlimited Pro.
+            </p>
+        </div>
+
+        <div class="prc-table-card">
+            <div class="prc-table-scroll">
+                <table class="prc-comparison-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">Platform Capability</th>
+                            <th class="prc-table-center">🐝 Free Bee<span class="prc-table-sub">$0 Forever</span></th>
+                            <th class="prc-table-center" style="color: var(--accent-indigo);">★ Pro Event<span class="prc-table-sub" style="color: #a5b4fc;">$19 / Single Event</span></th>
+                            <th class="prc-table-center" style="color: var(--electric-green);">★ Unlimited Pro<span class="prc-table-sub" style="color: #6ee7b7;">${{ unlimited_pro_price|default:"29" }} / Month</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong>Number of Events Included</strong>
+                                <span class="prc-table-sub">How many events can use this tier</span>
+                            </td>
+                            <td class="prc-table-center" style="font-weight: 600;">Unlimited Free Events</td>
+                            <td class="prc-table-center" style="font-weight: 700; color: var(--accent-indigo);">1 Specific Event (Permanent)</td>
+                            <td class="prc-table-center" style="font-weight: 800; color: var(--electric-green);">Unlimited Pro Events</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>All 8 Event Layout Structures</strong>
+                                <span class="prc-table-sub">Showcase, Summit, Nightlife, Editorial, Split, Minimal, Centered, Default</span>
+                            </td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Included</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Included</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Included</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Custom Theme Colors &amp; Hex Picker</strong>
+                                <span class="prc-table-sub">Page BG, Section Card BG, Primary Accent, Heading, Body &amp; Muted text</span>
+                            </td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Included</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Included</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Included</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Venue Capacity &amp; Plus-One Guest Controls</strong>
+                                <span class="prc-table-sub">Max capacity cutoff + dynamic accompanying guest name inputs</span>
+                            </td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Included</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Included</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Included</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Paid Ticketing &amp; Stripe Checkout</strong>
+                                <span class="prc-table-sub">Sell multi-tier passes on your public event page</span>
+                            </td>
+                            <td class="prc-table-center" style="color: var(--text-dimmed);">Upgrade to Unlock</td>
+                            <td class="prc-table-center" style="color: var(--accent-indigo); font-weight: 700;">✓ Unlocked (1 Event)</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Unlocked (All Events)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Digital QR Passes &amp; Live Door Scanner</strong>
+                                <span class="prc-table-sub">Unique attendee QR codes + organizer check-in scanner</span>
+                            </td>
+                            <td class="prc-table-center" style="color: var(--text-dimmed);">Upgrade to Unlock</td>
+                            <td class="prc-table-center" style="color: var(--accent-indigo); font-weight: 700;">✓ Unlocked (1 Event)</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Unlocked (All Events)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Host Bio, Hero Image &amp; 5-Slide Photo Gallery</strong>
+                                <span class="prc-table-sub">Includes password-protected post-event Photo Vault</span>
+                            </td>
+                            <td class="prc-table-center" style="color: var(--text-dimmed);">Upgrade to Unlock</td>
+                            <td class="prc-table-center" style="color: var(--accent-indigo); font-weight: 700;">✓ Unlocked (1 Event)</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Unlocked (All Events)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Guestbook &amp; Warm Wishes Carousel</strong>
+                                <span class="prc-table-sub">Collect and showcase personal notes from guests</span>
+                            </td>
+                            <td class="prc-table-center" style="color: var(--text-dimmed);">Upgrade to Unlock</td>
+                            <td class="prc-table-center" style="color: var(--accent-indigo); font-weight: 700;">✓ Unlocked (1 Event)</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Unlocked (All Events)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Live Public Announcement Banner</strong>
+                                <span class="prc-table-sub">Instant broadcast ticker on your public page</span>
+                            </td>
+                            <td class="prc-table-center" style="color: var(--text-dimmed);">Upgrade to Unlock</td>
+                            <td class="prc-table-center" style="color: var(--accent-indigo); font-weight: 700;">✓ Unlocked (1 Event)</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Unlocked (All Events)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Resource Downloads &amp; Attendance Certificates</strong>
+                                <span class="prc-table-sub">Presentation slide decks + post-event certificates</span>
+                            </td>
+                            <td class="prc-table-center" style="color: var(--text-dimmed);">Upgrade to Unlock</td>
+                            <td class="prc-table-center" style="color: var(--accent-indigo); font-weight: 700;">✓ Unlocked (1 Event)</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">✓ Unlocked (All Events)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>YoursEvently Favorite Upcoming Events Homepage Spotlight</strong>
+                                <span class="prc-table-sub">Get an upcoming event displayed directly on the YoursEvently &ldquo;Favorite Upcoming Events&rdquo; discovery showcase to boost visibility and attract more attendees</span>
+                            </td>
+                            <td class="prc-table-center" style="color: var(--text-dimmed);">—</td>
+                            <td class="prc-table-center" style="color: var(--text-dimmed);">—</td>
+                            <td class="prc-table-center" style="color: var(--electric-green); font-weight: 700;">
+                                ✓ Included
+                                <span class="prc-table-sub" style="color: var(--electric-green); font-style: italic;">*Based on eligibility</span>
+                            </td>
+                        </tr>
+                        <tr style="background-color: var(--bg-primary);">
+                            <td>
+                                <strong>Platform Charge on Paid Tickets</strong>
+                                <span class="prc-table-sub">Applies only when selling paid tickets · Independent of host plan</span>
+                            </td>
+                            <td class="prc-table-center" style="color: var(--text-dimmed);">0% (Free RSVPs Only)</td>
+                            <td class="prc-table-center" style="color: #fcd34d; font-weight: 800;">5% per paid ticket<span class="prc-table-sub">0% on free RSVPs</span></td>
+                            <td class="prc-table-center" style="color: #fcd34d; font-weight: 800;">5% per paid ticket<span class="prc-table-sub">0% on free RSVPs</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 6. FREQUENTLY ASKED QUESTIONS & CTA ================= -->
+    <section class="prc-block-section prc-layout-container">
+        <div style="text-align: center; max-width: 680px; margin: 0 auto 2.25rem auto;">
+            <span class="prc-section-kicker" style="color: var(--electric-green);">Clarity &amp; Tradition</span>
+            <h2 class="prc-section-title">Frequently Asked Pricing Questions</h2>
+        </div>
+
+        <div class="prc-faq-grid">
+            <div class="prc-faq-card">
+                <h3 class="prc-faq-q">Can I start with Free Bee and upgrade my event later?</h3>
+                <p class="prc-faq-a">
+                    Yes! Every host can create and publish events on <strong style="color: #ffffff;">Free Bee</strong> for $0. At any time—even after guests have already started RSVPing—you can edit your event, toggle on any <strong style="color: #fcd34d;">★ PRO</strong> feature, and upgrade that event to the <strong style="color: #ffffff;">$19 Pro One-Time Event</strong> plan or subscribe to <strong style="color: var(--electric-green);">Unlimited Pro</strong> without losing a single guest record.
+                </p>
+            </div>
+
+            <div class="prc-faq-card">
+                <h3 class="prc-faq-q">Does subscribing to Unlimited Pro waive or change the 5% ticket fee?</h3>
+                <p class="prc-faq-a">
+                    No. The <strong style="color: #ffffff;">5% platform charge per ticket</strong> applies strictly to paid ticket transactions on any ticketed event and has nothing to do with which host plan you subscribed to. Whether you paid $19 for a single Pro event or subscribe to Unlimited Pro, the per-ticket platform charge is a flat 5%.
+                </p>
+            </div>
+
+            <div class="prc-faq-card">
+                <h3 class="prc-faq-q">Are all colors and layouts really available on Free Bee?</h3>
+                <p class="prc-faq-a">
+                    Yes. Giving every host full creative control over their event’s Page Background, Card/Section Background, Primary Accent, Typography colors, and all 8 layout structures (including Showcase, Summit, and Nightlife) is a core tradition of YoursEvently.
+                </p>
+            </div>
+
+            <div class="prc-faq-card">
+                <h3 class="prc-faq-q">What happens if I buy a $19 Pro Event and later upgrade to Unlimited Pro?</h3>
+                <p class="prc-faq-a">
+                    Your $19 Pro Event remains permanently unlocked, and upgrading to <strong style="color: var(--electric-green);">Unlimited Pro</strong> immediately unlocks all <strong style="color: #fcd34d;">★ PRO</strong> features across every other event on your dashboard and every future event you create.
+                </p>
+            </div>
+        </div>
+
+        <div class="prc-bottom-cta">
+            <div class="prc-card-topbar prc-card-topbar--pro"></div>
+            <h3 style="font-size: clamp(1.4rem, 2.5vw, 2rem); font-weight: 800; color: #ffffff; margin: 0 0 0.6rem 0;">
+                Ready to Launch Your Next Event?
+            </h3>
+            <p style="font-size: 0.95rem; color: var(--text-muted); max-width: 580px; margin: 0 auto;">
+                Start building for free with Free Bee, unlock a single flagship event for $19, or power all your events with Unlimited Pro.
+            </p>
+            <div class="prc-bottom-cta-actions">
+                <a href="{% url 'events:create_event' %}" class="prc-plan-btn prc-plan-btn--emerald">
+                    <span>Create New Event Now →</span>
+                </a>
+                <a href="{% url 'events:dashboard' %}" class="prc-plan-btn prc-plan-btn--outline">
+                    <span>Go to Host Dashboard</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    function updateTicketFeeCalculator() {
+        const priceInput = document.getElementById('calcTicketPrice');
+        const qtyInput = document.getElementById('calcTicketQty');
+        if (!priceInput || !qtyInput) return;
+
+        const price = parseFloat(priceInput.value) || 0;
+        const qty = parseInt(qtyInput.value, 10) || 0;
+
+        const feePerTicket = price * 0.05;
+        const grossRevenue = price * qty;
+        const totalPlatformFee = grossRevenue * 0.05;
+        const netPayout = grossRevenue - totalPlatformFee;
+
+        const priceDisplay = document.getElementById('calcTicketPriceDisplay');
+        const qtyDisplay = document.getElementById('calcTicketQtyDisplay');
+        const feePerTicketEl = document.getElementById('calcFeePerTicket');
+        const grossEl = document.getElementById('calcGrossRevenue');
+        const totalFeeEl = document.getElementById('calcTotalPlatformFee');
+        const netEl = document.getElementById('calcNetPayout');
+
+        if (priceDisplay) priceDisplay.textContent = '$' + price.toFixed(2);
+        if (qtyDisplay) qtyDisplay.textContent = qty.toLocaleString() + ' tickets';
+        if (feePerTicketEl) feePerTicketEl.textContent = '$' + feePerTicket.toFixed(2) + ' / ticket';
+        if (grossEl) grossEl.textContent = '$' + grossRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (totalFeeEl) totalFeeEl.textContent = '-$' + totalPlatformFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (netEl) netEl.textContent = '$' + netPayout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateTicketFeeCalculator();
+    });
+</script>
+{% endblock %}

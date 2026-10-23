@@ -1,10 +1,11 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-50">
+<html lang="{{ CURRENT_LANGUAGE }}" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Manage My Event{% endblock %}</title>
+    <title>{% block title %}YoursEvently{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/dist/styles.css' %}">
 </head>
 <body class="flex flex-col min-h-screen bg-slate-50 text-slate-900 antialiased">
@@ -22,8 +23,8 @@
                             <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5z"/>
                         </svg>
                     </div>
-                    <span class="text-lg font-bold text-slate-900 tracking-tight group-hover:text-blue-600 transition">
-                        Manage My Event
+                    <span class="text-lg font-bold text-white tracking-tight group-hover:text-blue-600 transition">
+                        YoursEvently
                     </span>
                 </a>
 
@@ -34,28 +35,60 @@
                             Guest Management
                         </a>
                     {% else %}
-                        <a href="{% url 'events:dashboard' %}" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition">
+                        <a href="{% url 'events:dashboard' %}" class="px-3.5 py-2 rounded-lg text-sm font-medium text-white hover:text-slate-900 hover:bg-slate-100 transition">
                             Dashboard
                         </a>
                     {% endif %}
-                    <a href="#" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition">
+                    <a href="#" class="px-3.5 py-2 rounded-lg text-sm font-medium text-white hover:text-slate-900 hover:bg-slate-100 transition">
                         Events
                     </a>
                 </nav>
 
                 <!-- User Profile / Auth Action -->
                 <div class="flex items-center space-x-4">
+
+                     <!-- GLOBALIZATION -->
+                    <form action="{% url 'set_language' %}" method="post" class="language-selector">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+                        <label for="site-language" class="sr-only">
+                            {% trans "Choose language" %}
+                        </label>
+
+                        <select
+                            id="site-language"
+                            name="language"
+                            onchange="this.form.submit()"
+                            aria-label="{% trans 'Choose language' %}"
+                        >
+                            {% get_current_language as CURRENT_LANGUAGE %}
+                            {% get_available_languages as AVAILABLE_LANGUAGES %}
+                            {% get_language_info_list for AVAILABLE_LANGUAGES as languages %}
+
+                            {% for language in languages %}
+                                <option
+                                    value="{{ language.code }}"
+                                    {% if language.code == CURRENT_LANGUAGE %}selected{% endif %}
+                                >
+                                    {{ language.name_local }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                    <!-- ============ -->
+
                     {% if user.is_authenticated %}
                         <div class="flex items-center space-x-3 border-l border-slate-200 pl-4">
                             <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs uppercase">
                                 {{ user.username|slice:":2" }}
                             </div>
-                            <span class="text-sm font-medium text-slate-700 hidden sm:inline-block">
+                            <span class="text-sm font-medium text-white hidden sm:inline-block">
                                 {{ user.username }}
                             </span>
                             <form method="post" action="{% url 'logout' %}" class="inline">
                                 {% csrf_token %}
-                                <button type="submit" class="text-xs font-semibold text-slate-500 hover:text-red-600 transition cursor-pointer">
+                                <button type="submit" class="text-xs font-semibold text-white hover:text-red-600 transition cursor-pointer">
                                     Logout
                                 </button>
                             </form>
@@ -95,3 +128,11 @@
 
 </body>
 </html>
+<style>
+    header, footer {
+        background-color: #0f172a !important;
+    }
+    /* .items-center {
+        color: whitesmoke !important;
+    } */
+</style>

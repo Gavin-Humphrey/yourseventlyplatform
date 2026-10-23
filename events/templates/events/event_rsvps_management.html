@@ -1,3 +1,4 @@
+
 {% extends 'events/landing_base.html' %}
 {% load widget_tweaks %}
 
@@ -10,34 +11,45 @@
   <div class="dashboard-ambient-glow dashboard-glow-2"></div>
 
   <div class="dashboard-container">
-    
+
     <!-- Messages / Alerts -->
     {% if messages %}
-        <div class="mb-6 space-y-2">
-            {% for message in messages %}
-                <div class="p-4 rounded-xl text-sm font-medium 
-                    {% if message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
-                    {% elif message.tags == 'success' %}bg-green-500/10 text-green-400 border border-green-500/20
-                    {% else %}bg-slate-800 text-slate-300 border border-slate-700{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
+      <div class="mb-6 space-y-2">
+        {% for message in messages %}
+          <div class="p-4 rounded-xl text-sm font-medium
+            {% if message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
+            {% elif message.tags == 'success' %}bg-green-500/10 text-green-400 border border-green-500/20
+            {% else %}bg-slate-800 text-slate-300 border border-slate-700{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
     {% endif %}
 
     <!-- Breadcrumb & Top Header Bar -->
+    <!--
     <nav class="flex items-center text-sm text-[var(--text-muted)] mb-6 space-x-2">
-        <!-- <a href="{% url 'events:dashboard' %}" class="hover:text-[var(--text-main)] transition">Dashboard</a>
-        <span>/</span>
-        <span class="text-[var(--text-main)] font-medium">{{ event.title }}</span>
-        <span>/</span> -->
-        <span class="dashboard-badge">RSVP Management</span>
+      <a href="{% url 'events:dashboard' %}" class="hover:text-[var(--text-main)] transition">Dashboard</a>
+      <span>/</span>
+      <span class="text-[var(--text-main)] font-medium">{{ event.title }}</span>
+      <span>/</span>
+      <span class="dashboard-badge">Attendee Management</span>
     </nav>
+    -->
 
-    <!-- Professional Individual Event Header Card -->
-    <div class="dashboard-card" style="margin-bottom: 2rem; transition: border-color 0.2s ease;">
+    <style>
+      .dashboard-eyebrow {
+        padding: 1rem 0;
+      }
+      .event-rsvps-management-head {
+        padding-left: 1rem;
+      }
+    </style>
+
+    <!-- Individual Event Header Card -->
+    <div class="dashboard-card event-rsvps-management-head" style="margin-bottom: 2rem; transition: border-color 0.2s ease;">
       <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-        
+
         <!-- Event Details & Badges -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
           <div>
@@ -45,194 +57,541 @@
               <span class="dashboard-status-dot"></span>
               <span class="dashboard-eyebrow">Event Operations Hub</span>
             </div>
+
             <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
-              <h1 class="dashboard-title" style="margin: 0; font-size: 1.75rem;">{{ event.title }}</h1>
+              <h1 class="dashboard-title" style="margin: 0; font-size: 1.75rem;">
+                {{ event.title }}
+              </h1>
+
               {% if event.is_ticketed %}
-                <span class="dashboard-badge" style="background: rgba(192, 132, 252, 0.15); color: var(--accent-purple); border-color: rgba(192, 132, 252, 0.3);">Ticketed Event</span>
+                <span class="dashboard-badge" style="background: rgba(192, 132, 252, 0.15); color: var(--accent-purple); border-color: rgba(192, 132, 252, 0.3);">
+                  Ticketed Event
+                </span>
               {% else %}
                 <span class="dashboard-badge">Free Event</span>
               {% endif %}
             </div>
-            <p class="dashboard-subtitle" style="margin-top: 0.25rem;">{{ event.event_date|date:"F j, Y, g:i a" }}</p>
+
+            <p class="dashboard-subtitle" style="margin-top: 0.25rem;">
+              {{ event.event_date|date:"F j, Y, g:i a" }}
+            </p>
           </div>
         </div>
 
-        <!-- Action Toolbar & Navigation Links (Forced Right Alignment) -->
+        <!-- Action Toolbar & Navigation Links -->
         <div class="flex items-center gap-3 flex-wrap pt-2" style="border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; width: 100%;">
-          <!-- Primary Analytics Action -->
-          <a href="{% url 'events:event_analytics' event.slug %}" class="dashboard-action-badge" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(129, 140, 248, 0.15); color: var(--accent-indigo); border-color: rgba(129, 140, 248, 0.3);">
+
+          <a href="{% url 'events:event_analytics' event.slug %}"
+             class="dashboard-action-badge"
+             style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(129, 140, 248, 0.15); color: var(--accent-indigo); border-color: rgba(129, 140, 248, 0.3);">
             📊 View Analytics & Guests
           </a>
-          
-          <!-- Management Tools -->
-          <a href="{% url 'events:manage_event_tiers' event.slug %}" class="dashboard-action-badge" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+
+          <a href="{% url 'events:manage_event_tiers' event.slug %}"
+             class="dashboard-action-badge"
+             style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
             🎟️ Manage Ticket Tiers
           </a>
-          <a href="{% url 'events:export_rsvps_csv' event.slug %}" class="dashboard-action-badge" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+
+          <a href="{% url 'events:export_rsvps_csv' event.slug %}"
+             class="dashboard-action-badge"
+             style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
             📥 Export CSV
           </a>
-          <a href="{% url 'events:door_dashboard' event.slug %}" class="dashboard-clone-btn" style="background-color: rgba(52, 211, 153, 0.12); color: var(--accent-emerald); border-color: rgba(52, 211, 153, 0.3); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+
+          <a href="{% url 'events:door_dashboard' event.slug %}"
+             class="dashboard-clone-btn"
+             style="background-color: rgba(52, 211, 153, 0.12); color: var(--accent-emerald); border-color: rgba(52, 211, 153, 0.3); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
             🚪 Open Door Dashboard
           </a>
-          <a href="{% url 'events:public_rsvp' event.slug %}" target="_blank" class="dashboard-action-badge" style="text-decoration: none;">
+
+          <a href="{% url 'events:public_rsvp' event.slug %}"
+             target="_blank"
+             class="dashboard-action-badge"
+             style="text-decoration: none;">
             View Public Page &rarr;
           </a>
         </div>
-
       </div>
     </div>
 
+    <!-- Post-Event Vault & Deliverables Management -->
+    {% if event.is_past %}
+      <div class="dashboard-card post-vault-card">
+        <div class="dashboard-card-header post-vault-header">
+          <div>
+            <h2 class="post-vault-title">📦 Post-Event Vault & Deliverables Hub</h2>
+            <p class="post-vault-desc">
+              Upload presentation files, drop resource links, toggle certificates, and bulk-add post-event photos.
+            </p>
+          </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-5">
+          {% csrf_token %}
+
+          <div class="post-vault-grid">
+            <!-- Presentation File Upload -->
+            <div class="post-vault-field">
+              <label class="post-vault-label">
+                Presentation / Resource File (PDF, ZIP, etc.)
+              </label>
+
+              <input type="file" name="presentation_file" class="dashboard-input w-full">
+
+              {% if event.presentation_file %}
+                <p class="post-vault-file-info">
+                  Current file uploaded:
+                  <a href="{{ event.presentation_file.url }}" target="_blank" class="underline">
+                    View File
+                  </a>
+                </p>
+              {% endif %}
+            </div>
+
+            <!-- External Resource Link -->
+            <div class="post-vault-field">
+              <label class="post-vault-label">
+                External Resource Link (GitHub, Google Drive)
+              </label>
+
+              <input
+                type="url"
+                name="resource_link"
+                value="{{ event.resource_link|default:'' }}"
+                placeholder="https://github.com/..."
+                class="dashboard-input w-full"
+              >
+            </div>
+          </div>
+
+          <div class="post-vault-checkbox-wrapper">
+            <label class="post-vault-checkbox-label">
+              <input
+                type="checkbox"
+                name="enable_certificates"
+                {% if event.enable_certificates %}checked{% endif %}
+                class="post-vault-checkbox focus:ring-1 focus:ring-[var(--accent-indigo)]"
+              >
+              <span class="post-vault-checkbox-text">
+                Enable Digital Certificates of Completion for Attendees
+              </span>
+            </label>
+          </div>
+
+          <div class="post-vault-divider space-y-2">
+            <label class="post-vault-label">
+              Bulk Upload High-Res Post-Event Photos
+            </label>
+
+            <input type="file" name="post_event_images" multiple class="dashboard-input w-full">
+
+            <p class="post-vault-help-text">
+              Select multiple photos at once. These will instantly unlock in the public event gallery once the event concludes.
+            </p>
+          </div>
+
+          <div class="post-vault-submit-wrap">
+            <button type="submit" name="update_post_event" class="dashboard-clone-btn post-vault-submit-btn">
+              Save Post-Event Updates
+            </button>
+          </div>
+        </form>
+
+        <!-- Preview Grid of Stored Vault Photos -->
+        {% if post_event_photos %}
+          <div class="post-vault-preview-section">
+            <h3 class="post-vault-preview-title">
+              Currently Stored Vault Photos ({{ post_event_photos.count }})
+            </h3>
+
+            <div class="post-vault-preview-grid">
+              {% for photo in post_event_photos %}
+                <div class="post-vault-thumb group">
+                  <img src="{{ photo.image.url }}" alt="Vault photo" class="w-full h-full object-cover">
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+
     <!-- Stats Overview Cards -->
     <div class="dashboard-metrics-grid">
+
+      <!-- Total Responses -->
       <div class="dashboard-metric-card">
         <div class="dashboard-metric-icon-wrap indigo-glow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
         </div>
+
         <div>
           <p class="dashboard-metric-label">Total Responses</p>
           <p class="dashboard-metric-value">{{ total_rsvps }}</p>
         </div>
       </div>
-      
+
+      <!-- Tickets Confirmed / Confirmed Attending -->
       <div class="dashboard-metric-card">
         <div class="dashboard-metric-icon-wrap purple-glow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
         </div>
+
         <div>
-          <p class="dashboard-metric-label">Confirmed Attending</p>
-          <p class="dashboard-metric-value" style="color: var(--accent-indigo);">{{ attending_count }}</p>
+          <p class="dashboard-metric-label">
+            {% if event.is_ticketed %}
+              Tickets Confirmed
+            {% else %}
+              Confirmed Attending
+            {% endif %}
+          </p>
+
+          <p class="dashboard-metric-value" style="color: var(--accent-indigo);">
+            {{ attending_count }}
+          </p>
         </div>
       </div>
 
+      <!-- Total Headcount -->
       <div class="dashboard-metric-card">
         <div class="dashboard-metric-icon-wrap emerald-glow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <line x1="20" y1="8" x2="20" y2="14"></line>
+            <line x1="23" y1="11" x2="17" y2="11"></line>
+          </svg>
         </div>
+
         <div>
           <p class="dashboard-metric-label">Total Headcount</p>
           <p class="dashboard-metric-value dashboard-metric-success">{{ total_headcount }}</p>
         </div>
       </div>
-      
+
+      <!-- Max Capacity -->
       {% if event.max_capacity %}
         <div class="dashboard-metric-card">
-            <div class="dashboard-metric-icon-wrap 
-                {% if capacity_status == 'full' %}rose-glow
-                {% elif capacity_status == 'warning' %}amber-glow
-                {% else %}emerald-glow{% endif %}"
-                {% if capacity_status == 'full' %}style="color: #f87171 !important;"
-                {% elif capacity_status == 'warning' %}style="color: #fbbf24 !important;"
-                {% elif capacity_status == 'safe' %}style="color: #34d399 !important;"
-                {% endif %}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-            </div>
-            <div>
-                <p class="dashboard-metric-label">Max Capacity</p>
-                <p class="dashboard-metric-value 
-                    {% if capacity_status == 'safe' %}dashboard-metric-success{% endif %}"
-                    {% if capacity_status == 'full' %}style="color: #f87171 !important;"
-                    {% elif capacity_status == 'warning' %}style="color: #fbbf24 !important;"
-                    {% endif %}>
-                    {{ event.max_capacity }}
-                </p>
-            </div>
+          <div
+            class="dashboard-metric-icon-wrap
+              {% if capacity_status == 'full' %}rose-glow
+              {% elif capacity_status == 'warning' %}amber-glow
+              {% else %}emerald-glow{% endif %}"
+            {% if capacity_status == 'full' %}
+              style="color: #f87171 !important;"
+            {% elif capacity_status == 'warning' %}
+              style="color: #fbbf24 !important;"
+            {% elif capacity_status == 'safe' %}
+              style="color: #34d399 !important;"
+            {% endif %}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            </svg>
+          </div>
+
+          <div>
+            <p class="dashboard-metric-label">Max Capacity</p>
+
+            <p
+              class="dashboard-metric-value {% if capacity_status == 'safe' %}dashboard-metric-success{% endif %}"
+              {% if capacity_status == 'full' %}
+                style="color: #f87171 !important;"
+              {% elif capacity_status == 'warning' %}
+                style="color: #fbbf24 !important;"
+              {% endif %}
+            >
+              {{ event.max_capacity }}
+            </p>
+          </div>
         </div>
       {% endif %}
     </div>
 
-    <!-- RSVP List Table Card -->
-    <div class="dashboard-card">
-      <div class="dashboard-card-header">
-        <form method="GET" class="flex flex-col sm:flex-row w-full items-center justify-between gap-4">
+    <!-- RSVP Management Table / Empty States -->
+    {% if has_any_rsvps %}
+      <div class="dashboard-card">
+
+        <!-- Search and Status Filters -->
+        <div class="dashboard-card-header">
+          <form method="GET" class="flex flex-col sm:flex-row w-full items-center justify-between gap-4">
             <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                <input type="text" name="q" value="{{ search_query }}" placeholder="Search RSVPs..." class="dashboard-input w-full sm:w-auto" style="width: 400px; max-width: 55vw;">
-              <select name="status" class="dashboard-action-badge cursor-pointer w-full sm:w-auto min-w-[160px] text-center appearance-none transition-all duration-200 focus:outline-none" style="border: none;">  
-                  <option value="">All Statuses</option>
-                  <option value="ATTENDING" {% if status_filter == 'ATTENDING' %}selected{% endif %}>Attending</option>
-                  <option value="DECLINED" {% if status_filter == 'DECLINED' %}selected{% endif %}>Declined</option>
-                  <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+              <input
+                type="text"
+                name="q"
+                value="{{ search_query }}"
+                placeholder="Search RSVPs..."
+                class="dashboard-input w-full sm:w-auto"
+                style="width: 400px; max-width: 55vw;"
+              >
+
+              <select
+                name="status"
+                class="dashboard-action-badge cursor-pointer w-full sm:w-auto min-w-[160px] text-center appearance-none transition-all duration-200 focus:outline-none"
+                style="border: none;"
+              >
+                <option value="">All Statuses</option>
+
+                {% if event.is_ticketed %}
+                  <option value="ATTENDING" {% if status_filter == 'ATTENDING' %}selected{% endif %}>
+                    Attending
+                  </option>
+
+                  <option value="refunded" {% if status_filter == 'refunded' %}selected{% endif %}>
+                    Refunded
+                  </option>
+
+                  <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>
+                    Cancelled
+                  </option>
+                {% else %}
+                  <option value="ATTENDING" {% if status_filter == 'ATTENDING' %}selected{% endif %}>
+                    Attending
+                  </option>
+
+                  <option value="DECLINED" {% if status_filter == 'DECLINED' %}selected{% endif %}>
+                    Declined
+                  </option>
+
+                  <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>
+                    Pending
+                  </option>
+                {% endif %}
               </select>
-              <button type="submit" class="dashboard-action-badge cursor-pointer w-full sm:w-auto text-center transition-all duration-200" style="border: none;">
-                  Filter Results
+
+              <button
+                type="submit"
+                class="dashboard-action-badge cursor-pointer w-full sm:w-auto text-center transition-all duration-200"
+                style="border: none;"
+              >
+                Filter Results
               </button>
             </div>
-            <span class="dashboard-badge">{{ total_rsvps }} Records</span>
-        </form>
+
+            <span class="dashboard-badge">{{ filtered_rsvp_count }} Record{{ filtered_rsvp_count|pluralize }}</span>
+          </form>
+        </div>
+
+        <!-- RSVP Table -->
+        <div class="rsvp-table-container">
+          {% if rsvps %}
+            <table class="rsvp-table">
+              <thead>
+                <tr>
+                  <th>Attendee Name / Details</th>
+                  <th>Email</th>
+                  <th>Status</th>
+
+                  {% if event.is_ticketed %}
+                    <th>Ticket Pass</th>
+                  {% endif %}
+
+                  {% if not event.is_ticketed %}
+                    <th>Plus-Ones</th>
+                  {% endif %}
+
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for rsvp in rsvps %}
+                  <tr>
+                    <!-- Attendee Name -->
+                    <td class="rsvp-col-name">
+                      {{ rsvp.first_name }} {{ rsvp.last_name }}
+                    </td>
+
+                    <!-- Email -->
+                    <td class="rsvp-col-email">
+                      {{ rsvp.email|default:"N/A" }}
+                    </td>
+
+                    <!-- RSVP / Ticket Order Status -->
+                    <td>
+                      {% if event.is_ticketed and rsvp.ticket_tier and rsvp.ticket_order_status == 'refunded' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                          Refunded
+                        </span>
+
+                      {% elif event.is_ticketed and rsvp.ticket_tier and rsvp.ticket_order_status == 'cancelled' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/15 text-slate-400 border border-slate-500/30">
+                          Cancelled
+                        </span>
+
+                      {% else %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+                          {% if rsvp.status == 'ATTENDING' %}
+                            bg-emerald-500/15 text-emerald-400 border border-emerald-500/30
+                          {% elif rsvp.status == 'DECLINED' %}
+                            bg-rose-500/15 text-rose-400 border border-rose-500/30
+                          {% else %}
+                            bg-amber-500/15 text-amber-400 border border-amber-500/30
+                          {% endif %}">
+                          {{ rsvp.get_status_display|default:rsvp.status|title }}
+                        </span>
+                      {% endif %}
+                    </td>
+
+                    <!-- Ticket Details -->
+                    {% if event.is_ticketed %}
+                      <td class="text-sm">
+                        {% if rsvp.ticket_tier %}
+                          <span class="font-medium text-[var(--text-main)]">
+                            {{ rsvp.ticket_tier.name }}
+                          </span>
+
+                          <span class="text-xs text-[var(--text-muted)] block">
+                            ${{ rsvp.ticket_tier.price }} per ticket
+                          </span>
+
+                          <span class="text-xs text-[var(--text-muted)] block">
+                            Quantity: {{ rsvp.ticket_quantity }}
+                          </span>
+
+                          <span class="text-xs text-[var(--text-muted)] block">
+                            Order subtotal: ${% widthratio rsvp.ticket_tier.price 1 rsvp.ticket_quantity %}
+                          </span>
+
+                          {% if rsvp.ticket_order_status == 'refunded' %}
+                            <span class="text-xs text-rose-400 block">
+                              Payment refunded
+                            </span>
+
+                          {% elif rsvp.ticket_order_status == 'cancelled' %}
+                            <span class="text-xs text-[var(--text-muted)] block">
+                              Order cancelled
+                            </span>
+
+                          {% elif rsvp.ticket_order_status == 'paid' and rsvp.is_paid %}
+                            <span class="text-xs text-emerald-400 block">
+                              Payment confirmed
+                            </span>
+
+                          {% elif rsvp.ticket_order_status == 'pending' %}
+                            <span class="text-xs text-amber-400 block">
+                              Payment pending
+                            </span>
+
+                          {% elif rsvp.is_paid %}
+                            <span class="text-xs text-emerald-400 block">
+                              Payment confirmed
+                            </span>
+
+                          {% else %}
+                            <span class="text-xs text-amber-400 block">
+                              Payment pending
+                            </span>
+                          {% endif %}
+
+                        {% else %}
+                          <span class="text-xs text-[var(--text-dimmed)] italic">
+                            No ticket selected
+                          </span>
+
+                          {% if rsvp.status == 'ATTENDING' %}
+                            <span class="text-xs text-emerald-400 block">
+                              RSVP confirmed
+                            </span>
+
+                          {% elif rsvp.status == 'DECLINED' %}
+                            <span class="text-xs text-rose-400 block">
+                              RSVP declined
+                            </span>
+
+                          {% else %}
+                            <span class="text-xs text-amber-400 block">
+                              RSVP pending
+                            </span>
+                          {% endif %}
+                        {% endif %}
+                      </td>
+                    {% endif %}
+
+                    <!-- Plus-Ones for Free Events -->
+                    {% if not event.is_ticketed %}
+                      <td class="rsvp-col-plusone">
+                        {{ rsvp.plus_ones_count|default:0 }}
+
+                        {% with plus_ones=rsvp.plus_ones.all %}
+                          {% if plus_ones %}
+                            <span class="rsvp-plusone-sublist">
+                              {% for p in plus_ones %}
+                                {{ p.full_name }}{% if not forloop.last %}, {% endif %}
+                              {% endfor %}
+                            </span>
+                          {% endif %}
+                        {% endwith %}
+                      </td>
+                    {% endif %}
+
+                    <!-- Row Actions -->
+                    <td class="rsvp-col-actions space-x-2">
+                      <a
+                        href="{% url 'events:view_rsvp_detail' event.slug rsvp.pk %}"
+                        class="dashboard-action-badge inline-flex items-center py-1.5 px-3 text-xs"
+                        style="text-decoration: none;"
+                      >
+                        View
+                      </a>
+
+                      {% if not event.is_past %}
+                        <a
+                          href="{% url 'events:edit_rsvp' event.slug rsvp.pk %}"
+                          class="dashboard-clone-btn inline-flex items-center py-1.5 px-3 text-xs"
+                          style="text-decoration: none;"
+                        >
+                          Edit
+                        </a>
+                      {% else %}
+                        <span
+                          class="text-xs px-3 py-1.5 bg-[var(--bg-surface-muted)] text-[var(--text-dimmed)] rounded border"
+                          style="border-color: var(--border-subtle);"
+                        >
+                          🔒 Locked
+                        </span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+          {% else %}
+            <!-- No Matches for Current Search / Filter -->
+            <div
+              class="rsvp-empty-state-standalone"
+              style="padding: 3rem 1.5rem; text-align: center;"
+            >
+              <div class="rsvp-empty-title">No RSVPs found</div>
+              <div class="rsvp-empty-desc">
+                No records match your current filter or search criteria.
+              </div>
+            </div>
+          {% endif %}
+        </div>
       </div>
 
-      <!-- Professionally Styled Separated Table Container -->
-      <div class="rsvp-table-container">
-        <table class="rsvp-table">
-            <thead>
-                <tr>
-                    <th>Attendee Name / Details</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    {% if event.is_ticketed %}
-                    <th>Ticket Pass</th>
-                    {% endif %}
-                    <th>Plus-Ones</th>
-                    <th class="text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for rsvp in rsvps %}
-                <tr>
-                    <td class="rsvp-col-name">
-                        {{ rsvp.first_name }} {{ rsvp.last_name }}
-                    </td>
-                    <td class="rsvp-col-email">{{ rsvp.email|default:"N/A" }}</td>
-                    <td>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold 
-                            {% if rsvp.status == 'ATTENDING' %} bg-emerald-500/15 text-emerald-400 border border-emerald-500/30
-                            {% elif rsvp.status == 'DECLINED' %} bg-rose-500/15 text-rose-400 border border-rose-500/30
-                            {% else %} bg-amber-500/15 text-amber-400 border border-amber-500/30 {% endif %}">
-                            {{ rsvp.get_status_display|default:rsvp.status|title }}
-                        </span>
-                    </td>
-                    {% if event.is_ticketed %}
-                    <td class="text-sm">
-                        {% if rsvp.ticket_tier %}
-                            <span class="font-medium text-[var(--text-main)]">{{ rsvp.ticket_tier.name }}</span>
-                            <span class="text-xs text-[var(--text-muted)] block">${{ rsvp.ticket_tier.price }}</span>
-                        {% else %}
-                            <span class="text-xs text-[var(--text-dimmed)] italic">No ticket selected</span>
-                        {% endif %}
-                    </td>
-                    {% endif %}
-                    <td class="rsvp-col-plusone">
-                        {{ rsvp.plus_ones.count }} 
-                        {% if rsvp.plus_ones.all %}
-                            <span class="rsvp-plusone-sublist">
-                                {% for p in rsvp.plus_ones.all %}{{ p.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                            </span>
-                        {% endif %}
-                    </td>
-                    <td class="rsvp-col-actions space-x-2">
-                        <a href="{% url 'events:view_rsvp_detail' event.slug rsvp.pk %}" class="dashboard-action-badge inline-flex items-center py-1.5 px-3 text-xs" style="text-decoration: none;">View</a>
-                        
-                        {% if not event.is_past %}
-                        <a href="{% url 'events:edit_rsvp' event.slug rsvp.pk %}" class="dashboard-clone-btn inline-flex items-center py-1.5 px-3 text-xs" style="text-decoration: none;">Edit</a>
-                        {% else %}
-                            <span class="text-xs px-3 py-1.5 bg-[var(--bg-surface-muted)] text-[var(--text-dimmed)] rounded border" style="border-color: var(--border-subtle);">
-                                🔒 Locked
-                            </span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr class="rsvp-empty-row">
-                    <td colspan="{% if event.is_ticketed %}6{% else %}5{% endif %}">
-                        <div class="rsvp-empty-title">No RSVPs found</div>
-                        <div class="rsvp-empty-desc">No records match your current filter or search criteria.</div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    {% else %}
+      <!-- Zero RSVPs Overall State -->
+      <div class="dashboard-card" style="padding: 3rem 1.5rem; text-align: center;">
+        <div class="rsvp-empty-title">No RSVPs yet</div>
+        <div class="rsvp-empty-desc">
+          Share your public event link to start collecting registrations.
+        </div>
       </div>
-    </div>
+    {% endif %}
 
   </div>
 </div>
+
 {% endblock %}

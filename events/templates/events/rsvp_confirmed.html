@@ -1,16 +1,263 @@
-{% if rsvp.event.enable_qr_checkins and rsvp.get_qr_code_data_uri %}
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center my-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">Your Digital Event Pass</h3>
-        <p class="text-sm text-gray-600 mb-4">Present this QR code at the door for rapid check-in.</p>
-        <div class="inline-block p-2 bg-gray-50 border border-gray-200 rounded-md">
-            <img src="{{ rsvp.get_qr_code_data_uri }}" alt="Check-in QR Code" class="w-48 h-48 mx-auto">
-        </div>
-        <p class="text-xs text-gray-400 mt-3">Pass ID: {{ rsvp.checkin_token }}</p>
-        <div style="margin-top: 2rem; text-align: center;">
-    <a href="{% url 'events:public_rsvp' rsvp.event.slug %}" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.75rem; text-decoration: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-        &larr; Back to Event RSVP Page
-    </a>
-</div>
+<div class="yv-confirmation">
+    <div class="yv-confirmation-card">
+
+        <!-- Confirmation header -->
+        <header class="yv-success-header">
+            <div class="yv-success-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M5 12.5L9.5 17L19 7" stroke="currentColor"
+                          stroke-width="2.5" stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                </svg>
+            </div>
+
+            <span class="yv-eyebrow">REGISTRATION UPDATE</span>
+
+            <h1>
+                {% if rsvp.status == "DECLINED" %}
+                    Response Recorded
+                {% else %}
+                    RSVP Confirmed!
+                {% endif %}
+            </h1>
+
+            <p class="yv-intro">
+                Thank you, {{ rsvp.first_name }}{% if rsvp.last_name %} {{ rsvp.last_name }}{% endif %}.
+                {% if rsvp.status == "DECLINED" %}
+                    Your response has been recorded.
+                {% else %}
+                    Your response for <strong>{{ event.title }}</strong>
+                    has been recorded successfully.
+                {% endif %}
+            </p>
+
+            <div class="yv-status-pill">
+                <span class="yv-status-dot"></span>
+                {{ rsvp.get_status_display }}
+            </div>
+        </header>
+
+        <!-- Event details -->
+        <section class="yv-section">
+            <div class="yv-section-heading">
+                <span class="yv-heading-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="3.5" y="5" width="17" height="16"
+                              rx="2.5" stroke="currentColor" stroke-width="1.7"/>
+                        <path d="M7.5 3.5V7M16.5 3.5V7M3.5 10H20.5"
+                              stroke="currentColor" stroke-width="1.7"
+                              stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <div>
+                    <h2>Event details</h2>
+                    <p>Your event information at a glance</p>
+                </div>
+            </div>
+
+            <div class="yv-details-panel">
+                <div class="yv-detail-row">
+                    <span class="yv-detail-label">Event</span>
+                    <span class="yv-detail-value">{{ event.title }}</span>
+                </div>
+
+                {% if event.event_date %}
+                    <div class="yv-detail-row">
+                        <span class="yv-detail-label">Date</span>
+                        <span class="yv-detail-value">{{ event.event_date }}</span>
+                    </div>
+                {% endif %}
+
+                {% if event.location_name or event.address or event.city %}
+                    <div class="yv-detail-row">
+                        <span class="yv-detail-label">Location</span>
+                        <span class="yv-detail-value">{{ event.location_name }} - {{ event.address }}, {{ event.city }}, {{ event.country }}</span>
+                    </div>
+                {% endif %}
+
+                <div class="yv-detail-row">
+                    <span class="yv-detail-label">Response</span>
+                    <span class="yv-detail-value">{{ rsvp.get_status_display }}</span>
+                </div>
+
+                {% if rsvp.status == "ATTENDING" and rsvp.plus_ones_count > 0 %}
+                    <div class="yv-detail-row yv-detail-row-guests">
+                        <span class="yv-detail-label">Additional guests</span>
+                        <div class="yv-detail-value">
+                            <strong>{{ rsvp.plus_ones_count }}</strong>
+
+                            {% for guest in rsvp.plus_ones.all %}
+                                <div class="yv-guest-name">
+                                    {{ guest.full_name }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Ticket summary -->
+        {% if rsvp.ticket_tier %}
+            <section class="yv-section">
+                <div class="yv-section-heading">
+                    <span class="yv-heading-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M4 7.5A2.5 2.5 0 0 0 4 12.5V17
+                                     A2 2 0 0 0 6 19H18A2 2 0 0 0 20 17V12.5
+                                     A2.5 2.5 0 0 1 20 7.5V7A2 2 0 0 0 18 5H6
+                                     A2 2 0 0 0 4 7V7.5Z"
+                                  stroke="currentColor" stroke-width="1.7"
+                                  stroke-linejoin="round"/>
+                            <path d="M12 7.5V9M12 11V12.5M12 14.5V16.5"
+                                  stroke="currentColor" stroke-width="1.7"
+                                  stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h2>Ticket summary</h2>
+                        <p>Your selected ticket allocation</p>
+                    </div>
+                </div>
+
+                <div class="yv-ticket-summary">
+                    <div>
+                        <span class="yv-summary-label">Ticket type</span>
+                        <strong>{{ rsvp.ticket_tier.name }}</strong>
+                    </div>
+
+                    <div>
+                        <span class="yv-summary-label">Quantity</span>
+                        <strong>{{ rsvp.ticket_quantity }}</strong>
+                    </div>
+
+                    {% if rsvp.ticket_tier.price == 0 %}
+                        <p class="yv-free-ticket-note">
+                            Your free ticket selection has been recorded.
+                        </p>
+                    {% endif %}
+                </div>
+            </section>
+        {% endif %}
+
+        <!-- Individual digital tickets -->
+        {% if rsvp.event.enable_qr_checkins and rsvp.is_paid %}
+            <section class="yv-section yv-digital-section">
+                <div class="yv-section-heading">
+                    <span class="yv-heading-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="3" width="7" height="7"
+                                  rx="1" stroke="currentColor" stroke-width="1.7"/>
+                            <rect x="14" y="3" width="7" height="7"
+                                  rx="1" stroke="currentColor" stroke-width="1.7"/>
+                            <rect x="3" y="14" width="7" height="7"
+                                  rx="1" stroke="currentColor" stroke-width="1.7"/>
+                            <path d="M14 14H17V17H14ZM18 18H21V21H18ZM18 14H21V16"
+                                  stroke="currentColor" stroke-width="1.7"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h2>Your digital tickets</h2>
+                        <p>Each ticket has its own QR code for event check-in.</p>
+                    </div>
+                </div>
+
+                <div class="ticket-grid">
+                    {% for ticket in rsvp.individual_tickets.all %}
+                        <article class="ticket-card">
+                            <div class="ticket-card-top">
+                                <span class="ticket-label">DIGITAL TICKET</span>
+                                {% if ticket.checked_in %}
+                                    <span class="ticket-checked-in">
+                                        <span aria-hidden="true">✓</span> Checked in
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <h3 class="ticket-title">
+                                Ticket {{ ticket.ticket_number }}
+                            </h3>
+
+                            {% if rsvp.ticket_tier %}
+                                <p class="ticket-tier-name">
+                                    {{ rsvp.ticket_tier.name }}
+                                </p>
+                            {% endif %}
+
+                            {% if ticket.get_qr_code_data_uri %}
+                                <div class="ticket-qr">
+                                    <img
+                                        src="{{ ticket.get_qr_code_data_uri }}"
+                                        alt="QR code for ticket {{ ticket.ticket_number }}"
+                                        width="80"
+                                        height="80"
+                                        loading="lazy">
+                                </div>
+                                <p class="ticket-scan-hint">
+                                    Present this QR code at check-in
+                                </p>
+                            {% else %}
+                                <div class="ticket-qr-unavailable">
+                                    QR code is not currently available.
+                                </div>
+                            {% endif %}
+
+                            <div class="ticket-pass-id">
+                                <span>Ticket ID</span>
+                                <code title="{{ ticket.checkin_token }}">
+                                    {{ ticket.checkin_token }}
+                                </code>
+                            </div>
+
+                            <div class="ticket-actions">
+                                {% if pass_absolute_url %}
+                                    <a href="{{ pass_absolute_url }}"
+                                       class="apple-pass-button">
+                                        <span aria-hidden="true"></span>
+                                        Apple Wallet
+                                    </a>
+                                {% endif %}
+
+                                <a href="{% url 'events:web_ticket' ticket.checkin_token %}"
+                                   class="digital-pass-button">
+                                    <span aria-hidden="true">▣</span>
+                                    View Digital Pass
+                                </a>
+
+                                <a href="{% url 'events:google_pass_view' ticket.checkin_token %}"
+                                   class="google-wallet-button">
+                                    <span class="google-wallet-icon" aria-hidden="true">G</span>
+                                    Google Wallet
+                                </a>
+                            </div>
+                        </article>
+                    {% empty %}
+                        <div class="yv-ticket-empty">
+                            <span class="yv-empty-icon" aria-hidden="true">◷</span>
+                            <p>Your individual tickets are being prepared.</p>
+                            <span>Your ticket QR codes will appear here when available.</span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <p class="yv-ticket-reminder">
+                    Keep your digital tickets accessible when you arrive.
+                    Each ticket has its own check-in code.
+                </p>
+            </section>
+        {% endif %}
+
+        <!-- Return to event -->
+        <footer class="yv-confirmation-footer">
+            <a href="{% url 'events:public_rsvp' event.slug %}"
+               class="yv-back-button">
+                <span aria-hidden="true">←</span>
+                Back to event page
+            </a>
+
+            <p>Thank you for using YoursEvently.</p>
+        </footer>
+
     </div>
-    
-{% endif %}
+</div>

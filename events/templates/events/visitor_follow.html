@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Follow an Organizer | YoursEvently</title>
+</head>
+<body>
+    <main>
+        <h1>Follow {{ organizer.get_full_name|default:organizer.username }}</h1>
+        <p>Enter your email to follow this organizer and receive updates about new events.</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post"
+              action="{% url 'events:request_visitor_follow' organizer.id %}">
+            {% csrf_token %}
+
+            <label for="visitor-email">Email address</label>
+            <input
+                id="visitor-email"
+                type="email"
+                name="email"
+                autocomplete="email"
+                required
+            >
+
+            <button type="submit">Send verification link</button>
+        </form>
+    </main>
+</body>
+</html>

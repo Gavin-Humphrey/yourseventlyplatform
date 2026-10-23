@@ -1,11 +1,16 @@
-{% load static %}
+ {% load static i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ CURRENT_LANGUAGE }}">
+    
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}YoursEvently{% endblock %}</title>
+        <title>{% block title %}{% trans "YoursEvently" %}{% endblock %}</title>
         <link rel="stylesheet" href="{% static 'events/css/landing.css' %}">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
         {% block extra_head %}{% endblock %}
     </head>
     <body class="landing-container">
@@ -13,68 +18,368 @@
         <!-- Floating Landing Navbar -->
         <header class="landing-navbar">
             <div class="landing-nav-container">
-                
+
                 <!-- Enhanced Brand Logo -->
                 <a href="{% url 'events:home' %}" class="landing-brand">
                     <div class="landing-brand-icon landing-brand-icon">
-                        <img src="{% static 'events/images/event-logo1.png' %}" alt="YoursEvently Logo" style="width: 100%; height: 100%; object-fit: contain;">
+                        <img
+                            src="{% static 'events/images/event-logo1.png' %}"
+                            alt="YoursEvently Logo"
+                            style="width: 100%; height: 100%; object-fit: contain;"
+                        >
                     </div>
-                    <span class="landing-brand-text">YoursEvently</span>
+                    <span class="landing-brand-text" translate="no">YoursEvently</span>
                 </a>
+                
 
                 <!-- Desktop Navigation Links -->
                 <nav class="landing-nav-links">
-                    <a href="{% url 'events:features_page' %}" class="landing-nav-link">Features</a>
-                    <a href="#experience" class="landing-nav-link">Experience</a>
-                    <a href="#pricing" class="landing-nav-link">Pricing</a>
+                    <a href="{% url 'events:features_page' %}" class="landing-nav-link">{% trans "Features" %}</a>
+                    <a href="#experience" class="landing-nav-link">{% trans "Experience" %}</a>
+                    <a href="{% url 'events:pricing' %}" class="landing-nav-link">{% trans "Pricing" %}</a>
                 </nav>
 
                 <div class="landing-nav-actions">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'events:dashboard' %}" class="btn-subtle landing-desktop-only">Dashboard</a>
-                        
+
+                        <!-- Dashboard -->
+                        <a
+                            href="{% url 'events:dashboard' %}"
+                            class="btn-subtle landing-desktop-only"
+                        >
+                            {% trans "Dashboard" %}
+                        </a>
+
+                        <!-- Desktop Notifications Bell (YoursEvently Design System) -->
+                        <a
+                            href="{% url 'events:notifications_inbox' %}"
+                            class="nav-notification-btn"
+                            title="Notifications{% if unread_notification_count %} ({{ unread_notification_count }} unread){% endif %}"
+                            aria-label="View notifications{% if unread_notification_count %}, {{ unread_notification_count }} unread{% endif %}"
+                            style="
+                                position: relative;
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                width: 38px;
+                                height: 38px;
+                                border-radius: 9999px;
+                                background: var(--bg-surface-muted, rgba(15, 23, 42, 0.65));
+                                border: 1px solid var(--border-color, #1e293b);
+                                color: var(--text-muted, #94a3b8);
+                                text-decoration: none;
+                                backdrop-filter: blur(12px);
+                                -webkit-backdrop-filter: blur(12px);
+                                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+                                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                                flex-shrink: 0;
+                            "
+                            onmouseenter="this.style.background='var(--bg-surface, #0f172a)'; this.style.borderColor='var(--accent-indigo, #818cf8)'; this.style.color='var(--text-main, #f1f5f9)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 0 18px rgba(99, 102, 241, 0.35)';"
+                            onmouseleave="this.style.background='var(--bg-surface-muted, rgba(15, 23, 42, 0.65))'; this.style.borderColor='var(--border-color, #1e293b)'; this.style.color='var(--text-muted, #94a3b8)'; this.style.transform='none'; this.style.boxShadow='0 1px 3px rgba(0, 0, 0, 0.3)';"
+                        >
+                            <!-- Bell Icon with ring hover animation -->
+                            <svg
+                                class="ye-nav-bell-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                style="width: 18px; height: 18px; display: block; transition: transform 0.2s ease;"
+                            >
+                                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                            </svg>
+
+                            {% if unread_notification_count and unread_notification_count > 0 %}
+                                <!-- Pulsing Aura (Radar ping) -->
+                                <span
+                                    style="
+                                        position: absolute;
+                                        top: -2px;
+                                        right: -2px;
+                                        width: 10px;
+                                        height: 10px;
+                                        border-radius: 9999px;
+                                        background-color: var(--accent-rose, #fb7185);
+                                        opacity: 0.75;
+                                        animation: yeNavPing 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+                                        pointer-events: none;
+                                    "
+                                ></span>
+
+                                <!-- Badge Pill with Count -->
+                                <span
+                                    style="
+                                        position: absolute;
+                                        top: -5px;
+                                        right: -7px;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        min-width: 18px;
+                                        height: 18px;
+                                        padding: 0 4px;
+                                        border-radius: 9999px;
+                                        background: linear-gradient(135deg, var(--accent-rose, #fb7185) 0%, #e11d48 100%);
+                                        color: #ffffff;
+                                        border: 2px solid var(--bg-primary, #020617);
+                                        font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+                                        font-size: 10px;
+                                        font-weight: 800;
+                                        line-height: 1;
+                                        letter-spacing: -0.02em;
+                                        box-shadow: 0 0 12px rgba(251, 113, 133, 0.55);
+                                        pointer-events: none;
+                                    "
+                                >
+                                    {% if unread_notification_count > 99 %}99+{% else %}{{ unread_notification_count }}{% endif %}
+                                </span>
+                            {% endif %}
+                        </a>
+
                         <!-- Log Out Form (Django requires POST for logout security) -->
-                        <form action="{% url 'logout' %}" method="post" class="inline landing-desktop-only">
+                        <form
+                            action="{% url 'logout' %}"
+                            method="post"
+                            class="inline landing-desktop-only"
+                        >
                             {% csrf_token %}
-                            <button type="submit" class="landing-nav-link" style="background: none; border: none; cursor: pointer;">Log Out</button>
+                            <button
+                                type="submit"
+                                class="landing-nav-link"
+                                style="background: none; border: none; cursor: pointer;"
+                            >
+                                {% trans "Log Out" %}
+                            </button>
                         </form>
+
                     {% else %}
-                        <a href="{% url 'login' %}" class="landing-nav-link landing-desktop-only">Sign In</a>
-                        <a href="#" class="btn-glow landing-desktop-only">Get Started</a>
+
+                        <a href="{% url 'login' %}" class="landing-nav-link landing-desktop-only">
+                            {% trans "Sign In" %}
+                        </a>
+                        <a href="#" class="btn-glow landing-desktop-only">
+                            {% trans "Get Started" %}
+                        </a>
+
                     {% endif %}
-    
+
                     <!-- Hamburger Toggle Button -->
-                    <button type="button" class="landing-hamburger" aria-label="Toggle navigation menu" id="hamburgerToggle">
+                    <button
+                        type="button"
+                        class="landing-hamburger"
+                        aria-label="Toggle navigation menu"
+                        id="hamburgerToggle"
+                    >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"
+                            ></path>
                         </svg>
                     </button>
+
+                    <!-- GLOBALIZATION / LANGUAGE SELECTOR -->
+                    <form
+                        action="{% url 'set_language' %}"
+                        method="post"
+                        class="language-selector landing-desktop-only"
+                    >
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+                        <label for="site-language" class="sr-only">
+                            <!-- {% trans "Choose language" %} -->
+                        </label>
+
+                        {% get_current_language as CURRENT_LANGUAGE %}
+                        {% get_available_languages as AVAILABLE_LANGUAGES %}
+                        {% get_language_info_list for AVAILABLE_LANGUAGES as languages %}
+
+                        <select
+                            id="site-language"
+                            name="language"
+                            onchange="this.form.submit()"
+                            aria-label="{% trans 'Choose language' %}"  class="btn-subtle text-center block mb-3"
+                        >
+                            {% for language in languages %}
+                                <option
+                                    value="{{ language.code }}"
+                                    {% if language.code == CURRENT_LANGUAGE %}selected{% endif %}
+                                >
+                                    {{ language.name_local }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+
+                    <style>
+                        .landing-nav-actions .language-selector select {
+                            appearance: none;
+                            -webkit-appearance: none;
+                            -moz-appearance: none;
+                        }
+                        /* Keep the selector compact on smaller screens */
+                        @media (max-width: 768px) {
+                            .landing-nav-actions .language-selector {
+                                display: none;
+                            }
+                        }
+                    </style>
+                    <!-- END LANGUAGE SELECTOR -->
                 </div>
             </div>
 
             <!-- Mobile Navigation Drawer -->
             <div class="landing-mobile-menu" id="mobileMenu">
                 <nav class="landing-mobile-nav-links">
-                    <a href="#features" class="landing-mobile-link">Features</a>
-                    <a href="#experience" class="landing-mobile-link">Experience</a>
-                    <a href="#pricing" class="landing-mobile-link">Pricing</a>
+                    <a href="#features" class="landing-mobile-link">{% trans "Features" %}</a>
+                    <a href="#experience" class="landing-mobile-link">{% trans "Experience" %}</a>
+                    <a href="#pricing" class="landing-mobile-link">{% trans "Pricing" %}</a>
+
                     <div class="landing-mobile-divider">
                         {% if user.is_authenticated %}
-                            <a href="{% url 'events:dashboard' %}" class="btn-subtle text-center block mb-3">Dashboard</a>
-                            
+
+                            <!-- Mobile Dashboard -->
+                            <a
+                                href="{% url 'events:dashboard' %}"
+                                class="btn-subtle text-center block mb-3"
+                            >
+                                {% trans "Dashboard" %}
+                            </a>
+
+                            <!-- Mobile Notifications -->
+                            <a
+                                href="{% url 'events:notifications_inbox' %}"
+                                class="nav-notification-btn"
+                                title="Notifications{% if unread_notification_count %} ({{ unread_notification_count }} unread){% endif %}"
+                                aria-label="View notifications{% if unread_notification_count %}, {{ unread_notification_count }} unread{% endif %}"
+                                style="
+                                    position: relative;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    width: 38px;
+                                    height: 38px;
+                                    border-radius: 9999px;
+                                    background: var(--bg-surface-muted, rgba(15, 23, 42, 0.65));
+                                    border: 1px solid var(--border-color, #1e293b);
+                                    color: var(--text-muted, #94a3b8);
+                                    text-decoration: none;
+                                    backdrop-filter: blur(12px);
+                                    -webkit-backdrop-filter: blur(12px);
+                                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+                                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                                    flex-shrink: 0;
+                                "
+                                onmouseenter="this.style.background='var(--bg-surface, #0f172a)'; this.style.borderColor='var(--accent-indigo, #818cf8)'; this.style.color='var(--text-main, #f1f5f9)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 0 18px rgba(99, 102, 241, 0.35)';"
+                                onmouseleave="this.style.background='var(--bg-surface-muted, rgba(15, 23, 42, 0.65))'; this.style.borderColor='var(--border-color, #1e293b)'; this.style.color='var(--text-muted, #94a3b8)'; this.style.transform='none'; this.style.boxShadow='0 1px 3px rgba(0, 0, 0, 0.3)';"
+                            >
+                                <!-- Bell Icon with ring hover animation -->
+                                <svg
+                                    class="nav-bell-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    style="width: 18px; height: 18px; display: block; transition: transform 0.2s ease;"
+                                >
+                                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                                </svg>
+
+                                {% if unread_notification_count and unread_notification_count > 0 %}
+                                    <!-- Pulsing Aura (Radar ping) -->
+                                    <span
+                                        style="
+                                            position: absolute;
+                                            top: -2px;
+                                            right: -2px;
+                                            width: 10px;
+                                            height: 10px;
+                                            border-radius: 9999px;
+                                            background-color: var(--accent-rose, #fb7185);
+                                            opacity: 0.75;
+                                            animation: yeNavPing 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+                                            pointer-events: none;
+                                        "
+                                    ></span>
+
+                                    <!-- Badge Pill with Count -->
+                                    <span
+                                        style="
+                                            position: absolute;
+                                            top: -5px;
+                                            right: -7px;
+                                            display: inline-flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            min-width: 18px;
+                                            height: 18px;
+                                            padding: 0 4px;
+                                            border-radius: 9999px;
+                                            background: linear-gradient(135deg, var(--accent-rose, #fb7185) 0%, #e11d48 100%);
+                                            color: #ffffff;
+                                            border: 2px solid var(--bg-primary, #020617);
+                                            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+                                            font-size: 10px;
+                                            font-weight: 800;
+                                            line-height: 1;
+                                            letter-spacing: -0.02em;
+                                            box-shadow: 0 0 12px rgba(251, 113, 133, 0.55);
+                                            pointer-events: none;
+                                        "
+                                    >
+                                        {% if unread_notification_count > 99 %}99+{% else %}{{ unread_notification_count }}{% endif %}
+                                    </span>
+                                {% endif %}
+                            </a>
+
                             <!-- Mobile Log Out Form -->
-                            <form action="{% url 'logout' %}" method="post" class="w-full">
+                            <form
+                                action="{% url 'logout' %}"
+                                method="post"
+                                class="w-full"
+                            >
                                 {% csrf_token %}
-                                <button type="submit" class="landing-mobile-link text-center w-full" style="background: none; border: none; cursor: pointer;">Log Out</button>
+                                <button
+                                    type="submit"
+                                    class="landing-mobile-link text-center w-full"
+                                    style="background: none; border: none; cursor: pointer;"
+                                >
+                                    {% trans "Log Out" %}
+                                </button>
                             </form>
+
                         {% else %}
-                            <a href="{% url 'login' %}" class="landing-mobile-link">Sign In</a>
-                            <a href="#" class="btn-glow text-center block">Get Started</a>
+
+                            <a href="{% url 'login' %}" class="landing-mobile-link">
+                                {% trans "Sign In" %}
+                            </a>
+                            <a href="#" class="btn-glow text-center block">
+                                {% trans "Get Started" %}
+                            </a>
+
                         {% endif %}
                     </div>
                 </nav>
             </div>
-            <!--  -->
+
+            <style>
+               body {
+                    font-family: 'Inter', sans-serif;
+                    /* Recommended for crisp text rendering on all screens */
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;
+                }
+                
+            </style>
         </header>
 
         <!-- Lightweight Toggle Script -->
@@ -119,10 +424,10 @@
                                     <path d="M2 12l10 5 10-5" stroke="url(#nexusGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </div>
-                            <span class="landing-brand-text">  <img src="{% static 'events/images/event-logo1.png' %}" alt="YoursEvently Logo" style="width: 20%; height: 20%; margin-bottom: -15px; margin-right: 10px;">YoursEvently</span>
+                            <span class="landing-brand-text">  <img src="{% static 'events/images/event-logo1.png' %}" alt="YoursEvently Logo" style="width: 20%; height: 20%; margin-bottom: -15px; margin-right: 10px;" translate="no">YoursEvently</span>
                         </a>
                         <p class="footer-brand-desc">
-                            Precision-engineered event architecture built for high-performance guest management, seamless RSVP pipelines, and immersive atmospheric brand experiences.
+                            {% trans "Precision-engineered event architecture built for high-performance guest management, seamless RSVP pipelines, and immersive atmospheric brand experiences." %}
                         </p>
                         <div class="footer-socials">
                             <a href="#" aria-label="GitHub" class="footer-social-link">
@@ -139,49 +444,49 @@
 
                     <!-- Architecture -->
                     <div class="footer-col">
-                        <h4 class="footer-heading">Architecture</h4>
+                        <h4 class="footer-heading">{% trans "Architecture" %}</h4>
                         <ul class="footer-links">
-                            <li><a href="{% url 'events:theme_engines' %}" class="footer-link">Theme Engines</a></li>
-                            <li><a href="{% url 'events:split_screen' %}" class="footer-link">Split-Screen Layouts</a></li>
-                            <li><a href="{% url 'events:dynamic_rsvp' %}" class="footer-link">Dynamic RSVP Pipeline</a></li>
-                            <li><a href="{% url 'events:glassmorphic_ui' %}" class="footer-link">Glassmorphic UI Components</a></li>
-                            <li><a href="{% url 'events:changelog_releases' %}" class="footer-link">Changelog & Releases</a></li>
+                            <li><a href="{% url 'events:theme_engines' %}" class="footer-link">{% trans "Theme Engines" %}</a></li>
+                            <li><a href="{% url 'events:split_screen' %}" class="footer-link">{% trans "Split-Screen Layouts" %}</a></li>
+                            <li><a href="{% url 'events:dynamic_rsvp' %}" class="footer-link">{% trans "Dynamic RSVP Pipeline" %}</a></li>
+                            <li><a href="{% url 'events:glassmorphic_ui' %}" class="footer-link">{% trans "Glassmorphic UI Components" %}</a></li>
+                            <li><a href="{% url 'events:changelog_releases' %}" class="footer-link">{% trans "Changelog & Releases" %}</a></li>
                         </ul>
                     </div>
 
                     <!-- Solutions -->
                     <div class="footer-col">
-                        <h4 class="footer-heading">Solutions</h4>
+                        <h4 class="footer-heading">{% trans "Solutions" %}</h4>
                         <ul class="footer-links">
-                            <li><a href="{% url 'events:gig' %}" class="footer-link">Music Festivals & Gigs</a></li>
-                            <li><a href="{% url 'events:summit' %}" class="footer-link">Corporate Summits</a></li>
-                            <li><a href="{% url 'events:private_event' %}" class="footer-link">Private Galas & Events</a></li>
-                            <li><a href="{% url 'events:conference' %}" class="footer-link">Academic Conferences</a></li>
-                            <li><a href="{% url 'events:live_stream' %}" class="footer-link">Hybrid Live Streams</a></li>
+                            <li><a href="{% url 'events:gig' %}" class="footer-link">{% trans "Music Festivals & Gigs" %}</a></li>
+                            <li><a href="{% url 'events:summit' %}" class="footer-link">{% trans "Corporate Summits" %}</a></li>
+                            <li><a href="{% url 'events:private_event' %}" class="footer-link">{% trans "Private Galas & Events" %}</a></li>
+                            <li><a href="{% url 'events:conference' %}" class="footer-link">{% trans "Academic Conferences" %}</a></li>
+                            <li><a href="{% url 'events:live_stream' %}" class="footer-link">{% trans "Hybrid Live Streams" %}</a></li>
                         </ul>
                     </div>
 
                     <!-- Resources -->
                     <div class="footer-col">
-                        <h4 class="footer-heading">Resources</h4>
+                        <h4 class="footer-heading">{% trans "Resources" %}</h4>
                         <ul class="footer-links">
-                            <li><a href="{% url 'events:platform_architecture' %}" class="footer-link">Platform Architecture & Scale</a></li>
-                            <li><a href="{% url 'events:event_api' %}" class="footer-link">Event Data APIs & Webhooks</a></li>
-                            <li><a href="{% url 'events:security_compliance' %}" class="footer-link">Security & Attendee Compliance</a></li>
-                            <li><a href="{% url 'events:organizer_community' %}" class="footer-link">Organizer Community Hub</a></li>
-                            <li><a href="{% url 'events:system_status' %}" class="footer-link">System Status & Uptime</a></li>
+                            <li><a href="{% url 'events:platform_architecture' %}" class="footer-link">{% trans "Platform Architecture & Scale" %}</a></li>
+                            <li><a href="{% url 'events:event_api' %}" class="footer-link">{% trans "Event Data APIs & Webhooks" %}</a></li>
+                            <li><a href="{% url 'events:security_compliance' %}" class="footer-link">{% trans "Security & Attendee Compliance" %}</a></li>
+                            <li><a href="{% url 'events:organizer_community' %}" class="footer-link">{% trans "Organizer Community Hub" %}</a></li>
+                            <li><a href="{% url 'events:system_status' %}" class="footer-link">{% trans "System Status & Uptime" %}</a></li>
                         </ul>
                     </div>
 
                     <!-- Newsletter Subscription -->
                     <div class="footer-col footer-newsletter-col">
-                        <h4 class="footer-heading">Stay Synchronized</h4>
+                        <h4 class="footer-heading">{% trans "Stay Synchronized" %}</h4>
                         <p class="footer-newsletter-desc">
-                            Receive architectural updates, design tokens, and engineering notes directly to your inbox.
+                            {% trans "Receive architectural updates, design tokens, and engineering notes directly to your inbox." %}
                         </p>
                         <form class="footer-form" onsubmit="event.preventDefault();">
-                            <input type="email" placeholder="Enter your email" required class="footer-input">
-                            <button type="submit" class="btn-glow w-full text-center" style="border: none; cursor: pointer;">Subscribe</button>
+                            <input type="email" placeholder="{% trans 'Enter your email' %}" required class="footer-input">
+                            <button type="submit" class="btn-glow w-full text-center" style="border: none; cursor: pointer;">{% trans "Subscribe" %}</button>
                         </form>
                     </div>
 
@@ -190,18 +495,17 @@
                 <!-- Bottom Bar -->
                 <div class="footer-bottom">
                     <p class="footer-copyright">
-                        &copy; 2026 Nexus Meridian Group LLC &amp; YoursEvently. All rights reserved.
+                        &copy; 2026 <span translate="no">Nexus Meridian Group LLC</span>  &amp; <span translate="no">YoursEvently</span>. {% trans "All rights reserved." %}
                     </p>
                     <div class="footer-legal-links">
-                        <a href="{% url 'events:privacy' %}" class="footer-legal-link">Privacy Policy</a>
-                        <a href="{% url 'events:terms' %}" class="footer-legal-link">Terms of Service</a>
-                        <a href="{% url 'events:cookies' %}" class="footer-legal-link">Cookie Settings</a>
+                        <a href="{% url 'events:privacy' %}" class="footer-legal-link">{% trans "Privacy Policy" %}</a>
+                        <a href="{% url 'events:terms' %}" class="footer-legal-link">{% trans "Terms of Service" %}</a>
+                        <a href="{% url 'events:cookies' %}" class="footer-legal-link">{% trans "Cookie Settings" %}</a>
                     </div>
                 </div>
 
             </div>
         </footer>
 
-    </body>
-    
+    </body>  
 </html>

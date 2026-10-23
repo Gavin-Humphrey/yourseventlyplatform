@@ -1,9 +1,120 @@
 import os
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.core.files.storage import default_storage
-from .models import Event, TicketTier, GalleryImage, RSVP, RSVPGuest
+from .models import OrganizerProfile, Event, TicketTier, GalleryImage, RSVP, RSVPGuest, Feedback
 from django.forms import inlineformset_factory
+import re
 
+###########
+
+class HostRegistrationForm(UserCreationForm):
+    account_type = forms.ChoiceField(
+        choices=[
+            ('individual', 'Individual'),
+            ('organization', 'Organization / Company'),
+        ],
+        label="Account type"
+    )
+    organization_name = forms.CharField(
+        max_length=255,
+        required=False,
+        label="Organization / Company name"
+    )
+    first_name = forms.CharField(max_length=150, label="First name")
+    last_name = forms.CharField(max_length=150, label="Last name")
+    email = forms.EmailField(label="Email address")
+    phone = forms.CharField(
+        max_length=30,
+        label="Phone number",
+        help_text="Include your country code, e.g. +1 470 555 1234"
+    )
+    city = forms.CharField(max_length=100, label="City")
+    state_province = forms.CharField(max_length=100, label="State / Province")
+    country = forms.CharField(max_length=100, label="Country")
+
+    class Meta:
+        model = User
+        fields = [
+            'account_type', 'organization_name',
+            'first_name', 'last_name', 'email', 'phone',
+            'city', 'state_province', 'country',
+            'username', 'password1', 'password2'
+        ]
+
+    def clean_first_name(self):
+        value = self.cleaned_data['first_name'].strip()
+        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿ' -]+", value):
+            raise forms.ValidationError("Enter a valid first name.")
+        return value
+
+    def clean_last_name(self):
+        value = self.cleaned_data['last_name'].strip()
+        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿ' -]+", value):
+            raise forms.ValidationError("Enter a valid last name.")
+        return value
+
+    def clean_phone(self):
+        value = self.cleaned_data['phone'].strip()
+        if not re.fullmatch(r"\+[0-9][0-9\s().-]{7,29}", value):
+            raise forms.ValidationError(
+                "Enter a valid phone number with country code, e.g. +1 929 559 1111."
+            )
+        return value
+
+    def clean_city(self):
+        value = self.cleaned_data['city'].strip()
+        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿ' -]+", value):
+            raise forms.ValidationError("Enter a valid city.")
+        return value
+
+    def clean_state_province(self):
+        value = self.cleaned_data['state_province'].strip()
+        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿ' -]+", value):
+            raise forms.ValidationError("Enter a valid state or province.")
+        return value
+
+    def clean_country(self):
+        value = self.cleaned_data['country'].strip()
+        if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿ' -]+", value):
+            raise forms.ValidationError("Enter a valid country.")
+        return value
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("An account with this email already exists.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('account_type') == 'organization' and not cleaned_data.get('organization_name', '').strip():
+            self.add_error('organization_name', 'Organization / Company name is required.')
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        user.email = self.cleaned_data['email']
+
+        if commit:
+            user.save()
+            OrganizerProfile.objects.update_or_create(
+                user=user,
+                defaults={
+                    'account_type': self.cleaned_data['account_type'],
+                    'organization_name': self.cleaned_data.get('organization_name', '').strip(),
+                    'phone': self.cleaned_data['phone'],
+                    'city': self.cleaned_data['city'],
+                    'state_province': self.cleaned_data['state_province'],
+                    'country': self.cleaned_data['country'],
+                }
+            )
+
+        return user
+##########
 
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
@@ -30,7 +141,7 @@ class MultipleFileField(forms.FileField):
             return cleaned_list
         return single_file_clean(data, initial)
 
-import re
+
 class EventForm(forms.ModelForm):
     PAGE_BG_CHOICES = [
         # Landing Page Special Backgrounds
@@ -354,6 +465,9 @@ class EventForm(forms.ModelForm):
             ('minimal', 'Minimalist Clean'),
 
             ('editorial', 'editorial and minimalist'),
+            ('showcase', 'Showcase Diverse Events'),
+            ('summit', 'Summit Layout'),
+            ('nightlife', 'Night Events Layout'),
             ('story', 'story teller festival'),
         ],
         required=False,
@@ -396,21 +510,49 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = [
-            'title', 'event_date', 'location_name', 'address','is_ticketed',  'max_capacity', 'show_about_section', 'about_title', 'about_text', 
-            'allow_plus_ones', 'max_plus_ones_per_guest', 'allow_guest_messages', 'enable_qr_checkins', 'theme_settings',
-            # Added announcement fields:
-            'announcement_title', 
-            'announcement_text', 
-            'show_announcement',
+            'title', 'description', 'event_type', 'food_served', 'event_date', 'location_name', 'address', 'city', 'country',  'is_ticketed', 'max_capacity', 
+            'show_about_section', 'about_title', 'about_text', 
+            'allow_plus_ones', 'max_plus_ones_per_guest', 'allow_guest_messages', 
+            'enable_qr_checkins', 'theme_settings',
+            'announcement_title', 'announcement_text', 'show_announcement',
+            # --- Added Post-Event Deliverables ---
+            'presentation_file',
+            'resource_link',
+            'enable_certificates',
+            'show_countdown',
         ]
         widgets = {
             'event_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
             'address': forms.Textarea(attrs={'rows': 3}),
-            'announcement_text': forms.Textarea(attrs={'rows': 3}), # Optional: clean widget styling for the announcement text
+            'announcement_text': forms.Textarea(attrs={'rows': 3}),
+            'presentation_file': forms.ClearableFileInput(attrs={
+                'class': 'block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100'
+            }),
+            'resource_link': forms.URLInput(attrs={
+                'class': 'w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none',
+                'placeholder': 'https://github.com/...'
+            }),
+            'enable_certificates': forms.CheckboxInput(attrs={
+                'class': 'rounded bg-slate-900 border-slate-700 text-indigo-500 focus:ring-indigo-500 h-4 w-4'
+            }),
+            'description': forms.Textarea(attrs={
+                'rows': 5,
+                'placeholder': (
+                    'Describe the event, its purpose, activities, '
+                    'intended audience, and what guests can expect.'
+                ),
+            }),
+            'event_type': forms.Select(),
         }
+    ############
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # self.fields['location_name'].required = False #  NOW
+        # self.fields['address'].required = False # NOW
+        # self.fields['city'].required = False # NOW
+        # self.fields['country'].required = True # NOW
 
         if self.data:
             color_choice_fields = ['page_bg_color', 'section_bg_color', 'heading_color', 'body_color', 'muted_color']
@@ -492,7 +634,7 @@ class EventForm(forms.ModelForm):
 class GalleryImageForm(forms.ModelForm):
     class Meta:
         model = GalleryImage
-        fields = ['image', 'description', 'order']
+        fields = ['image', 'description', 'is_post_event', 'order']
         widgets = {
             'image': forms.ClearableFileInput(attrs={
                 'class': 'block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'
@@ -500,6 +642,9 @@ class GalleryImageForm(forms.ModelForm):
             'description': forms.TextInput(attrs={
                 'class': 'w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none',
                 'placeholder': 'Enter photo description or caption...'
+            }),
+            'is_post_event': forms.CheckboxInput(attrs={
+                'class': 'rounded bg-slate-900 border-slate-700 text-indigo-500 focus:ring-indigo-500 h-4 w-4'
             }),
             'order': forms.NumberInput(attrs={
                 'class': 'w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none',
@@ -593,3 +738,22 @@ class RSVPGuestForm(forms.ModelForm):
     class Meta:
         model = RSVPGuest
         fields = '__all__'  
+
+class FeedbackForm(forms.ModelForm):
+    rating = forms.ChoiceField(
+        choices=[(i, f"{i} Stars") for i in range(5, 0, -1)],
+        widget=forms.Select(attrs={'class': 'w-full rounded-xl border border-slate-300 p-2.5 text-sm bg-white'})
+    )
+    comment = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 4, 
+            'placeholder': 'Share your experience about this event...', 
+            'class': 'w-full rounded-xl border border-slate-300 p-3 text-sm bg-white'
+        }),
+        label="Your Review / Comment"
+    )
+
+    class Meta:
+        model = Feedback
+        fields = ['rating', 'comment']
+        

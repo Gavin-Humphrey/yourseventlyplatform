@@ -1,3 +1,4 @@
+ 
 {% extends 'events/landing_base.html' %}
 {% load static %}
 
@@ -8,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+
 <!-- Immersive Landing Container -->
 <div class="landing-container">
 
@@ -36,7 +38,7 @@
 
             <div class="hero-action-group">
                 <a href="{% url 'register' %}" class="btn-glow">Start Hosting Free</a>
-                <a href="#features" class="btn-subtle">Explore Architecture</a>
+                <a href="{% url 'events:platform_architecture' %}" class="btn-subtle">Explore Architecture</a>
             </div>
         </div>
     </section>
@@ -78,18 +80,39 @@
         </div>
 
         <div class="bento-grid">
-            <!-- Card 1: Cinematic Video Loop -->
-            <div class="bento-card bento-span-2 video-card" style="background-image: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.85)), url('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80'); background-size: cover; background-position: center;">
+            <!-- Card 1: Cinematic Platform Features Video Loop -->
+            <div class="bento-card bento-span-2 video-card pfv-stage-card" style="background-image: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.85)), url('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80'); background-size: cover; background-position: center;">
                 <div class="card-gradient-overlay"></div>
-                <div class="card-video-wrapper">
-                    <video autoplay muted loop playsinline class="card-video">
-                        <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-screens-and-lights-31911-large.mp4" type="video/mp4">
+                <div class="card-video-wrapper pfv-video-wrapper">
+                    <video id="pfvVideoElement" autoplay muted loop playsinline class="card-video pfv-video-el">
+                        <source src="{% static 'events/videos/platform-features.webm' %}" type="video/webm">
                     </video>
+                    <canvas id="pfvCanvas" class="pfv-canvas" width="1280" height="720" aria-label="YoursEvently Platform Features Short Video"></canvas>
+                    <div class="pfv-bottom-scrim"></div>
+
+                    <!-- Interactive Feature Chapters HUD -->
+                    <div class="pfv-hud-top">
+                        <span class="pfv-rec-badge">
+                            <span class="pfv-rec-dot"></span>
+                            Platform Features Reel • 0:15
+                        </span>
+                        <div class="pfv-scene-pills" id="pfvScenePills">
+                            <button type="button" class="pfv-scene-pill is-active" data-scene="0">01 Layouts</button>
+                            <button type="button" class="pfv-scene-pill" data-scene="1">02 Theme Studio</button>
+                            <button type="button" class="pfv-scene-pill" data-scene="2">03 QR &amp; Tickets</button>
+                            <button type="button" class="pfv-scene-pill" data-scene="3">04 Maps &amp; Comms</button>
+                            <button type="button" class="pfv-scene-pill" data-scene="4">05 Pro Spotlight</button>
+                        </div>
+                    </div>
+
+                    <div class="pfv-progress-track">
+                        <div class="pfv-progress-fill" id="pfvProgressFill"></div>
+                    </div>
                 </div>
-                <div class="card-content-relative">
+                <div class="card-content-relative pfv-content-overlay">
                     <span class="card-tag tag-indigo">Adaptive Architecture</span>
                     <h3 class="card-title">Fluid Composition Engines for Immersive Event Identity</h3>
-                    <p class="card-description">Seamlessly toggle between striking split-screen storytelling, centered focal cards, and raw minimalist art direction.</p>
+                    <p class="card-description">Seamlessly toggle between 8 signature layouts, live theme palettes, Stripe QR check-in passes, embedded maps, and Pro homepage discovery.</p>
                 </div>
             </div>
 
@@ -111,7 +134,12 @@
             </div>
 
             <!-- Card 3: Host Connection -->
-            <div class="bento-card host-card" style="background-image: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.92)), url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80'); background-size: cover; background-position: center;">
+            <div class="bento-card host-card" style="background-image: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.92)) background-size: cover; background-position: center;">
+                <div class="card-video-wrapper" style="height: 100%; width: 100%;">
+                    <video autoplay muted loop playsinline class="w-full h-full" style="height: 100% !important; width: 100% !important; object-fit: cover; border-radius: 10px;">
+                        <source src="https://assets.mixkit.co/videos/46545/46545-720.mp4" type="video/mp4">
+                    </video>
+                </div>
                 <div class="card-content-relative">
                     <span class="card-tag tag-emerald">Direct Comms</span>
                     <h3 class="card-title">WhatsApp & Phone Integration</h3>
@@ -143,9 +171,735 @@
         </div>
     </section>
 
-    <!--  -->
-   
-    <!--  -->
+<!-- ================= FAVORITE UPCOMING EVENTS SHOWCASE ================= -->
+<section id="favorite-upcoming-events" class="fav-section">
+
+    <!-- Multi-Orb Drifting Aurora Stage -->
+    <div class="fav-ambient-stage">
+        <div class="fav-orb fav-orb-1"></div>
+        <div class="fav-orb fav-orb-2"></div>
+        <div class="fav-orb fav-orb-3"></div>
+    </div>
+
+    <div class="fav-header">
+        <div class="fav-header-left">
+            <div class="fav-badge-row">
+                <span class="fav-live-pill">
+                    <span class="fav-live-dot"></span>
+                    Curated Pro Showcase
+                </span>
+                <span class="fav-eligibility-pill">*Based on eligibility</span>
+            </div>
+
+            <h2 class="fav-title">
+                Favorite <span class="fav-title-glow">Upcoming Events</span>
+            </h2>
+
+            <p class="fav-subtitle">
+                Step inside standout upcoming experiences crafted by YoursEvently Pro organizers — hover any micro-card to feel the vibe and RSVP live.
+            </p>
+        </div>
+
+        {% if favorite_events %}
+        <div class="fav-header-meta">
+            <span>
+                Showing
+                <strong id="favEventCountDisplay">{{ favorite_events|length }}</strong>
+                of {{ favorite_events.paginator.count }}
+                featured upcoming event{{ favorite_events.paginator.count|pluralize }}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================= COUNTRY FILTER DROPDOWN ================= -->
+    <div
+        class="fav-country-filter-bar"
+        style="margin: 0 0 1.85rem 0; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;"
+    >
+        <div
+            class="fav-country-select-wrapper"
+            style="position: relative; display: inline-flex; align-items: center; min-width: 250px; max-width: 380px; width: 100%;"
+        >
+            <span
+                style="position: absolute; left: 1rem; pointer-events: none; color: var(--accent-indigo, #818cf8); font-size: 0.95rem; z-index: 2;"
+            >
+                🌍
+            </span>
+
+            <select
+                id="favCountryFilter"
+                aria-label="Filter events by country"
+                data-selected-country="{{ selected_fav_country|default:''|escape }}"
+                style="
+                    width: 100%;
+                    appearance: none;
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    background: var(--bg-surface-glass, rgba(15, 23, 42, 0.85));
+                    border: 1px solid var(--border-subtle, rgba(30, 41, 59, 0.8));
+                    border-radius: var(--radius-md, 1rem);
+                    color: var(--text-main, #f1f5f9);
+                    font-family: inherit;
+                    font-size: 0.86rem;
+                    font-weight: 600;
+                    padding: 0.65rem 2.5rem 0.65rem 2.65rem;
+                    outline: none;
+                    cursor: pointer;
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                "
+                onfocus="this.style.borderColor='var(--accent-indigo, #818cf8)'; this.style.boxShadow='0 0 18px var(--glow-indigo, rgba(79, 70, 229, 0.25))';"
+                onblur="this.style.borderColor='var(--border-subtle, rgba(30, 41, 59, 0.8))'; this.style.boxShadow='0 4px 14px rgba(0, 0, 0, 0.25)';"
+            >
+                <!-- <option value="" style="background: #0f172a; color: #f1f5f9;"
+                    {% if not selected_fav_country %}selected{% endif %}>
+                    All Global Locations (All Countries)
+                </option>
+
+                <option value="United States" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "United States" %}selected{% endif %}>
+                    🇺🇸 United States (USA)
+                </option>
+
+                <option value="United Kingdom" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "United Kingdom" %}selected{% endif %}>
+                    🇬🇧 United Kingdom (UK)
+                </option>
+
+                <option value="Canada" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "Canada" %}selected{% endif %}>
+                    🇨🇦 Canada
+                </option>
+
+                <option value="Australia" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "Australia" %}selected{% endif %}>
+                    🇦🇺 Australia
+                </option>
+
+                <option value="Germany" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "Germany" %}selected{% endif %}>
+                    🇩🇪 Germany
+                </option>
+
+                <option value="France" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "France" %}selected{% endif %}>
+                    🇫🇷 France
+                </option>
+
+                <option value="Spain" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "Spain" %}selected{% endif %}>
+                    🇪🇸 Spain
+                </option>
+
+                <option value="Italy" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "Italy" %}selected{% endif %}>
+                    🇮🇹 Italy
+                </option>
+
+                <option value="Netherlands" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "Netherlands" %}selected{% endif %}>
+                    🇳🇱 Netherlands
+                </option>
+
+                <option value="Japan" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "Japan" %}selected{% endif %}>
+                    🇯🇵 Japan
+                </option>
+
+                <option value="United Arab Emirates" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "United Arab Emirates" %}selected{% endif %}>
+                    🇦🇪 United Arab Emirates
+                </option>
+
+                <option value="Nigeria" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "Nigeria" %}selected{% endif %}>
+                    🇳🇬 Nigeria
+                </option>
+
+                <option value="South Africa" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "South Africa" %}selected{% endif %}>
+                    🇿🇦 South Africa
+                </option>
+
+                <option value="Brazil" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "Brazil" %}selected{% endif %}>
+                    🇧🇷 Brazil
+                </option>
+
+                <option value="Singapore" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "Singapore" %}selected{% endif %}>
+                    🇸🇬 Singapore
+                </option>
+
+                <option value="India" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "India" %}selected{% endif %}>
+                    🇮🇳 India
+                </option>
+
+                <option value="Mexico" style="background: #0f172a; color: #f1f5f9;"
+                    {% if selected_fav_country == "Mexico" %}selected{% endif %}>
+                    🇲🇽 Mexico
+                </option> -->
+                
+                <option value=""
+                    {% if not selected_fav_country %}selected{% endif %}>
+                    🌐 All Global Locations (All Countries)
+                </option>
+
+                {% for code, name, flag in fav_country_choices %}
+                    <option value="{{ code }}"
+                        {% if selected_fav_country == code %}selected{% endif %}>
+                        {{ flag }} {{ name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <!-- Custom Arrow -->
+            <span
+                style="position: absolute; right: 1rem; pointer-events: none; color: var(--text-muted, #94a3b8); font-size: 0.72rem; z-index: 2;"
+            >
+                ▼
+            </span>
+        </div>
+
+        <!-- Active Filter Badge / Reset Indicator -->
+        <div
+            id="favFilterStatus"
+            style="display: {% if selected_fav_country %}inline-flex{% else %}none{% endif %}; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-muted, #94a3b8);"
+        >
+            <span>
+                Filtered by:
+                <strong
+                    id="favSelectedCountryLabel"
+                    style="color: var(--accent-indigo, #818cf8);"
+                >{{ selected_fav_country }}</strong>
+            </span>
+
+            <button
+                type="button"
+                id="favResetFilterBtn"
+                style="
+                    background: rgba(30, 41, 59, 0.7);
+                    border: 1px solid var(--border-subtle, rgba(30, 41, 59, 0.8));
+                    color: var(--text-main, #f1f5f9);
+                    border-radius: var(--radius-full, 9999px);
+                    padding: 0.2rem 0.65rem;
+                    font-size: 0.72rem;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.25rem;
+                    transition: all 0.2s ease;
+                "
+                onmouseenter="this.style.background='var(--bg-surface, #0f172a)'; this.style.borderColor='var(--accent-rose, #fb7185)'; this.style.color='var(--accent-rose, #fb7185)';"
+                onmouseleave="this.style.background='rgba(30, 41, 59, 0.7)'; this.style.borderColor='var(--border-subtle, rgba(30, 41, 59, 0.8))'; this.style.color='var(--text-main, #f1f5f9)';"
+            >
+                ✕ Clear Filter
+            </button>
+        </div>
+    </div>
+    <!-- ================= END COUNTRY FILTER DROPDOWN ================= -->
+
+
+    {% if favorite_events %}
+
+        <!-- Paginated Micro-Cards Grid -->
+        <div class="fav-grid" id="favGridContainer">
+
+            {% for item in favorite_events %}
+                {% with ev=item.event|default:item %}
+                {% with theme=ev.theme_settings %}
+
+                <article
+                    class="fav-micro-card"
+                    data-location="{{ ev.location_name|default:''|escape }}"
+                    style="--card-accent: {{ theme.primary_color|default:'#818cf8' }};"
+                >
+                    <div class="fav-card-accent"></div>
+
+                    <!-- Compact Visual Header Strip -->
+                    <div class="fav-card-media">
+
+                        {% if theme and theme.hero_image_url %}
+                            <img
+                                src="{{ theme.hero_image_url }}"
+                                alt="{{ ev.title }}"
+                                loading="lazy"
+                            >
+                        {% else %}
+                            <div class="fav-card-media-fallback"></div>
+                        {% endif %}
+
+                        <div class="fav-card-media-overlay"></div>
+
+                        <!-- Floating Date & Access Type Chips -->
+                        <div class="fav-card-badges">
+
+                            <span class="fav-date-chip">
+                                <svg fill="none" viewBox="0 0 24 24" stroke-width="2">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    />
+                                </svg>
+                                {{ ev.event_date|date:"M j, Y • g:i A" }}
+                            </span>
+
+                            {% if item.badge_label %}
+                                <span class="fav-type-chip fav-type-chip--ticketed">
+                                    {{ item.badge_label }}
+                                </span>
+                            {% elif ev.is_ticketed %}
+                                <span class="fav-type-chip fav-type-chip--ticketed">
+                                    Ticketed
+                                </span>
+                            {% else %}
+                                <span class="fav-type-chip fav-type-chip--rsvp">
+                                    Open RSVP
+                                </span>
+                            {% endif %}
+
+                        </div>
+
+                        <!-- Venue / Location Pin -->
+                        <div class="fav-media-location">
+                            <span class="fav-pin">📍</span>
+                            <span>{{ ev.location_name|default:"TBA / Private Venue" }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Micro-Card Content Body -->
+                    <div class="fav-card-body">
+
+                        <h3 class="fav-card-title">
+                            <a href="{% url 'events:public_rsvp' slug=ev.slug %}">
+                                {{ ev.title }}
+                            </a>
+                        </h3>
+
+                        <p class="fav-card-desc">
+                            {% if item.short_blurb %}
+                                {{ item.short_blurb|truncatechars:115 }}
+                            {% elif ev.short_summary %}
+                                {{ ev.short_summary|truncatechars:115 }}
+                            {% elif ev.description %}
+                                {{ ev.description|striptags|truncatechars:115 }}
+                            {% else %}
+                                Step inside this curated YoursEvently experience to view full venue coordinates, schedule, and live guest RSVP options.
+                            {% endif %}
+                        </p>
+
+                    </div>
+
+                    <!-- Micro-Card Footer -->
+                    <div class="fav-card-footer">
+
+                        <div class="fav-host-info">
+                            <span class="fav-host-avatar">
+                                {{ ev.host.first_name|default:ev.host.username|slice:":1"|default:"Y" }}
+                            </span>
+
+                            <span class="fav-host-name">
+                                By {{ ev.host.get_full_name|default:ev.host.username|default:"Pro Organizer" }} @{{ ev.host.username }}
+                            </span>
+                        </div>
+
+                        <a
+                            href="{% url 'events:public_rsvp' slug=ev.slug %}"
+                            class="fav-card-link"
+                        >
+                            <span>Explore Vibe</span>
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2.2">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                                />
+                            </svg>
+                        </a>
+
+                    </div>
+                </article>
+
+                {% endwith %}
+                {% endwith %}
+            {% endfor %}
+
+        </div>
+
+
+        <!-- Pagination Bar -->
+        {% if favorite_events.has_other_pages %}
+        <div class="fav-pagination-bar" id="favPaginationBar">
+
+            <div class="fav-page-status">
+                Page <strong>{{ favorite_events.number }}</strong>
+                of <strong>{{ favorite_events.paginator.num_pages }}</strong>
+            </div>
+
+            <nav
+                class="fav-page-controls"
+                aria-label="Favorite Upcoming Events Pagination"
+            >
+
+                {% if favorite_events.has_previous %}
+                    <a
+                        href="?fav_country={{ selected_fav_country|urlencode }}&amp;fav_page={{ favorite_events.previous_page_number }}#favorite-upcoming-events"
+                        class="fav-page-btn"
+                        aria-label="Previous Page"
+                    >
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15 19l-7-7 7-7"
+                            />
+                        </svg>
+                    </a>
+                {% else %}
+                    <span class="fav-page-btn is-disabled" aria-disabled="true">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15 19l-7-7 7-7"
+                            />
+                        </svg>
+                    </span>
+                {% endif %}
+
+
+                {% for num in favorite_events.paginator.page_range %}
+                    {% if favorite_events.number == num %}
+                        <span class="fav-page-btn is-active" aria-current="page">
+                            {{ num }}
+                        </span>
+                    {% elif num > favorite_events.number|add:'-3' and num < favorite_events.number|add:'3' %}
+                        <a
+                            href="?fav_country={{ selected_fav_country|urlencode }}&amp;fav_page={{ num }}#favorite-upcoming-events"
+                            class="fav-page-btn"
+                        >
+                            {{ num }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+
+
+                {% if favorite_events.has_next %}
+                    <a
+                        href="?fav_country={{ selected_fav_country|urlencode }}&amp;fav_page={{ favorite_events.next_page_number }}#favorite-upcoming-events"
+                        class="fav-page-btn"
+                        aria-label="Next Page"
+                    >
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M9 5l7 7-7 7"
+                            />
+                        </svg>
+                    </a>
+                {% else %}
+                    <span class="fav-page-btn is-disabled" aria-disabled="true">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M9 5l7 7-7 7"
+                            />
+                        </svg>
+                    </span>
+                {% endif %}
+
+            </nav>
+        </div>
+        {% endif %}
+
+
+    {% else %}
+
+        {% if selected_fav_country %}
+
+            <!-- No Events Match the Selected Country -->
+            <div class="fav-empty-box">
+                <h3>
+                    No upcoming featured events in
+                    <span style="color: var(--accent-indigo, #818cf8);">
+                        {{ selected_fav_country }}
+                    </span>
+                    yet
+                </h3>
+
+                <p>
+                    There are currently no upcoming featured events matching this location. Select another country or view all global locations.
+                </p>
+
+                <button
+                    type="button"
+                    id="favShowAllLocationsBtn"
+                    class="fav-card-link"
+                    style="padding: 0.55rem 1.15rem; font-size: 0.82rem; background: none; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; margin: 0 auto;"
+                >
+                    <span>View All Global Locations</span>
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="2.2" style="width: 15px; height: 15px;">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
+                    </svg>
+                </button>
+            </div>
+
+        {% else %}
+
+            <!-- Original Fallback When No Featured Events Exist -->
+            <div class="fav-empty-box">
+                <h3>Curating Next Week&rsquo;s Spotlight Events</h3>
+
+                <p>
+                    Eligible Unlimited Pro and Single-Event Pro hosts can have their upcoming public events featured right here in the YoursEvently discovery showcase.
+                </p>
+
+                <a
+                    href="{% url 'events:create_event' %}"
+                    class="fav-card-link"
+                    style="padding: 0.55rem 1.15rem; font-size: 0.82rem;"
+                >
+                    <span>Launch an Eligible Pro Event</span>
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="2.2">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
+                    </svg>
+                </a>
+            </div>
+
+        {% endif %}
+
+    {% endif %}
+
+</section>
+
+    <!-- ================= DYNAMIC EVENT WORLDS & VISUAL STORIES SHOWCASE ================= -->
+    <section id="event-worlds-showcase" class="evw-section">
+        <div class="evw-ambient-glow-indigo"></div>
+        <div class="evw-ambient-glow-emerald"></div>
+
+        <!-- Section Header + Interactive World Switcher -->
+        <div class="evw-header">
+            <div class="evw-header-copy">
+                <div class="evw-eyebrow-row">
+                    <span class="evw-eyebrow-pill">
+                        <span class="evw-eyebrow-dot"></span>
+                        Visual Stories &amp; Event Worlds
+                    </span>
+                    <span class="evw-eyebrow-sub">Built on YoursEvently Studio</span>
+                </div>
+                <h2 class="evw-main-title">
+                    Every Gathering Has a Pulse. <span class="evw-title-gradient">Give Yours a Stage.</span>
+                </h2>
+                <p class="evw-subtitle">
+                    From bass-heavy warehouse sets and executive tech keynotes to candlelit black-tie galas—discover how organizers shape atmosphere, sell out tiers, and welcome guests at the door.
+                </p>
+            </div>
+
+            <!-- Interactive 3-World Filter Tabs -->
+            <div class="evw-world-tabs" id="evwWorldTabs" role="tablist" aria-label="Event Archetype Stories">
+                <button type="button" class="evw-world-tab is-active" data-world="0" role="tab" aria-selected="true">
+                    <span class="evw-tab-num">01</span> Concerts &amp; Nightlife
+                </button>
+                <button type="button" class="evw-world-tab" data-world="1" role="tab" aria-selected="false">
+                    <span class="evw-tab-num">02</span> Conferences &amp; Summits
+                </button>
+                <button type="button" class="evw-world-tab" data-world="2" role="tab" aria-selected="false">
+                    <span class="evw-tab-num">03</span> Galas &amp; Soirées
+                </button>
+            </div>
+        </div>
+
+        <!-- PART 1: Concert, Conference, and Gala Triptych Interactive Deck -->
+        <div class="evw-triptych-shell">
+            <div class="evw-triptych-visual">
+                <img
+                    src="{% static 'events/images/YoursEvently-3-in-1-image.jpeg' %}"
+                    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1600&q=85';"
+                    alt="Concert, Conference, and Gala Triptych — Three Iconic Event Worlds on YoursEvently"
+                    class="evw-triptych-img"
+                    loading="lazy"
+                >
+
+                <!-- 3 Interactive Triptych Zones -->
+                <div class="evw-triptych-zones" id="evwTriptychZones">
+                    <!-- Zone 0: Concert -->
+                    <div class="evw-zone is-active" data-world="0">
+                        <div class="evw-zone-top-bar" style="background: linear-gradient(90deg, var(--accent-indigo), var(--accent-purple));"></div>
+                        <span class="evw-zone-badge">01 • Underground &amp; Live Stages</span>
+                        <h3 class="evw-zone-title">Concerts &amp; Afterhours</h3>
+                        <p class="evw-zone-caption">Neon flyer layouts, pulsing countdowns &amp; instant QR door velocity.</p>
+                    </div>
+
+                    <!-- Zone 1: Conference -->
+                    <div class="evw-zone" data-world="1">
+                        <div class="evw-zone-top-bar" style="background: linear-gradient(90deg, var(--electric-green), var(--accent-indigo));"></div>
+                        <span class="evw-zone-badge">02 • Thought Leadership</span>
+                        <h3 class="evw-zone-title">Conferences &amp; Summits</h3>
+                        <p class="evw-zone-caption">Structured keynote agendas, multi-tier passes &amp; live stage broadcasts.</p>
+                    </div>
+
+                    <!-- Zone 2: Gala -->
+                    <div class="evw-zone" data-world="2">
+                        <div class="evw-zone-top-bar" style="background: linear-gradient(90deg, var(--accent-pink), var(--accent-rose));"></div>
+                        <span class="evw-zone-badge">03 • Black-Tie &amp; Private</span>
+                        <h3 class="evw-zone-title">Galas &amp; Cultural Soirées</h3>
+                        <p class="evw-zone-caption">Editorial typography, curated +1 guestlists &amp; private photo vaults.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Story Bar Below Triptych -->
+            <div class="evw-triptych-story-bar">
+                <div>
+                    <div class="evw-story-tag-row">
+                        <span class="evw-story-pill" id="evwStoryPill">Spotlight 01 • Live Music &amp; Nightlife</span>
+                        <span class="evw-story-layout-chip" id="evwStoryLayout">Layout: Nightlife Neon Flyer + Showcase Boarding Pass</span>
+                    </div>
+                    <h3 class="evw-story-headline" id="evwStoryHeadline">
+                        &ldquo;We sold out 450 rooftop passes in 4 hours—and scanned every guest at the elevator in under two seconds.&rdquo;
+                    </h3>
+                    <p class="evw-story-narrative" id="evwStoryBody">
+                        When Berlin-to-SF collective <strong>Pulse &amp; Circuit</strong> ditched sterile white ticket directories for YoursEvently&rsquo;s dark-mode Nightlife layout, their RSVP link became part of the art. Guests shared the interactive social micro-card across WhatsApp and Instagram, arriving with glowing QR boarding passes already saved to their phones.
+                    </p>
+                </div>
+
+                <div class="evw-story-metrics">
+                    <div class="evw-metric-box">
+                        <span class="evw-metric-val" id="evwMetric1Val">1.4 sec</span>
+                        <span class="evw-metric-label" id="evwMetric1Label">Average mobile QR door scan time</span>
+                    </div>
+                    <div class="evw-metric-box">
+                        <span class="evw-metric-val" id="evwMetric2Val">+68%</span>
+                        <span class="evw-metric-label" id="evwMetric2Label">Lift in organic guest link shares</span>
+                    </div>
+                    <div class="evw-metric-box">
+                        <span class="evw-metric-val" id="evwMetric3Val">100%</span>
+                        <span class="evw-metric-label" id="evwMetric3Label">Custom palette &amp; zero white-label clutter</span>
+                    </div>
+                    <div class="evw-metric-box">
+                        <span class="evw-metric-val" id="evwMetric4Val">Direct</span>
+                        <span class="evw-metric-label" id="evwMetric4Label">Stripe checkout &amp; 1-tap WhatsApp host line</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PART 2: Asymmetric Host & Arrival Story Spotlight (Gemini_Generated_Image_c4440oc4440oc444.jpeg) -->
+        <div class="evw-spotlight-grid">
+            <!-- Left Visual Frame -->
+            <div class="evw-visual-frame">
+                <img
+                    src="{% static 'events/images/YoursEvently-image-1.jpeg' %}"
+                    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1400&q=85';"
+                    alt="YoursEvently Live Door Check-In and Atmospheric Event Experience"
+                    loading="lazy"
+                >
+                <div class="evw-visual-scrim"></div>
+
+                <div class="evw-visual-hud-top">
+                    <span class="evw-hud-chip">
+                        <span class="evw-eyebrow-dot"></span>
+                        Live Door Telemetry • YoursEvently OS
+                    </span>
+                    <span class="evw-hud-chip evw-hud-chip--emerald">
+                        ✔ QR Boarding Pass Verified
+                    </span>
+                </div>
+
+                <div class="evw-visual-hud-bottom">
+                    <div class="evw-quote-card">
+                        <p class="evw-quote-text">
+                            &ldquo;The moment a guest’s phone lights up with a custom-branded boarding pass at the entrance, they know they aren’t at a generic meetup—they’re stepping inside an experience.&rdquo;
+                        </p>
+                        <div class="evw-quote-meta">
+                            <span><strong>Elena Vance</strong> • Executive Producer, Glasshouse Sessions</span>
+                            <span><strong>480 / 480</strong> Guests Checked In</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right 3-Act Event Lifecycle Chronicle -->
+            <div class="evw-chronicle-card">
+                <div class="evw-chronicle-header">
+                    <span class="card-tag tag-indigo">The Anatomy of an Exceptional Night</span>
+                    <h3>From First Spark to the Final Encore</h3>
+                    <p>
+                        Great events aren&rsquo;t built on spreadsheets. YoursEvently unifies design, monetization, and door operations into one continuous atmospheric flow.
+                    </p>
+                </div>
+
+                <div class="evw-act-list" id="evwActList">
+                    <div class="evw-act-item is-active" data-act="0">
+                        <div class="evw-act-top">
+                            <div class="evw-act-title-wrap">
+                                <span class="evw-act-index">ACT I</span>
+                                <h4 class="evw-act-title">Set the Mood in 90 Seconds</h4>
+                            </div>
+                            <span class="evw-act-time">T-Minus 14 Days</span>
+                        </div>
+                        <p class="evw-act-body">
+                            Pick from 8 architectural layouts—from Boarding Pass Showcase to Summit Deck—and dial in your 6 custom color tokens. Your page looks custom-coded by a design studio before you even announce the lineup.
+                        </p>
+                    </div>
+
+                    <div class="evw-act-item" data-act="1">
+                        <div class="evw-act-top">
+                            <div class="evw-act-title-wrap">
+                                <span class="evw-act-index">ACT II</span>
+                                <h4 class="evw-act-title">Drop Micro-Cards That Convert</h4>
+                            </div>
+                            <span class="evw-act-time">T-Minus 7 Days</span>
+                        </div>
+                        <p class="evw-act-body">
+                            Every event automatically generates a rich social preview micro-card. When shared in WhatsApp groups, iMessage, or X, guests see live dates, venue pins, and multi-tier Stripe passes that sell out without redirects.
+                        </p>
+                    </div>
+
+                    <div class="evw-act-item" data-act="2">
+                        <div class="evw-act-top">
+                            <div class="evw-act-title-wrap">
+                                <span class="evw-act-index">ACT III</span>
+                                <h4 class="evw-act-title">Zero-Friction Arrival &amp; Live Comms</h4>
+                            </div>
+                            <span class="evw-act-time">Doors Open • Live</span>
+                        </div>
+                        <p class="evw-act-body">
+                            Scan digital QR passes directly from any browser, push real-time valet or stage announcements to the sticky top ribbon, and collect guestbook memories and private vault photos after the lights come up.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="evw-chronicle-footer">
+                    <span class="evw-chronicle-stat">
+                        Ready in <strong>under 2 minutes</strong> • Free &amp; Pro tiers available
+                    </span>
+                    <a href="{% url 'events:create_event' %}" class="evw-cta-btn">
+                        <span>Launch Your Event Space</span>
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- ================= END DYNAMIC EVENT WORLDS & VISUAL STORIES SHOWCASE ================= -->
 
     <!-- Deep Scroll Narrative -->
     <section class="narrative-section" style="background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98)), url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1000&q=80'); background-size: cover; background-position: center;">
@@ -231,7 +985,6 @@
             </div>
         </div>
     </section>
-    <!--  -->
 
     <!-- Bottom Action CTA Banner -->
     <section class="cta-banner">
@@ -247,9 +1000,746 @@
     </section>
 
 </div>
-<!-- Ambient Canvas Animation Engine -->
+
+<!-- Ambient Canvas & Interactive Spotlight Engine -->
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // 1. Cursor-Tracking Ambient Spotlight for Favorite Upcoming Micro-Cards
+        const favCards = document.querySelectorAll('.fav-micro-card');
+        favCards.forEach((card) => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // 1B. Interactive Event Worlds Triptych & Lifecycle Story Switcher
+        const evwStories = [
+            {
+                pill: 'Spotlight 01 • Live Music & Nightlife',
+                layout: 'Layout: Nightlife Neon Flyer + Showcase Boarding Pass',
+                headline: '“We sold out 450 rooftop passes in 4 hours—and scanned every guest at the elevator in under two seconds.”',
+                body: 'When Berlin-to-SF collective <strong>Pulse &amp; Circuit</strong> ditched sterile white ticket directories for YoursEvently’s dark-mode Nightlife layout, their RSVP link became part of the art. Guests shared the interactive social micro-card across WhatsApp and Instagram, arriving with glowing QR boarding passes already saved to their phones.',
+                m1Val: '1.4 sec',
+                m1Label: 'Average mobile QR door scan time',
+                m2Val: '+68%',
+                m2Label: 'Lift in organic guest link shares',
+                m3Val: '100%',
+                m3Label: 'Custom palette & zero white-label clutter',
+                m4Val: 'Direct',
+                m4Label: 'Stripe checkout & 1-tap WhatsApp host line'
+            },
+            {
+                pill: 'Spotlight 02 • Flagship Conferences & Summits',
+                layout: 'Layout: Summit Conference Deck + Modern Compact',
+                headline: '“1,200 founders across three stages, and not a single attendee asked where the next keynote room was.”',
+                body: 'For the annual <strong>Spatial Systems &amp; AI Forum</strong>, organizers used YoursEvently’s Summit layout with live embedded venue maps and the universal sticky countdown ribbon. When the keynote room shifted by 15 minutes, a single live announcement banner updated every attendee’s browser simultaneously.',
+                m1Val: '1,200+',
+                m1Label: 'Multi-tier VIP & General passes issued',
+                m2Val: '0 Apps',
+                m2Label: 'Required for live agenda & map access',
+                m3Val: 'Instant',
+                m3Label: '1-tap Google Calendar & .ICS sync',
+                m4Val: 'Live HUD',
+                m4Label: 'Real-time stage & arrival announcements'
+            },
+            {
+                pill: 'Spotlight 03 • Black-Tie Galas & Private Soirées',
+                layout: 'Layout: Editorial Serif + Split Screen Invitation',
+                headline: '“Our patrons felt the warmth of a bespoke printed invitation with the effortless precision of digital concierge RSVP.”',
+                body: 'Curating a 180-guest candlelit charity gala requires discretion and elegance. Using YoursEvently’s Editorial layout, the host team controlled exact plus-one limits, offered direct WhatsApp valet coordination, and unlocked a password-protected photo vault the morning after the toast.',
+                m1Val: '+1 Control',
+                m1Label: 'Precision guest & companion capacity caps',
+                m2Val: 'Private',
+                m2Label: 'Password-protected post-event photo vault',
+                m3Val: '94%',
+                m3Label: 'Guestbook wall participation rate',
+                m4Val: 'Bespoke',
+                m4Label: 'Editorial typography & rose-gold tokens'
+            }
+        ];
+
+        const evwTabs = document.querySelectorAll('.evw-world-tab');
+        const evwZones = document.querySelectorAll('.evw-zone');
+        const evwStoryPill = document.getElementById('evwStoryPill');
+        const evwStoryLayout = document.getElementById('evwStoryLayout');
+        const evwStoryHeadline = document.getElementById('evwStoryHeadline');
+        const evwStoryBody = document.getElementById('evwStoryBody');
+        const evwM1Val = document.getElementById('evwMetric1Val');
+        const evwM1Label = document.getElementById('evwMetric1Label');
+        const evwM2Val = document.getElementById('evwMetric2Val');
+        const evwM2Label = document.getElementById('evwMetric2Label');
+        const evwM3Val = document.getElementById('evwMetric3Val');
+        const evwM3Label = document.getElementById('evwMetric3Label');
+        const evwM4Val = document.getElementById('evwMetric4Val');
+        const evwM4Label = document.getElementById('evwMetric4Label');
+
+        function setActiveEvwWorld(index) {
+            const story = evwStories[index] || evwStories[0];
+            evwTabs.forEach((tab, idx) => {
+                const active = idx === index;
+                tab.classList.toggle('is-active', active);
+                tab.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            evwZones.forEach((zone, idx) => {
+                zone.classList.toggle('is-active', idx === index);
+            });
+            if (evwStoryPill) evwStoryPill.textContent = story.pill;
+            if (evwStoryLayout) evwStoryLayout.textContent = story.layout;
+            if (evwStoryHeadline) evwStoryHeadline.textContent = story.headline;
+            if (evwStoryBody) evwStoryBody.innerHTML = story.body;
+            if (evwM1Val) evwM1Val.textContent = story.m1Val;
+            if (evwM1Label) evwM1Label.textContent = story.m1Label;
+            if (evwM2Val) evwM2Val.textContent = story.m2Val;
+            if (evwM2Label) evwM2Label.textContent = story.m2Label;
+            if (evwM3Val) evwM3Val.textContent = story.m3Val;
+            if (evwM3Label) evwM3Label.textContent = story.m3Label;
+            if (evwM4Val) evwM4Val.textContent = story.m4Val;
+            if (evwM4Label) evwM4Label.textContent = story.m4Label;
+        }
+
+        evwTabs.forEach((tab) => {
+            tab.addEventListener('click', () => {
+                const idx = parseInt(tab.getAttribute('data-world') || '0', 10);
+                setActiveEvwWorld(idx);
+            });
+        });
+
+        evwZones.forEach((zone) => {
+            zone.addEventListener('click', () => {
+                const idx = parseInt(zone.getAttribute('data-world') || '0', 10);
+                setActiveEvwWorld(idx);
+            });
+            zone.addEventListener('mouseenter', () => {
+                const idx = parseInt(zone.getAttribute('data-world') || '0', 10);
+                setActiveEvwWorld(idx);
+            });
+        });
+
+        const evwActItems = document.querySelectorAll('.evw-act-item');
+        evwActItems.forEach((item) => {
+            item.addEventListener('click', () => {
+                evwActItems.forEach((el) => el.classList.remove('is-active'));
+                item.classList.add('is-active');
+            });
+        });
+
+        // 2. Platform Features Short Video Engine (16:9 Motion Graphics Reel in Home Page Video Section)
+        const pfvCanvas = document.getElementById('pfvCanvas');
+        const pfvVideo = document.getElementById('pfvVideoElement');
+        const pfvProgressFill = document.getElementById('pfvProgressFill');
+        const pfvPills = document.querySelectorAll('.pfv-scene-pill');
+
+        if (pfvCanvas) {
+            const pctx = pfvCanvas.getContext('2d');
+            const W = 1280;
+            const H = 720;
+            const SCENE_DURATION = 3.2; // seconds per feature scene
+            const TOTAL_SCENES = 5;
+            const TOTAL_DURATION = SCENE_DURATION * TOTAL_SCENES;
+
+            let startTime = performance.now();
+            let manualOffset = 0;
+
+            pfvPills.forEach((pill) => {
+                pill.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const targetScene = parseInt(pill.getAttribute('data-scene') || '0', 10);
+                    startTime = performance.now();
+                    manualOffset = targetScene * SCENE_DURATION;
+                });
+            });
+
+            // Pipe live 60fps canvas stream into the <video> element for native video playback
+            try {
+                if (pfvVideo && typeof pfvCanvas.captureStream === 'function') {
+                    const stream = pfvCanvas.captureStream(60);
+                    pfvVideo.srcObject = stream;
+                    pfvVideo.play().catch(() => {});
+                }
+            } catch (err) {
+                // Canvas remains visible directly as primary display
+            }
+
+            function roundRect(ctx, x, y, w, h, r) {
+                ctx.beginPath();
+                ctx.moveTo(x + r, y);
+                ctx.arcTo(x + w, y, x + w, y + h, r);
+                ctx.arcTo(x + w, y + h, x, y + h, r);
+                ctx.arcTo(x, y + h, x, y, r);
+                ctx.arcTo(x, y, x + w, y, r);
+                ctx.closePath();
+            }
+
+            function drawFrame(now) {
+                const elapsed = ((now - startTime) / 1000 + manualOffset) % TOTAL_DURATION;
+                const sceneIndex = Math.floor(elapsed / SCENE_DURATION);
+                const sceneProgress = (elapsed % SCENE_DURATION) / SCENE_DURATION;
+
+                // Update HUD Progress & Active Scene Pill
+                if (pfvProgressFill) {
+                    pfvProgressFill.style.width = `${(elapsed / TOTAL_DURATION) * 100}%`;
+                }
+                pfvPills.forEach((p, idx) => {
+                    if (idx === sceneIndex) p.classList.add('is-active');
+                    else p.classList.remove('is-active');
+                });
+
+                // 1. Deep Atmospheric Base & Perspective Grid
+                const bgGrad = pctx.createLinearGradient(0, 0, W, H);
+                bgGrad.addColorStop(0, '#020617');
+                bgGrad.addColorStop(0.55, '#0f172a');
+                bgGrad.addColorStop(1, '#020617');
+                pctx.fillStyle = bgGrad;
+                pctx.fillRect(0, 0, W, H);
+
+                // Drifting Aurora Orbs
+                const orb1X = W * 0.25 + Math.sin(elapsed * 0.9) * 110;
+                const orb1Y = H * 0.32 + Math.cos(elapsed * 0.7) * 60;
+                const orbGrad1 = pctx.createRadialGradient(orb1X, orb1Y, 10, orb1X, orb1Y, 340);
+                orbGrad1.addColorStop(0, 'rgba(129, 140, 248, 0.28)');
+                orbGrad1.addColorStop(1, 'rgba(129, 140, 248, 0)');
+                pctx.fillStyle = orbGrad1;
+                pctx.fillRect(0, 0, W, H);
+
+                const orb2X = W * 0.75 + Math.cos(elapsed * 0.8) * 120;
+                const orb2Y = H * 0.45 + Math.sin(elapsed * 0.6) * 70;
+                const orbGrad2 = pctx.createRadialGradient(orb2X, orb2Y, 10, orb2X, orb2Y, 320);
+                orbGrad2.addColorStop(0, 'rgba(52, 211, 153, 0.22)');
+                orbGrad2.addColorStop(1, 'rgba(52, 211, 153, 0)');
+                pctx.fillStyle = orbGrad2;
+                pctx.fillRect(0, 0, W, H);
+
+                // Subtle Tech Grid
+                pctx.strokeStyle = 'rgba(148, 163, 184, 0.06)';
+                pctx.lineWidth = 1;
+                for (let gx = 0; gx < W; gx += 64) {
+                    pctx.beginPath();
+                    pctx.moveTo(gx, 0);
+                    pctx.lineTo(gx, H);
+                    pctx.stroke();
+                }
+                for (let gy = 0; gy < H; gy += 64) {
+                    pctx.beginPath();
+                    pctx.moveTo(0, gy);
+                    pctx.lineTo(W, gy);
+                    pctx.stroke();
+                }
+
+                // App Showcase Stage Frame (Centered Floating Browser Deck)
+                const stageX = 110;
+                const stageY = 78;
+                const stageW = 1060;
+                const stageH = 445;
+
+                pctx.save();
+                roundRect(pctx, stageX, stageY, stageW, stageH, 22);
+                pctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+                pctx.fill();
+                pctx.lineWidth = 1.5;
+                pctx.strokeStyle = 'rgba(129, 140, 248, 0.32)';
+                pctx.stroke();
+
+                // Browser Top Chrome Bar
+                roundRect(pctx, stageX, stageY, stageW, 42, 22);
+                pctx.fillStyle = 'rgba(2, 6, 23, 0.9)';
+                pctx.fill();
+
+                // Window Dots
+                const dots = ['#fb7185', '#f59e0b', '#34d399'];
+                dots.forEach((c, i) => {
+                    pctx.fillStyle = c;
+                    pctx.beginPath();
+                    pctx.arc(stageX + 26 + i * 18, stageY + 21, 5.5, 0, Math.PI * 2);
+                    pctx.fill();
+                });
+
+                // URL Pill
+                roundRect(pctx, stageX + 110, stageY + 9, 440, 24, 12);
+                pctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
+                pctx.fill();
+                pctx.fillStyle = '#94a3b8';
+                pctx.font = '600 12px Inter, system-ui, sans-serif';
+                const sceneUrls = [
+                    'yoursevently.com/e/summer-gala • 8 Signature Layouts',
+                    'yoursevently.com/studio/theme • Custom Palette Engine',
+                    'yoursevently.com/check-in • Stripe Ticketing & QR Scanner',
+                    'yoursevently.com/venue • Live Map & WhatsApp Host Comms',
+                    'yoursevently.com/discover • Favorite Upcoming Spotlight'
+                ];
+                pctx.fillText(sceneUrls[sceneIndex], stageX + 128, stageY + 25);
+
+                // Feature Scene Callout Pill on Right of Chrome Bar
+                roundRect(pctx, stageX + stageW - 235, stageY + 9, 215, 24, 12);
+                pctx.fillStyle = 'rgba(52, 211, 153, 0.16)';
+                pctx.fill();
+                pctx.fillStyle = '#34d399';
+                pctx.font = '800 11px Inter, system-ui, sans-serif';
+                pctx.fillText(`★ FEATURE 0${sceneIndex + 1} OF 05`, stageX + stageW - 215, stageY + 25);
+
+                const bodyX = stageX + 28;
+                const bodyY = stageY + 62;
+                const bodyW = stageW - 56;
+                const bodyH = stageH - 84;
+
+                // SCENE 0: 8 SIGNATURE LAYOUTS
+                if (sceneIndex === 0) {
+                    const activeSubLayout = Math.floor(sceneProgress * 3);
+                    const layoutNames = ['01. SHOWCASE BOARDING PASS', '02. NIGHTLIFE NEON FLYER', '03. SUMMIT CONFERENCE DECK'];
+                    const layoutColors = ['#818cf8', '#c084fc', '#34d399'];
+
+                    // Left Poster Sleeve
+                    roundRect(pctx, bodyX, bodyY, 290, bodyH, 18);
+                    const posterGrad = pctx.createLinearGradient(bodyX, bodyY, bodyX + 290, bodyY + bodyH);
+                    posterGrad.addColorStop(0, layoutColors[activeSubLayout]);
+                    posterGrad.addColorStop(1, '#1e1b4b');
+                    pctx.fillStyle = posterGrad;
+                    pctx.fill();
+
+                    pctx.fillStyle = 'rgba(2, 6, 23, 0.75)';
+                    roundRect(pctx, bodyX + 18, bodyY + 18, 70, 54, 12);
+                    pctx.fill();
+                    pctx.fillStyle = '#f59e0b';
+                    pctx.font = '800 11px Inter, sans-serif';
+                    pctx.fillText('AUG 26', bodyX + 31, bodyY + 38);
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '900 20px Inter, sans-serif';
+                    pctx.fillText('15', bodyX + 41, bodyY + 62);
+
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '900 24px Inter, sans-serif';
+                    pctx.fillText('Annual Summer', bodyX + 20, bodyY + bodyH - 72);
+                    pctx.fillText('Gala & Soirée', bodyX + 20, bodyY + bodyH - 42);
+                    pctx.fillStyle = '#cbd5e1';
+                    pctx.font = '600 13px Inter, sans-serif';
+                    pctx.fillText('📍 Grand Sunset Ballroom', bodyX + 20, bodyY + bodyH - 18);
+
+                    // Right Command Deck
+                    const rightX = bodyX + 314;
+                    const rightW = bodyW - 314;
+
+                    // Layout Switcher Pills
+                    layoutNames.forEach((name, idx) => {
+                        const tabW = (rightW - 20) / 3;
+                        const tx = rightX + idx * (tabW + 10);
+                        roundRect(pctx, tx, bodyY, tabW, 38, 11);
+                        pctx.fillStyle = idx === activeSubLayout ? layoutColors[idx] : 'rgba(30, 41, 59, 0.85)';
+                        pctx.fill();
+                        pctx.fillStyle = idx === activeSubLayout ? '#020617' : '#94a3b8';
+                        pctx.font = '800 11px Inter, sans-serif';
+                        pctx.fillText(name, tx + 14, bodyY + 23);
+                    });
+
+                    // Animated Layout Preview Cards
+                    roundRect(pctx, rightX, bodyY + 54, rightW, 145, 16);
+                    pctx.fillStyle = 'rgba(2, 6, 23, 0.78)';
+                    pctx.fill();
+                    pctx.strokeStyle = layoutColors[activeSubLayout];
+                    pctx.lineWidth = 1.5;
+                    pctx.stroke();
+
+                    pctx.fillStyle = layoutColors[activeSubLayout];
+                    pctx.font = '800 12px Inter, sans-serif';
+                    pctx.fillText('ADAPTIVE STORYTELLING ENGINE', rightX + 22, bodyY + 84);
+                    pctx.fillStyle = '#f8fafc';
+                    pctx.font = '800 22px Inter, sans-serif';
+                    pctx.fillText('Switch Between 8 Bespoke Event Layouts Instantly', rightX + 22, bodyY + 116);
+                    pctx.fillStyle = '#94a3b8';
+                    pctx.font = '500 14px Inter, sans-serif';
+                    pctx.fillText('Showcase Boarding Pass • Nightlife Flyer • Summit Deck • Editorial • Split Screen', rightX + 22, bodyY + 146);
+
+                    // Bottom Perforated Boarding Pass Stub
+                    roundRect(pctx, rightX, bodyY + 216, rightW, bodyH - 216, 16);
+                    pctx.fillStyle = 'rgba(30, 41, 59, 0.65)';
+                    pctx.fill();
+                    pctx.fillStyle = '#34d399';
+                    pctx.font = '800 13px Inter, sans-serif';
+                    pctx.fillText('LIVE COUNTDOWN: 14 DAYS : 08 HRS : 42 MIN', rightX + 22, bodyY + 256);
+
+                    roundRect(pctx, rightX + rightW - 210, bodyY + 236, 188, 42, 12);
+                    pctx.fillStyle = layoutColors[activeSubLayout];
+                    pctx.fill();
+                    pctx.fillStyle = '#020617';
+                    pctx.font = '900 13px Inter, sans-serif';
+                    pctx.fillText('CLAIM BOARDING PASS →', rightX + rightW - 196, bodyY + 262);
+                }
+
+                // SCENE 1: FULL THEME & COLOR PALETTE STUDIO
+                else if (sceneIndex === 1) {
+                    const palettes = [
+                        { name: 'Electric Indigo', primary: '#818cf8', bg: '#0f172a', badge: 'INDIGO VIBE' },
+                        { name: 'Emerald Noir', primary: '#34d399', bg: '#064e3b', badge: 'EMERALD LUXE' },
+                        { name: 'Sunset Rose', primary: '#f472b6', bg: '#3b0764', badge: 'VELVET ROSE' },
+                        { name: 'Amber Gold', primary: '#f59e0b', bg: '#451a03', badge: 'GOLDEN GALA' }
+                    ];
+                    const activeIdx = Math.min(3, Math.floor(sceneProgress * 4));
+                    const activePal = palettes[activeIdx];
+
+                    // Left Color Picker Studio Panel
+                    roundRect(pctx, bodyX, bodyY, 340, bodyH, 16);
+                    pctx.fillStyle = 'rgba(2, 6, 23, 0.85)';
+                    pctx.fill();
+                    pctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+                    pctx.stroke();
+
+                    pctx.fillStyle = '#f8fafc';
+                    pctx.font = '800 16px Inter, sans-serif';
+                    pctx.fillText('🎨 Custom Theme Studio', bodyX + 22, bodyY + 36);
+                    pctx.fillStyle = '#94a3b8';
+                    pctx.font = '500 12px Inter, sans-serif';
+                    pctx.fillText('6 customizable color tokens & typography', bodyX + 22, bodyY + 58);
+
+                    palettes.forEach((pal, idx) => {
+                        const py = bodyY + 80 + idx * 62;
+                        roundRect(pctx, bodyX + 18, py, 304, 50, 12);
+                        pctx.fillStyle = idx === activeIdx ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.6)';
+                        pctx.fill();
+                        if (idx === activeIdx) {
+                            pctx.strokeStyle = pal.primary;
+                            pctx.lineWidth = 2;
+                            pctx.stroke();
+                        }
+
+                        pctx.fillStyle = pal.primary;
+                        pctx.beginPath();
+                        pctx.arc(bodyX + 46, py + 25, 13, 0, Math.PI * 2);
+                        pctx.fill();
+
+                        pctx.fillStyle = '#f8fafc';
+                        pctx.font = '700 14px Inter, sans-serif';
+                        pctx.fillText(pal.name, bodyX + 72, py + 29);
+
+                        pctx.fillStyle = pal.primary;
+                        pctx.font = '700 12px monospace';
+                        pctx.fillText(pal.primary.toUpperCase(), bodyX + 235, py + 29);
+                    });
+
+                    // Right Live Repainting Event Preview
+                    const prevX = bodyX + 365;
+                    const prevW = bodyW - 365;
+                    roundRect(pctx, prevX, bodyY, prevW, bodyH, 18);
+                    const liveGrad = pctx.createLinearGradient(prevX, bodyY, prevX + prevW, bodyY + bodyH);
+                    liveGrad.addColorStop(0, activePal.bg);
+                    liveGrad.addColorStop(1, '#020617');
+                    pctx.fillStyle = liveGrad;
+                    pctx.fill();
+                    pctx.strokeStyle = activePal.primary;
+                    pctx.lineWidth = 2;
+                    pctx.stroke();
+
+                    roundRect(pctx, prevX + 28, bodyY + 28, 145, 28, 14);
+                    pctx.fillStyle = activePal.primary;
+                    pctx.fill();
+                    pctx.fillStyle = '#020617';
+                    pctx.font = '900 11px Inter, sans-serif';
+                    pctx.fillText(activePal.badge, prevX + 46, bodyY + 46);
+
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '900 30px Inter, sans-serif';
+                    pctx.fillText('Your Palette, Your Rules.', prevX + 28, bodyY + 105);
+                    pctx.fillStyle = '#cbd5e1';
+                    pctx.font = '500 15px Inter, sans-serif';
+                    pctx.fillText('Every heading, card surface, button & glow adapts in real time.', prevX + 28, bodyY + 138);
+
+                    // Mock Event RSVP Card in Active Theme
+                    roundRect(pctx, prevX + 28, bodyY + 170, prevW - 56, 130, 16);
+                    pctx.fillStyle = 'rgba(2, 6, 23, 0.72)';
+                    pctx.fill();
+                    pctx.fillStyle = '#f8fafc';
+                    pctx.font = '700 16px Inter, sans-serif';
+                    pctx.fillText('VIP Guestlist & Instant Pass Reservation', prevX + 50, bodyY + 210);
+
+                    roundRect(pctx, prevX + 50, bodyY + 232, 240, 44, 12);
+                    pctx.fillStyle = activePal.primary;
+                    pctx.fill();
+                    pctx.fillStyle = '#020617';
+                    pctx.font = '900 13px Inter, sans-serif';
+                    pctx.fillText('RESERVE SPOT NOW →', prevX + 82, bodyY + 259);
+                }
+
+                // SCENE 2: STRIPE TICKETING & QR DOOR SCANNER
+                else if (sceneIndex === 2) {
+                    // Left: Paid Ticket Tiers & Stripe Checkout
+                    const leftW = 550;
+                    roundRect(pctx, bodyX, bodyY, leftW, bodyH, 16);
+                    pctx.fillStyle = 'rgba(2, 6, 23, 0.84)';
+                    pctx.fill();
+                    pctx.strokeStyle = 'rgba(129, 140, 248, 0.3)';
+                    pctx.stroke();
+
+                    pctx.fillStyle = '#f59e0b';
+                    pctx.font = '800 12px Inter, sans-serif';
+                    pctx.fillText('★ PRO MONETIZATION • STRIPE CHECKOUT', bodyX + 24, bodyY + 36);
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '900 24px Inter, sans-serif';
+                    pctx.fillText('Multi-Tier Paid Ticketing', bodyX + 24, bodyY + 68);
+
+                    // Tier 1
+                    roundRect(pctx, bodyX + 24, bodyY + 90, leftW - 48, 86, 14);
+                    pctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+                    pctx.fill();
+                    pctx.strokeStyle = '#818cf8';
+                    pctx.stroke();
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '800 17px Inter, sans-serif';
+                    pctx.fillText('VIP All-Access Table Pass', bodyX + 44, bodyY + 125);
+                    pctx.fillStyle = '#94a3b8';
+                    pctx.font = '500 13px Inter, sans-serif';
+                    pctx.fillText('Includes priority QR entry & welcome reception', bodyX + 44, bodyY + 150);
+                    pctx.fillStyle = '#34d399';
+                    pctx.font = '900 24px Inter, sans-serif';
+                    pctx.fillText('$75', bodyX + leftW - 95, bodyY + 140);
+
+                    // Tier 2
+                    roundRect(pctx, bodyX + 24, bodyY + 192, leftW - 48, 86, 14);
+                    pctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+                    pctx.fill();
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '800 17px Inter, sans-serif';
+                    pctx.fillText('General Admission Pass', bodyX + 44, bodyY + 227);
+                    pctx.fillStyle = '#94a3b8';
+                    pctx.font = '500 13px Inter, sans-serif';
+                    pctx.fillText('Instant digital QR boarding pass delivery', bodyX + 44, bodyY + 252);
+                    pctx.fillStyle = '#818cf8';
+                    pctx.font = '900 24px Inter, sans-serif';
+                    pctx.fillText('$35', bodyX + leftW - 95, bodyY + 242);
+
+                    // Live Revenue Counter
+                    const soldCount = Math.floor(140 + sceneProgress * 45);
+                    pctx.fillStyle = '#34d399';
+                    pctx.font = '800 14px Inter, sans-serif';
+                    pctx.fillText(`⚡ ${soldCount} Passes Sold • Instant Stripe Payouts`, bodyX + 24, bodyY + 315);
+
+                    // Right: QR Code Door Scanner Animation
+                    const qrX = bodyX + leftW + 26;
+                    const qrW = bodyW - leftW - 26;
+                    roundRect(pctx, qrX, bodyY, qrW, bodyH, 16);
+                    pctx.fillStyle = 'rgba(2, 6, 23, 0.9)';
+                    pctx.fill();
+                    pctx.strokeStyle = '#34d399';
+                    pctx.lineWidth = 2;
+                    pctx.stroke();
+
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '800 16px Inter, sans-serif';
+                    pctx.fillText('📱 Built-In QR Door Scanner', qrX + 28, bodyY + 38);
+
+                    // Stylized QR Code Matrix Box
+                    const boxSize = 156;
+                    const bx = qrX + (qrW - boxSize) / 2;
+                    const by = bodyY + 62;
+                    roundRect(pctx, bx, by, boxSize, boxSize, 14);
+                    pctx.fillStyle = '#ffffff';
+                    pctx.fill();
+
+                    // Draw QR pattern blocks
+                    pctx.fillStyle = '#020617';
+                    for (let r = 0; r < 7; r++) {
+                        for (let c = 0; c < 7; c++) {
+                            if ((r * c + r + c) % 2 === 0 || (r < 2 && c < 2) || (r < 2 && c > 4) || (r > 4 && c < 2)) {
+                                pctx.fillRect(bx + 18 + c * 17, by + 18 + r * 17, 13, 13);
+                            }
+                        }
+                    }
+
+                    // Laser Scan Line
+                    const scanY = by + 12 + Math.abs(Math.sin(sceneProgress * Math.PI * 2)) * (boxSize - 24);
+                    pctx.strokeStyle = '#10b981';
+                    pctx.lineWidth = 3.5;
+                    pctx.beginPath();
+                    pctx.moveTo(bx - 10, scanY);
+                    pctx.lineTo(bx + boxSize + 10, scanY);
+                    pctx.stroke();
+
+                    // Verified Check-In Pill
+                    roundRect(pctx, qrX + 34, bodyY + 245, qrW - 68, 52, 14);
+                    pctx.fillStyle = 'rgba(6, 78, 59, 0.75)';
+                    pctx.fill();
+                    pctx.strokeStyle = '#34d399';
+                    pctx.lineWidth = 1.5;
+                    pctx.stroke();
+                    pctx.fillStyle = '#34d399';
+                    pctx.font = '900 14px Inter, sans-serif';
+                    pctx.fillText('✔ QR PASS VERIFIED • ADMITTED', qrX + 68, bodyY + 276);
+                }
+
+                // SCENE 3: LIVE VENUE MAPS & WHATSAPP HOST COMMS
+                else if (sceneIndex === 3) {
+                    const mapW = 540;
+                    roundRect(pctx, bodyX, bodyY, mapW, bodyH, 16);
+                    pctx.fillStyle = '#091326';
+                    pctx.fill();
+                    pctx.strokeStyle = 'rgba(129, 140, 248, 0.35)';
+                    pctx.stroke();
+
+                    // Stylized Map Roads
+                    pctx.strokeStyle = 'rgba(99, 102, 241, 0.18)';
+                    pctx.lineWidth = 10;
+                    pctx.beginPath();
+                    pctx.moveTo(bodyX, bodyY + 110);
+                    pctx.lineTo(bodyX + mapW, bodyY + 230);
+                    pctx.moveTo(bodyX + 160, bodyY);
+                    pctx.lineTo(bodyX + 340, bodyY + bodyH);
+                    pctx.stroke();
+
+                    // Pulsing Map Pin Radar
+                    const pinX = bodyX + 265;
+                    const pinY = bodyY + 155;
+                    const radarR = 20 + sceneProgress * 75;
+                    pctx.strokeStyle = `rgba(52, 211, 153, ${1 - sceneProgress})`;
+                    pctx.lineWidth = 2.5;
+                    pctx.beginPath();
+                    pctx.arc(pinX, pinY, radarR, 0, Math.PI * 2);
+                    pctx.stroke();
+
+                    pctx.fillStyle = '#34d399';
+                    pctx.beginPath();
+                    pctx.arc(pinX, pinY, 12, 0, Math.PI * 2);
+                    pctx.fill();
+
+                    roundRect(pctx, bodyX + 24, bodyY + bodyH - 84, mapW - 48, 62, 14);
+                    pctx.fillStyle = 'rgba(2, 6, 23, 0.9)';
+                    pctx.fill();
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '800 15px Inter, sans-serif';
+                    pctx.fillText('📍 Live Embedded Venue Map & Directions', bodyX + 44, bodyY + bodyH - 54);
+                    pctx.fillStyle = '#94a3b8';
+                    pctx.font = '500 12px Inter, sans-serif';
+                    pctx.fillText('Zero setup friction • Google Calendar & .ICS Pass Downloads', bodyX + 44, bodyY + bodyH - 34);
+
+                    // Right Side: Live Announcement + WhatsApp Direct Chat + Guestbook
+                    const commX = bodyX + mapW + 26;
+                    const commW = bodyW - mapW - 26;
+
+                    // Live Announcement Card
+                    roundRect(pctx, commX, bodyY, commW, 105, 16);
+                    pctx.fillStyle = 'rgba(69, 10, 10, 0.65)';
+                    pctx.fill();
+                    pctx.strokeStyle = '#fb7185';
+                    pctx.stroke();
+                    pctx.fillStyle = '#fb7185';
+                    pctx.font = '900 11px Inter, sans-serif';
+                    pctx.fillText('🔴 LIVE PUBLIC ANNOUNCEMENT BANNER', commX + 22, bodyY + 32);
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '700 15px Inter, sans-serif';
+                    pctx.fillText('Valet parking is open at the South Entrance.', commX + 22, bodyY + 60);
+                    pctx.fillStyle = '#fecdd3';
+                    pctx.font = '500 12px Inter, sans-serif';
+                    pctx.fillText('Toggle real-time updates live or off from your dashboard.', commX + 22, bodyY + 84);
+
+                    // WhatsApp & Phone Direct Comms Card
+                    roundRect(pctx, commX, bodyY + 122, commW, 105, 16);
+                    pctx.fillStyle = 'rgba(6, 78, 59, 0.45)';
+                    pctx.fill();
+                    pctx.strokeStyle = '#34d399';
+                    pctx.stroke();
+                    pctx.fillStyle = '#34d399';
+                    pctx.font = '900 11px Inter, sans-serif';
+                    pctx.fillText('💬 DIRECT WHATSAPP & PHONE HOST LINKS', commX + 22, bodyY + 152);
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '700 15px Inter, sans-serif';
+                    pctx.fillText('One-Tap Guest-to-Organizer Messaging', commX + 22, bodyY + 180);
+                    pctx.fillStyle = '#a7f3d0';
+                    pctx.font = '500 12px Inter, sans-serif';
+                    pctx.fillText('Active Chat Ready • Eliminates event-day confusion', commX + 22, bodyY + 204);
+
+                    // Guestbook & Photo Vault Card
+                    roundRect(pctx, commX, bodyY + 244, commW, 97, 16);
+                    pctx.fillStyle = 'rgba(30, 41, 59, 0.75)';
+                    pctx.fill();
+                    pctx.fillStyle = '#c084fc';
+                    pctx.font = '900 11px Inter, sans-serif';
+                    pctx.fillText('✨ GUESTBOOK WALL & PROTECTED PHOTO VAULT', commX + 22, bodyY + 274);
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '700 14px Inter, sans-serif';
+                    pctx.fillText('Collect warm guest messages & share post-event galleries', commX + 22, bodyY + 302);
+                }
+
+                // SCENE 4: FAVORITE UPCOMING EVENTS HOMEPAGE SPOTLIGHT
+                else {
+                    pctx.fillStyle = '#34d399';
+                    pctx.font = '800 12px Inter, sans-serif';
+                    pctx.fillText('● CURATED PRO SHOWCASE • HOMEPAGE DISCOVERY (*Based on eligibility)', bodyX + 10, bodyY + 22);
+                    pctx.fillStyle = '#ffffff';
+                    pctx.font = '900 24px Inter, sans-serif';
+                    pctx.fillText('Favorite Upcoming Events Spotlight', bodyX + 10, bodyY + 54);
+
+                    const cards = [
+                        { title: 'Neon Rooftop Sessions', date: 'AUG 24 • 9:00 PM', loc: 'Skyline Terrace', tag: 'Ticketed', accent: '#818cf8' },
+                        { title: 'Design Systems Summit', date: 'SEP 02 • 10:00 AM', loc: 'Pier 27 Studio', tag: 'VIP Pass', accent: '#34d399' },
+                        { title: 'Midnight Jazz & Vinyl', date: 'SEP 14 • 8:30 PM', loc: 'The Velvet Room', tag: 'Open RSVP', accent: '#c084fc' }
+                    ];
+
+                    const cardW = (bodyW - 40) / 3;
+                    const highlightCard = Math.floor(sceneProgress * 3);
+
+                    cards.forEach((c, idx) => {
+                        const cx = bodyX + idx * (cardW + 20);
+                        const cy = bodyY + 76;
+                        const ch = bodyH - 80;
+                        const lift = idx === highlightCard ? -8 : 0;
+
+                        roundRect(pctx, cx, cy + lift, cardW, ch, 16);
+                        pctx.fillStyle = 'rgba(2, 6, 23, 0.9)';
+                        pctx.fill();
+                        pctx.strokeStyle = idx === highlightCard ? c.accent : 'rgba(148, 163, 184, 0.22)';
+                        pctx.lineWidth = idx === highlightCard ? 2.5 : 1;
+                        pctx.stroke();
+
+                        // Top Spectrum Bar
+                        roundRect(pctx, cx, cy + lift, cardW, 6, 4);
+                        pctx.fillStyle = c.accent;
+                        pctx.fill();
+
+                        // Date & Type Chips
+                        roundRect(pctx, cx + 16, cy + lift + 22, 130, 24, 12);
+                        pctx.fillStyle = 'rgba(30, 41, 59, 0.9)';
+                        pctx.fill();
+                        pctx.fillStyle = '#e2e8f0';
+                        pctx.font = '700 10px Inter, sans-serif';
+                        pctx.fillText(c.date, cx + 26, cy + lift + 38);
+
+                        roundRect(pctx, cx + cardW - 92, cy + lift + 22, 76, 24, 12);
+                        pctx.fillStyle = 'rgba(52, 211, 153, 0.18)';
+                        pctx.fill();
+                        pctx.fillStyle = '#34d399';
+                        pctx.font = '800 10px Inter, sans-serif';
+                        pctx.fillText(c.tag, cx + cardW - 80, cy + lift + 38);
+
+                        pctx.fillStyle = '#ffffff';
+                        pctx.font = '800 18px Inter, sans-serif';
+                        pctx.fillText(c.title, cx + 16, cy + lift + 90);
+
+                        pctx.fillStyle = '#94a3b8';
+                        pctx.font = '600 12px Inter, sans-serif';
+                        pctx.fillText(`📍 ${c.loc}`, cx + 16, cy + lift + 116);
+
+                        pctx.fillStyle = '#64748b';
+                        pctx.font = '500 12px Inter, sans-serif';
+                        pctx.fillText('Featured on the YoursEvently', cx + 16, cy + lift + 150);
+                        pctx.fillText('Homepage Discovery Showcase.', cx + 16, cy + lift + 168);
+
+                        // Explore Vibe CTA
+                        roundRect(pctx, cx + 16, cy + lift + ch - 52, cardW - 32, 36, 18);
+                        pctx.fillStyle = idx === highlightCard ? c.accent : 'rgba(129, 140, 248, 0.18)';
+                        pctx.fill();
+                        pctx.fillStyle = idx === highlightCard ? '#020617' : '#e0e7ff';
+                        pctx.font = '800 12px Inter, sans-serif';
+                        pctx.fillText('Explore Vibe →', cx + (cardW / 2) - 44, cy + lift + ch - 30);
+                    });
+                }
+
+                pctx.restore();
+                requestAnimationFrame(drawFrame);
+            }
+
+            requestAnimationFrame(drawFrame);
+        }
+
+        // 3. Hero Ambient Particle Canvas
         const canvas = document.getElementById('ambientHeroCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
@@ -282,7 +1772,6 @@
             constructor() {
                 this.x = Math.random() * width;
                 this.y = Math.random() * height;
-                // Increased base velocity multipliers for a livelier drift
                 this.vx = (Math.random() - 0.5) * 1.2;
                 this.vy = (Math.random() - 0.5) * 1.2;
                 this.size = Math.random() * 2 + 1;
@@ -296,7 +1785,6 @@
                 if (this.x < 0 || this.x > width) this.vx *= -1;
                 if (this.y < 0 || this.y > height) this.vy *= -1;
 
-                // Snappier mouse repulsion response
                 if (mouse.x !== null && mouse.y !== null) {
                     let dx = mouse.x - this.x;
                     let dy = mouse.y - this.y;
@@ -359,10 +1847,90 @@
         initParticles();
         animate();
     });
+
+    
+
+document.addEventListener("DOMContentLoaded", function () {
+    "use strict";
+
+    /*
+     * 1. Cursor-tracking ambient spotlight.
+     * Preserves the existing micro-card hover effect.
+     */
+    const favCards = document.querySelectorAll(".fav-micro-card");
+
+    favCards.forEach(function (card) {
+        card.addEventListener("mousemove", function (event) {
+            const rect = card.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            card.style.setProperty("--mouse-x", `${x}px`);
+            card.style.setProperty("--mouse-y", `${y}px`);
+        });
+    });
+
+
+    /*
+     * 2. Country filter.
+     *
+     * Django performs country filtering before pagination.
+     * This script changes the URL and reloads the page.
+     */
+    const countrySelect = document.getElementById("favCountryFilter");
+    const resetButton = document.getElementById("favResetFilterBtn");
+    const showAllButton = document.getElementById("favShowAllLocationsBtn");
+
+    function navigateToCountry(country) {
+        const url = new URL(window.location.href);
+
+        // Remove the country filter when showing all locations.
+        if (country && country.trim() !== "") {
+            url.searchParams.set("fav_country", country.trim());
+        } else {
+            url.searchParams.delete("fav_country");
+        }
+
+        // Reset pagination whenever the country changes.
+        url.searchParams.delete("fav_page");
+
+        // Return to the Favorite Upcoming Events section.
+        url.hash = "favorite-upcoming-events";
+
+        window.location.assign(url.toString());
+    }
+
+    /*
+     * Country dropdown.
+     * The option value should be the country code, e.g. FR.
+     */
+    if (countrySelect) {
+        countrySelect.addEventListener("change", function () {
+            navigateToCountry(this.value);
+        });
+    }
+
+    /*
+     * Reset filter button.
+     */
+    if (resetButton) {
+        resetButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            navigateToCountry("");
+        });
+    }
+
+    /*
+     * View All Global Locations button.
+     * Removes fav_country from the URL completely.
+     */
+    if (showAllButton) {
+        showAllButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            navigateToCountry("");
+        });
+    }
+});
 </script>
 
 {% endblock %}
-
-
-
-

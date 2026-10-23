@@ -1,0 +1,336 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Successful — {{ event.title|default:"Pro Event Activated" }} | YoursEvently{% endblock %}
+
+{% block content %}
+
+<style>
+    :root {
+        /* Colors - Backgrounds & Surfaces */
+        --bg-primary: #020617;
+        --bg-surface: #0f172a;
+        --bg-surface-glass: rgba(15, 23, 42, 0.9);
+        --bg-surface-muted: rgba(15, 23, 42, 0.6);
+        --bg-ticker: rgba(15, 23, 42, 0.4);
+
+        /* Colors - Text & Accents */
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --text-dimmed: #64748b;
+        --accent-indigo: #818cf8;
+        --accent-purple: #c084fc;
+        --accent-pink: #f472b6;
+        --accent-emerald: #34d399;
+        --accent-rose: #fb7185;
+
+        --electric-green: #34d399;
+        --electric-green-glow: rgba(52, 211, 153, 0.15);
+        --electric-green-border: rgba(52, 211, 153, 0.3);
+
+        /* Colors - Glows & Blobs */
+        --glow-indigo: rgba(79, 70, 229, 0.25);
+        --glow-purple: rgba(147, 51, 234, 0.2);
+        --glow-pink: rgba(219, 39, 119, 0.15);
+
+        /* Borders */
+        --border-subtle: rgba(30, 41, 59, 0.8);
+        --border-color: #1e293b;
+        --border-indigo: rgba(99, 102, 241, 0.3);
+
+        /* Spacing */
+        --space-section: 6rem;
+        --space-container: 1.5rem;
+        --space-card: 2rem;
+
+        /* Radii */
+        --radius-sm: 0.75rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --radius-full: 9999px;
+
+        /* Shadows */
+        --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    body {
+        background-color: var(--bg-primary) !important;
+        color: var(--text-main) !important;
+    }
+
+    .success-bg-glow {
+        background: radial-gradient(circle at 50% 15%, rgba(52, 211, 153, 0.12) 0%, rgba(129, 140, 248, 0.08) 35%, transparent 70%);
+    }
+
+    .success-card {
+        background-color: var(--bg-surface) !important;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.5), 0 0 35px -5px var(--electric-green-glow);
+    }
+
+    .checkmark-pulse {
+        box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4);
+        animation: emerald-pulse 2s infinite cubic-bezier(0.66, 0, 0, 1);
+    }
+
+    @keyframes emerald-pulse {
+        to {
+            box-shadow: 0 0 0 24px rgba(52, 211, 153, 0);
+        }
+    }
+</style>
+
+<div class="min-h-[calc(100vh-70px)] py-12 px-4 sm:px-6 flex justify-center items-center success-bg-glow" style="background-color: var(--bg-primary);">
+    <div class="max-w-2xl w-full rounded-2xl p-6 sm:p-10 success-card relative overflow-hidden" style="background-color: #0f172a; border-color: #1e293b;">
+
+        <!-- Ambient Top Accent Gradient Bar -->
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-400 via-indigo-400 to-purple-400"></div>
+
+        <!-- Success Header & Badge -->
+        <div class="text-center pt-2 pb-6">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-950/80 border-2 border-emerald-400/50 text-emerald-400 mb-5 checkmark-pulse shadow-lg" style="border-color: rgba(52, 211, 153, 0.4); background-color: rgba(6, 78, 59, 0.4);">
+                <svg class="w-10 h-10 stroke-current" fill="none" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 mb-3 shadow-xs">
+                <span>★</span>
+                {% if event.is_pro_upgraded %}
+                    PRO EVENT UPGRADE VERIFIED
+                {% else %}
+                    UNLIMITED PRO ACTIVATED
+                {% endif %}
+            </div>
+
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                Payment Successful!
+            </h1>
+
+            {% if event.is_pro_upgraded %}
+                <p class="text-slate-400 text-sm sm:text-base mt-2 max-w-md mx-auto leading-relaxed">
+                    Your payment was approved and your event <span class="text-white font-semibold">"{{ event.title }}"</span> has been permanently created and published with all Pro features unlocked.
+                </p>
+                <p class="text-amber-300 text-xs sm:text-sm mt-3 max-w-md mx-auto leading-relaxed">
+                    This is a <span class="font-bold">one-event Pro upgrade</span>. It applies to this event only and does not activate an Unlimited Pro subscription.
+                </p>
+            {% else %}
+                <p class="text-slate-400 text-sm sm:text-base mt-2 max-w-md mx-auto leading-relaxed">
+                    Your payment was approved and your <span class="text-white font-semibold">Unlimited Pro subscription</span> is now active across your account.
+                </p>
+                <p class="text-emerald-300 text-xs sm:text-sm mt-3 max-w-md mx-auto leading-relaxed">
+                    Your event <span class="text-white font-semibold">"{{ event.title }}"</span> has been permanently created and published with all Pro features unlocked.
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Event Summary Box -->
+        <div class="p-5 rounded-xl border border-slate-800 bg-slate-900/90 mb-6 space-y-4" style="background-color: #020617; border-color: #1e293b;">
+            <div class="flex items-start justify-between gap-4 border-b border-slate-800/80 pb-3">
+                <div>
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Published Event</span>
+                    <h2 class="text-lg font-bold text-white mt-0.5 flex items-center gap-2">
+                        {{ event.title }}
+
+                        {% if event.is_pro_upgraded %}
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-xs">
+                                ★ PRO EVENT
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-xs">
+                                ★ UNLIMITED PRO
+                            </span>
+                        {% endif %}
+                    </h2>
+                </div>
+                <div class="text-right">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Live & Active
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span><strong>Date:</strong> {{ event.event_date|default:"Scheduled" }}</span>
+                </div>
+
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0z"/>
+                    </svg>
+                    <span class="truncate">
+                        <strong>Location:</strong>
+                        {% if event.location %}
+                            {{ event.location }}
+                        {% elif event.location_name %}
+                            {{ event.location_name }}
+                        {% else %}
+                            Online / Venue
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span><strong>Guest capacity:</strong> {% if event.max_capacity %}{{ event.max_capacity }} attendees{% else %} Unlimited{% endif %}</span>
+                </div>
+
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span><strong>Host:</strong> {{ request.user.username }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unlocked Features Breakdown -->
+        <div class="p-5 rounded-xl border border-slate-800 bg-slate-900/60 mb-8" style="background-color: rgba(15, 23, 42, 0.6); border-color: #1e293b;">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                Active Pro Capabilities On This Event
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                {% if event.show_about_section %}
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Host Bio & Photo Gallery</span>
+                    </div>
+                {% endif %}
+
+                {% if event.enable_qr_checkins %}
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Digital QR Pass & Door Scanner</span>
+                    </div>
+                {% endif %}
+
+                {% if event.allow_guest_messages %}
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Guestbook & Warm Messages Carousel</span>
+                    </div>
+                {% endif %}
+
+                {% if event.show_announcement %}
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Real-Time Public Announcement Banner</span>
+                    </div>
+                {% endif %}
+
+                {% if event.enable_certificates %}
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Automated Attendance Certificates</span>
+                    </div>
+                {% endif %}
+
+                {% if event.resource_link or event.presentation_file %}
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Resource Slides & Digital Downloads</span>
+                    </div>
+                {% endif %}
+
+                {% if event.is_ticketed %}
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Stripe Powered Paid Ticketing</span>
+                    </div>
+                {% endif %}
+
+                <div class="flex items-center gap-2 text-slate-300">
+                    <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>Premium Theme Styling & Custom Accents</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-3">
+            {% if event.slug %}
+                <a href="{% url 'events:event_detail' slug=event.slug %}" class="w-full py-3.5 px-6 rounded-xl font-bold text-center text-white bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 transition-all shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 cursor-pointer">
+                    <span>View Live Event Page</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </a>
+            {% else %}
+                <div class="w-full py-3.5 px-6 rounded-xl font-bold text-center text-slate-400 bg-slate-800/80 border border-slate-700 flex items-center justify-center gap-2">
+                    <span>Event Page Link Unavailable</span>
+                </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <a href="{% url 'events:dashboard' %}" class="py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-center transition flex items-center justify-center gap-2 cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    Go to Host Dashboard
+                </a>
+
+                <button type="button" onclick="copyPublicEventLink(this)" class="py-2.5 px-4 rounded-xl text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-950/40 hover:bg-indigo-900/60 border border-indigo-700/40 text-center transition flex items-center justify-center gap-2 cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <span id="copyButtonText">Copy Public Invite Link</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Verification Session Token Footer -->
+        <div class="mt-8 pt-4 border-t border-slate-800/80 text-center flex items-center justify-between text-[11px] text-slate-500">
+            <span>Security verified by Stripe checkout</span>
+            {% if token %}
+                <span class="font-mono text-slate-600 truncate max-w-[200px]" title="{{ token }}">Session: {{ token|slice:":12" }}...</span>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+    function copyPublicEventLink(btn) {
+        const publicUrl = "{% if event and event.slug %}{{ request.scheme }}://{{ request.get_host }}{% url 'events:public_rsvp' slug=event.slug %}{% endif %}";
+
+        if (!publicUrl) {
+            alert("The event link is unavailable because the event could not be found.");
+            return;
+        }
+
+        navigator.clipboard.writeText(publicUrl).then(function() {
+            const label = document.getElementById('copyButtonText');
+
+            if (label) {
+                const originalText = label.textContent;
+                label.textContent = "Link Copied!";
+
+                btn.classList.add(
+                    'bg-emerald-950/50',
+                    'border-emerald-600',
+                    'text-emerald-300'
+                );
+
+                setTimeout(function() {
+                    label.textContent = originalText;
+
+                    btn.classList.remove(
+                        'bg-emerald-950/50',
+                        'border-emerald-600',
+                        'text-emerald-300'
+                    );
+                }, 2500);
+            }
+        }).catch(function() {
+            prompt("Copy your event link:", publicUrl);
+        });
+    }
+</script>
+
+
+{% endblock %}

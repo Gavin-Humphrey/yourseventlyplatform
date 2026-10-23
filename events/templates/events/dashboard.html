@@ -3,28 +3,192 @@
 {% block title %}Dashboard | YoursEvently{% endblock %}
 
 {% block content %}
-<div class="dashboard-page-wrapper">
-  <!-- Atmospheric background glow accents -->
-  <div class="dashboard-ambient-glow dashboard-glow-1"></div>
-  <div class="dashboard-ambient-glow dashboard-glow-2"></div>
+  <div class="dashboard-page-wrapper">
+    <!-- Atmospheric background glow accents -->
+    <div class="dashboard-ambient-glow dashboard-glow-1"></div>
+    <div class="dashboard-ambient-glow dashboard-glow-2"></div>
 
-  <div class="dashboard-container">
-    
-    <!-- Header Bar -->
-    <div class="dashboard-header-bar">
-      <div class="dashboard-header-titles">
-        <div class="dashboard-eyebrow-wrapper">
-          <span class="dashboard-status-dot"></span>
-          <span class="dashboard-eyebrow">Host Control Center</span>
+    <div class="dashboard-container">
+      
+      <!-- Header Bar -->
+      <div class="dashboard-header-bar">
+        <div class="dashboard-header-titles">
+          <div class="dashboard-eyebrow-wrapper">
+            <span class="dashboard-status-dot"></span>
+            <span class="dashboard-eyebrow">Host Control Center</span>
+          </div>
+          <h1 class="dashboard-title">Dashboard Overview</h1>
+          <p class="dashboard-subtitle">Monitor active event pipelines, analyze real-time RSVP metrics, and manage guest lists.</p>
         </div>
-        <h1 class="dashboard-title">Dashboard Overview</h1>
-        <p class="dashboard-subtitle">Monitor active event pipelines, analyze real-time RSVP metrics, and manage guest lists.</p>
+        <a href="{% url 'events:create_event' %}" class="btn-glow">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"></path></svg>
+          <span>Create New Event</span>
+        </a>
       </div>
-      <a href="{% url 'events:create_event' %}" class="btn-glow">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"></path></svg>
-        <span>Create New Event</span>
-      </a>
+      
+    <!-- AI MARKETING STUDIO -->
+    <section class="marketing-launch">
+      <div class="marketing-orb marketing-orb-one"></div>
+      <div class="marketing-orb marketing-orb-two"></div>
+
+      <div class="marketing-content">
+        <div class="marketing-main">
+          <div class="marketing-eyebrow">
+            <span class="marketing-sparkle" aria-hidden="true">✦</span>
+            <span>YoursEvently Marketing</span>
+            <span class="marketing-status">Studio</span>
+          </div>
+
+          <h2 class="marketing-title">
+            Your events deserve to be <span>seen.</span>
+          </h2>
+
+          <p class="marketing-description">
+            Turn your event details into a marketing campaign plan.
+            Choose an event, define your promotional goal, and prepare
+            content for the social platforms where your audience connects.
+          </p>
+
+          <div class="marketing-capabilities">
+            <span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.8" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="17" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+              </svg>
+              Event-focused campaigns
+            </span>
+
+            <span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.8" aria-hidden="true">
+                <path d="M4 19V5M4 19h17"/>
+                <path d="m7 15 4-5 3 2 5-7"/>
+              </svg>
+              Goal-driven promotion
+            </span>
+
+            <span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.8" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+              </svg>
+              Multiple social platforms
+            </span>
+          </div>
+
+          <a href="{% url 'marketing_studio:studio' %}"
+      class="marketing-cta">
+      <span>Open AI Marketing Studio</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" aria-hidden="true">
+        <path d="M5 12h14M13 6l6 6-6 6"/>
+      </svg>
+    </a>
+        </div>
+
+      <div class="marketing-preview" aria-hidden="true">
+        <div class="marketing-preview-topbar">
+          <span class="marketing-preview-indicator"></span>
+          <span>CAMPAIGN WORKSPACE</span>
+          <span class="marketing-preview-menu">•••</span>
+        </div>
+
+        <div class="marketing-preview-event">
+          <div class="marketing-preview-event-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.7">
+              <rect x="3" y="4" width="18" height="17" rx="2"/>
+              <path d="M16 2v4M8 2v4M3 10h18"/>
+              <path d="m9 15 2 2 4-4"/>
+            </svg>
+          </div>
+          <div>
+            <span class="marketing-preview-label">START WITH YOUR EVENT</span>
+            <strong>One event. A focused campaign.</strong>
+          </div>
+        </div>
+
+        <div class="marketing-preview-divider"></div>
+
+        <span class="marketing-preview-label">CHOOSE YOUR CHANNELS</span>
+
+        <div class="marketing-preview-platforms">
+          <span class="marketing-platform marketing-platform-fb">f</span>
+          <span class="marketing-platform marketing-platform-ig">◎</span>
+          <span class="marketing-platform marketing-platform-in">in</span>
+          <span class="marketing-platform marketing-platform-x">𝕏</span>
+        </div>
+
+        <div class="marketing-preview-progress">
+          <div class="marketing-preview-progress-heading">
+            <span>Campaign setup</span>
+            <span>Configure</span>
+          </div>
+          <div class="marketing-preview-progress-track">
+            <div></div>
+          </div>
+        </div>
+
+        <p class="marketing-preview-footnote">
+          Your marketing workflow starts here.
+        </p>
+      </div>
     </div>
+  </section>
+  <!-- END AI MARKETING STUDIO -->
+
+    <!-- Unlimited Pro -->
+    {% if organizer_profile.is_subscriber %}
+      <div class="dashboard-card pro-card">
+        <div>
+          <h3>Unlimited Pro</h3>
+          <p>Active — Pro features are available across all your events</p>
+        </div>
+      </div>
+    {% else %}
+      <div class="dashboard-card pro-card">
+        <div>
+          <h3>Unlimited Pro</h3>
+          <p>Unlock Pro features across all your current and future events.</p>
+        </div>
+
+       <label for="pro-modal" class="dashboard-unlimited-btn btn-glow cursor-pointer hover:scale-105 transition-transform duration-200">
+          Upgrade to Unlimited Pro
+      </label>
+      </div>
+
+      <input type="checkbox" id="pro-modal" class="pro-modal-toggle">
+
+      <div class="pro-modal">
+        <div class="pro-modal-box">
+          <label for="pro-modal" class="pro-modal-close">&times;</label>
+
+          <h2>Unlimited Pro</h2>
+
+          <div class="pro-price">
+            $29 <span>/ month</span>
+          </div>
+
+          <p>
+            Unlock Pro features across all your current and future events.
+          </p>
+
+          <ul>
+            <li>✓ Pro features across all events</li>
+            <li>✓ Unlimited Pro event creation</li>
+            <li>✓ One subscription for all your events</li>
+          </ul>
+
+          <a href="{% url 'events:start_dashboard_unlimited_checkout' %}" class="btn-glow">
+            Subscribe to Unlimited Pro
+          </a>
+        </div>
+      </div>
+    {% endif %}
 
     {% if organizer_profile.stripe_onboarding_complete or has_ticketed_events %}
     <div class="dashboard-card dashboard-stripe-connect-container mb-6 p-5 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-indigo-500/20 bg-gradient-to-r from-indigo-950/20 via-purple-950/10 to-transparent">

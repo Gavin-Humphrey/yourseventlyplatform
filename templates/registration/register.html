@@ -5,7 +5,6 @@
 {% block content %}
 <div class="auth-page-wrapper">
     <div class="auth-card">
-        
         <div class="auth-header">
             <h2 class="auth-title">Create an Account</h2>
             <p class="auth-subtitle">Start hosting and managing your events</p>
@@ -15,39 +14,79 @@
             {% csrf_token %}
 
             {% if form.errors %}
-                <div class="auth-error">
-                    Please correct the errors below.
-                </div>
+                <div class="auth-error">Please correct the errors below.</div>
             {% endif %}
 
             {% for field in form %}
-                <div class="auth-field-group">
-                    <label for="{{ field.id_for_label }}" class="auth-label">
-                        {{ field.label }}
-                    </label>
-                    
-                    <input type="{{ field.field.widget.input_type|default:'text' }}" 
-                        name="{{ field.name }}" 
-                        id="{{ field.id_for_label }}" 
-                        {% if field.field.required %}required{% endif %} 
-                        class="auth-input">
-                    
-                    {% if field.errors %}
-                        <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
-                    {% endif %}
-                </div>
+                {% if field.name == 'account_type' %}
+                    <div class="auth-field-group">
+                        <label for="{{ field.id_for_label }}" class="auth-label">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                {% elif field.name == 'organization_name' %}
+                    <div class="auth-field-group" id="organization-name-group">
+                        <label for="{{ field.id_for_label }}" class="auth-label">
+                            {{ field.label }}
+                        </label>
+                        <input type="text"
+                            name="{{ field.name }}"
+                            id="{{ field.id_for_label }}"
+                            value="{{ field.value|default:'' }}"
+                            {% if field.field.required %}required{% endif %}
+                            class="auth-input">
+                        {% if field.errors %}
+                            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="auth-field-group">
+                        <label for="{{ field.id_for_label }}" class="auth-label">
+                            {{ field.label }}
+                        </label>
+
+                        <input type="{{ field.field.widget.input_type|default:'text' }}"
+                            name="{{ field.name }}"
+                            id="{{ field.id_for_label }}"
+                            value="{{ field.value|default:'' }}"
+                            {% if field.field.required %}required{% endif %}
+                            class="auth-input">
+
+                        {% if field.errors %}
+                            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
             {% endfor %}
 
-            <button type="submit" class="btn-glow w-full text-center mt-2" style="display: block; width: 100%; border: none; cursor: pointer;">
+            <button type="submit" class="btn-glow w-full text-center mt-2" style="display:block;width:100%;border:none;cursor:pointer;">
                 Create Account
             </button>
         </form>
 
         <p class="auth-footer-text">
-            Already have an account? 
+            Already have an account?
             <a href="{% url 'login' %}" class="auth-link">Sign in here</a>
         </p>
-
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const accountType = document.getElementById('id_account_type');
+    const organizationGroup = document.getElementById('organization-name-group');
+
+    function toggleOrganizationName() {
+        const isOrganization = accountType.value === 'organization';
+        organizationGroup.style.display = isOrganization ? 'block' : 'none';
+    }
+
+    accountType.addEventListener('change', toggleOrganizationName);
+    toggleOrganizationName();
+});
+</script>
 {% endblock %}

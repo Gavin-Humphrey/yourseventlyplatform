@@ -1,86 +1,265 @@
+
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>RSVP Confirmation</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: Arial, sans-serif; color: {{ style_body }};">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 0;">
+
+<body style="margin:0; padding:0; background-color:#f8fafc; font-family:Arial,sans-serif; color:{{ style_body }};">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+           style="background-color:#f8fafc; padding:30px 10px;">
         <tr>
             <td align="center">
-                <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color: {{ style_card_bg }}; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e2e8f0;">
-                    
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0"
+                       style="width:100%; max-width:600px; background-color:{{ style_card_bg }}; border-radius:8px; overflow:hidden; border:1px solid #e2e8f0;">
+
                     <!-- Header -->
                     <tr>
-                        <td style="padding: 30px 40px; background-color: #0f172a; color: #ffffff; text-align: center;">
-                            <h1 style="margin: 0; font-size: 24px; font-weight: bold;">You're Confirmed!</h1>
+                        <td style="padding:30px 25px; background-color:#0f172a; color:#ffffff; text-align:center;">
+                            <h1 style="margin:0; font-size:25px;">You're Confirmed!</h1>
+                            <p style="margin:10px 0 0; font-size:14px;">
+                                {{ event.title }}
+                            </p>
                         </td>
                     </tr>
-                    
-                    <!-- Body Content -->
-                    <tr>
-                        <td style="padding: 40px;">
-                            <p style="font-size: 16px; margin-top: 0;">Hi <strong>{{ rsvp.first_name }}</strong>,</p>
-                            
-                            <p style="font-size: 16px; line-height: 1.5;">Your RSVP for <strong>{{ event.title }}</strong> has been successfully received.</p>
 
-                            <!-- Details Box -->
-                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; border-radius: 6px; padding: 20px; margin: 25px 0;">
+                    <!-- Main content -->
+                    <tr>
+                        <td style="padding:30px 25px;">
+
+                            <p style="font-size:16px; margin-top:0;">
+                                Hi <strong>{{ rsvp.first_name|default:"Guest" }}</strong>,
+                            </p>
+
+                            <p style="font-size:15px; line-height:1.6;">
+                                Your RSVP for <strong>{{ event.title }}</strong>
+                                has been successfully received.
+                            </p>
+
+                            <!-- Event details -->
+                            <h2 style="font-size:18px; color:#0f172a; margin-top:28px;">
+                                Event Details
+                            </h2>
+
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                   style="background-color:#f1f5f9; border-radius:6px; padding:18px;">
                                 <tr>
-                                    <td>
-                                        <p style="margin: 0 0 10px 0; font-size: 14px; color: {{ style_muted }};">
-                                            <strong>Date & Time:</strong> 
-                                            {{ event.event_date }}
-                                        </p>
-                                        <p style="margin: 0 0 10px 0; font-size: 14px; color: {{ style_muted }};">
-                                            <strong>Location:</strong> 
-                                            {{ event.location_name }}
-                                        </p>
-                                        <p style="margin: 0; font-size: 14px; color: {{ style_muted }};">
-                                            <strong>Status:</strong> 
-                                            <span style="color: #16a34a; font-weight: bold;">{{ rsvp.status }}</span>
-                                        </p>
-                                        <p style="margin: 0 0 10px 0; font-size: 14px; color: {{ style_muted }};">
-                                            <strong>Dietary Restrictions / Notes:</strong> 
+                                    <td style="font-size:14px; line-height:1.8; color:{{ style_muted }};">
+                                        <strong>Date &amp; Time:</strong>
+                                        {{ event.event_date }}<br>
+
+                                       {% if event.location_name %} <strong>Location:</strong>{{ event.location_name }} - {% endif %}{% if event.address %}{{ event.address }}, {% endif %}{% if event.city %}{{ event.city }}, {% endif %}{{ event.country }}<br>
+
+                                        <strong>Status:</strong>
+                                        <span style="color:#15803d; font-weight:bold;">
+                                            {{ rsvp.status }}
+                                        </span>
+
+                                        {% if rsvp.dietary_restrictions %}
+                                            <br>
+                                            <strong>Dietary Restrictions / Notes:</strong>
                                             {{ rsvp.dietary_restrictions }}
-                                        </p>
+                                        {% endif %}
+
                                         {% if rsvp.plus_ones_count > 0 %}
-                                        <p style="margin: 10px 0 0 0; font-size: 14px; color: {{ style_muted }};">
-                                            <strong>Additional Guests:</strong> {{ rsvp.plus_ones_count }}
-                                        </p>
-                                            {% if rsvp.plus_ones.all %}
-                                                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top: 10px;">
-                                                    {% for plus_one in rsvp.plus_ones.all %}
-                                                    <tr>
-                                                        <td style="padding: 6px 0; font-size: 14px; color: {{ style_muted }};">
-                                                            #{{ forloop.counter }} - {{ plus_one.full_name }}
-                                                        </td>
-                                                    </tr>
-                                                    {% endfor %}
-                                                </table>
-                                            {% endif %}
-                                        {% endif %}                                    
+                                            <br>
+                                            <strong>Additional Guests:</strong>
+                                            {{ rsvp.plus_ones_count }}
+
+                                            {% for plus_one in rsvp.plus_ones.all %}
+                                                <br>
+                                                {{ forloop.counter }}. {{ plus_one.full_name }}
+                                            {% endfor %}
+                                        {% endif %}
                                     </td>
                                 </tr>
                             </table>
 
-                            {% if rsvp.guest_message %}
-                            <p style="font-size: 14px; font-style: italic; color: {{ style_muted }}; margin-top: 20px;">
-                                Your message: "{{ rsvp.guest_message }}"
-                            </p>
+                            <!-- Paid ticket information -->
+                            {% if ticket_info %}
+                                <h2 style="font-size:20px; color:#0f172a; margin-top:32px;">
+                                    Your Ticket Order
+                                </h2>
+
+                                <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                       style="border:1px solid #e2e8f0; border-radius:6px;">
+                                    <tr>
+                                        <td style="padding:14px; font-size:14px; color:{{ style_muted }};">
+                                            <strong>Ticket Tier</strong>
+                                        </td>
+                                        <td align="right" style="padding:14px; font-size:14px; color:#0f172a;">
+                                            {{ ticket_info.tier_name }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:14px; border-top:1px solid #e2e8f0; font-size:14px; color:{{ style_muted }};">
+                                            <strong>Quantity</strong>
+                                        </td>
+                                        <td align="right" style="padding:14px; border-top:1px solid #e2e8f0; font-size:14px;">
+                                            {{ ticket_info.quantity }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:14px; border-top:1px solid #e2e8f0; font-size:14px; color:{{ style_muted }};">
+                                            Price per ticket
+                                        </td>
+                                        <td align="right" style="padding:14px; border-top:1px solid #e2e8f0; font-size:14px;">
+                                            {{ payment_info.currency }} {{ ticket_info.unit_price|slice:"1:" }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:14px; border-top:1px solid #e2e8f0; font-size:14px; color:{{ style_muted }};">
+                                            <strong>Ticket Subtotal</strong>
+                                        </td>
+                                        <td align="right" style="padding:14px; border-top:1px solid #e2e8f0; font-size:14px; font-weight:bold;">
+                                            {{ payment_info.currency }} {{ ticket_info.subtotal|slice:"1:" }}
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <!-- Payment receipt -->
+                                <h2 style="font-size:20px; color:#0f172a; margin-top:28px;">
+                                    Payment Receipt
+                                </h2>
+
+                                <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                       style="background-color:#f1f5f9; border-radius:6px;">
+                                    <tr>
+                                        <td style="padding:14px; font-size:14px; color:{{ style_muted }};">
+                                            Payment Status
+                                        </td>
+                                        <td align="right" style="padding:14px; font-size:14px; color:#15803d; font-weight:bold;">
+                                            {{ payment_info.payment_status }}
+                                        </td>
+                                    </tr>
+
+                                    {% if payment_info.platform_fee %}
+                                        <tr>
+                                            <td style="padding:14px; border-top:1px solid #e2e8f0; font-size:14px; color:{{ style_muted }};">
+                                                Platform Fee (allocated)
+                                            </td>
+                                            <td align="right" style="padding:14px; border-top:1px solid #e2e8f0; font-size:14px;">
+                                                {{ payment_info.platform_fee }}
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+
+                                    {% if payment_info.total_paid %}
+                                        <tr>
+                                            <td style="padding:16px 14px; border-top:1px solid #cbd5e1; font-size:15px; font-weight:bold;">
+                                                Total Amount Paid
+                                            </td>
+                                            <td align="right" style="padding:16px 14px; border-top:1px solid #cbd5e1; font-size:16px; color:#15803d; font-weight:bold;">
+                                                {{ payment_info.total_paid }}
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+
+                                    {% if payment_info.payment_reference %}
+                                        <tr>
+                                            <td colspan="2" style="padding:14px; border-top:1px solid #e2e8f0; font-size:12px; color:{{ style_muted }}; word-break:break-all;">
+                                                <strong>Payment Reference:</strong><br>
+                                                {{ payment_info.payment_reference }}
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                </table>
+
+                                <p style="font-size:12px; line-height:1.5; color:{{ style_muted }};">
+                                    Keep this email as confirmation of your ticket purchase.
+                                    The payment reference identifies your payment; it is not
+                                    a separate tax invoice.
+                                </p>
+
+                                <!-- Individual ticket QR codes -->
+                                {% if email_tickets %}
+                                    <h2 style="font-size:20px; color:#0f172a; margin-top:32px;">
+                                        Your Tickets &amp; Check-in QR Codes
+                                    </h2>
+
+                                    <p style="font-size:14px; line-height:1.6; color:{{ style_muted }};">
+                                        Present the corresponding QR code at the event entrance
+                                        if QR check-in is enabled.
+                                    </p>
+
+                                    {% for ticket in email_tickets %}
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                               style="border:1px solid #e2e8f0; border-radius:8px; margin:18px 0;">
+                                            <tr>
+                                                <td align="center" style="padding:20px;">
+                                                    <h3 style="margin:0 0 12px; color:#0f172a; font-size:17px;">
+                                                        Ticket {{ ticket.number }}
+                                                    </h3>
+
+                                                    {% if ticket.qr_cid %}
+                                                        <img
+                                                            src="cid:{{ ticket.qr_cid }}"
+                                                            width="200"
+                                                            height="200"
+                                                            alt="QR code for ticket {{ ticket.number }}"
+                                                            style="display:block; width:200px; max-width:100%; height:auto; border:0;"
+                                                        >
+                                                    {% else %}
+                                                        <p style="font-size:13px; color:{{ style_muted }};">
+                                                            QR code unavailable. Please contact the event organizer.
+                                                        </p>
+                                                    {% endif %}
+
+                                                    <p style="font-size:11px; color:{{ style_muted }}; word-break:break-all; margin-top:14px;">
+                                                        Ticket ID: {{ ticket.token }}
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    {% endfor %}
+                                {% elif event.enable_qr_checkins and ticket_info %}
+                                    <p style="font-size:14px; color:{{ style_muted }};">
+                                        QR tickets have not been generated for this order yet.
+                                        Please contact the event organizer if you need check-in assistance.
+                                    </p>
+                                {% endif %}
                             {% endif %}
-                            
-                            <p style="font-size: 16px; margin-bottom: 0; margin-top: 30px;">We look forward to seeing you there!</p>
+
+                            <!-- Apple Wallet -->
+                            {% if pass_absolute_url %}
+                                <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                       style="margin:25px 0;">
+                                    <tr>
+                                        <td align="center">
+                                            <a href="{{ pass_absolute_url }}"
+                                               target="_blank"
+                                               style="background-color:#000000; color:#ffffff; padding:12px 24px; border-radius:8px; font-weight:bold; text-decoration:none; display:inline-block; font-size:14px;">
+                                                Add to Apple Wallet
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            {% endif %}
+
+                            {% if rsvp.guest_message %}
+                                <p style="font-size:14px; font-style:italic; color:{{ style_muted }}; margin-top:24px;">
+                                    <strong>Your message:</strong>
+                                    "{{ rsvp.guest_message }}"
+                                </p>
+                            {% endif %}
+
+                            <p style="font-size:16px; line-height:1.6; margin-top:30px;">
+                                We look forward to seeing you there!
+                            </p>
                         </td>
                     </tr>
-                    
+
                     <!-- Footer -->
                     <tr>
-                        <td style="padding: 20px 40px; background-color: #f1f5f9; text-align: center; border-top: 1px solid #e2e8f0;">
-                            <p style="margin: 0; font-size: 12px; color: {{ style_muted }};">Powered by your self-hosted event platform.</p>
+                        <td style="padding:20px 25px; background-color:#f1f5f9; text-align:center; border-top:1px solid #e2e8f0;">
+                            <p style="margin:0; font-size:12px; line-height:1.6; color:{{ style_muted }};">
+                                Powered by YoursEvently.
+                            </p>
                         </td>
                     </tr>
-                    
+
                 </table>
             </td>
         </tr>

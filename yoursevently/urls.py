@@ -37,5 +37,8 @@ urlpatterns = [
     # App-specific Routes
     path('', include('events.urls')),
 
+    path('i18n/', include('django.conf.urls.i18n')),  # Temporary until selector replacement
+
+    path("dashboard/marketing-studio/", include("marketing_studio.urls"),),
     
 ]

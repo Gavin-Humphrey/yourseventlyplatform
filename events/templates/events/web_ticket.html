@@ -1,0 +1,256 @@
+{% extends "base_public.html" %}
+{% load static %}
+
+{% block title %}
+    {{ event.title }} — Guest Ticket
+{% endblock %}
+
+{% block content %}
+
+<!-- <link rel="stylesheet" href="{% static 'events/css/web_ticket.css' %}"> -->
+<link rel="stylesheet" href="{% static 'events/css/landing.css' %}">
+
+<div class="ticket-page">
+
+    <!-- =========================================================
+         TICKET HEADER
+    ========================================================== -->
+    <section class="ticket-hero">
+
+        <div class="ticket-hero-inner">
+
+            <div class="ticket-kicker">
+                <span>✦</span>
+                <span>Official Guest Pass</span>
+            </div>
+
+            <h1 class="ticket-title">
+                {{ event.title }}
+            </h1>
+
+            <p class="ticket-subtitle">
+                Your confirmed invitation and event entry pass
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================================
+         MAIN TICKET
+    ========================================================== -->
+    <main class="ticket-main">
+
+        <div class="ticket-card">
+
+            <!-- TOP / EVENT INFORMATION -->
+            <div class="ticket-card-header">
+
+                <div>
+                    <p class="ticket-label">
+                        CONFIRMED GUEST
+                    </p>
+
+                    <h2 class="ticket-guest-name">
+                        {{ rsvp.full_name }}
+                    </h2>
+                </div>
+
+                <div class="ticket-status">
+                    <span class="status-dot"></span>
+                    Confirmed
+                </div>
+
+            </div>
+
+
+            <!-- DECORATIVE DIVIDER -->
+            <div class="ticket-divider">
+                <span class="ticket-notch ticket-notch-left"></span>
+                <span class="ticket-divider-line"></span>
+                <span class="ticket-notch ticket-notch-right"></span>
+            </div>
+
+
+            <!-- EVENT DETAILS -->
+            <div class="ticket-details">
+
+                <div class="ticket-detail">
+
+                    <div class="ticket-icon">
+                        📅
+                    </div>
+
+                    <div>
+                        <p class="ticket-label">
+                            Date & Time
+                        </p>
+
+                        <p class="ticket-value">
+                            {{ event.event_date|date:"l, F j, Y" }}
+                        </p>
+
+                        <p class="ticket-muted">
+                            {{ event.event_date|date:"g:i A" }}
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="ticket-detail">
+
+                    <div class="ticket-icon">
+                        📍
+                    </div>
+
+                    <div>
+                        <p class="ticket-label">
+                            Location
+                        </p>
+
+                        <p class="ticket-value">
+                            {{ event.location_name }}
+                        </p>
+
+                        {% if event.address %}
+                            <p class="ticket-muted">
+                                {{ event.address }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 GUEST / RSVP INFORMATION
+            ====================================================== -->
+            <div class="ticket-info-box">
+
+                <div class="ticket-info-row">
+                    <span>Guest Name</span>
+                    <strong>{{ rsvp.full_name }}</strong>
+                </div>
+
+                {% if rsvp.guest_count %}
+                <div class="ticket-info-row">
+                    <span>Guests</span>
+                    <strong>{{ rsvp.guest_count }}</strong>
+                </div>
+                {% endif %}
+
+                {% if rsvp.email %}
+                <div class="ticket-info-row">
+                    <span>Email</span>
+                    <strong>{{ rsvp.email }}</strong>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- =====================================================
+                 QR / CHECK-IN AREA
+            ====================================================== -->            
+            <div class="ticket-checkin">
+                <p class="ticket-label">
+                    EVENT CHECK-IN
+                </p>
+
+                <h3 class="ticket-checkin-title">
+                    Present this pass at the entrance
+                </h3>
+
+                {% if ticket_data.qr_code_data_uri %}
+                    <div class="ticket-qr-wrapper">
+                        <img
+                            src="{{ ticket_data.qr_code_data_uri }}"
+                            alt="Guest check-in QR code"
+                            class="ticket-qr"
+                        >
+                    </div>
+
+                {% elif ticket_data.qr_code %}
+                    <div class="ticket-qr-wrapper">
+                        <img
+                            src="{{ ticket_data.qr_code }}"
+                            alt="Guest check-in QR code"
+                            class="ticket-qr"
+                        >
+                    </div>
+
+                {% else %}
+                    <div class="ticket-token-box">
+                        <span>CHECK-IN TOKEN</span>
+                        <strong>
+                            {% if individual_ticket %}
+                                {{ individual_ticket.checkin_token }}
+                            {% else %}
+                                {{ rsvp.checkin_token }}
+                            {% endif %}
+                        </strong>
+                    </div>
+                {% endif %}
+
+                <p class="ticket-checkin-note">
+                    This QR code is unique to this invitation.
+                    Please keep this page accessible when you arrive.
+                </p>
+            </div>
+
+
+            <!-- =====================================================
+                 VERIFY BUTTON
+            ====================================================== -->
+            <div class="ticket-actions">
+
+                <a
+                    href="{{ verify_url }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="ticket-button"
+                >
+                    Verify Guest Pass
+                </a>
+            </div>
+
+            <!-- =====================================================
+                 FOOTER
+            ====================================================== -->
+            <div class="ticket-footer">
+
+                <p>
+                    This invitation is valid only for the confirmed guest
+                    named above.
+                </p>
+
+                <p class="ticket-footer-brand">
+                    Powered by the event invitation platform
+                </p>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             SMALL INFORMATION CARD
+        ========================================================== -->
+        <div class="ticket-help-card">
+            <div class="ticket-help-icon">
+                ✦
+            </div>
+            <div>
+                <p class="ticket-label">
+                    PLEASE NOTE
+                </p>
+                <p class="ticket-help-text">
+                    Keep this ticket available on your phone when you arrive.
+                    The event team may scan your QR code to confirm your
+                    invitation and check you in.
+                </p>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

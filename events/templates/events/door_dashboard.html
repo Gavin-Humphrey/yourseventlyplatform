@@ -59,7 +59,7 @@
                 <table class="door-table">
                     <thead>
                         <tr>
-                            <th>Guest Name</th>
+                            <th>Guest Name/Email</th>
                             <th>Status / Guests</th>
                             {% if event.is_ticketed %}
                             <th>Ticket Pass</th>
@@ -109,8 +109,8 @@
                                 {% endif %}
                             </td>
                             <td class="text-right">
-                                <a href="{% url 'events:verify_checkin' event.slug rsvp.checkin_token %}" class="door-action-btn">
-                                    {% if rsvp.checked_in %}Re-verify{% else %}Check In{% endif %}
+                                <a href="{% url 'events:verify_checkin' event.slug rsvp.checkin_token %}{% if rsvp.checked_in %}?undo=true{% endif %}" class="door-action-btn">
+                                    {% if rsvp.checked_in %}Undo Check In{% else %}Check In{% endif %}
                                 </a>
                             </td>
                         </tr>
@@ -126,26 +126,5 @@
 
     </div>
 </main>
-<!-- <style>
-    /* ============================================ */
-    .overflow-x-auto {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  white-space: nowrap;
-}
 
-.door-table {
-  width: 100%;
-  min-width: 650px; /* Ensures columns maintain proper spacing and don't crush text on mobile */
-  border-collapse: collapse;
-}
-
-.door-table th, 
-.door-table td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-}
-/* ============================================ */
-</style> -->
 {% endblock %}

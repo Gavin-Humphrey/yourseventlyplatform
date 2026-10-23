@@ -45,16 +45,27 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'django.contrib.humanize',
+
     # Third-party
     'widget_tweaks',
     
     # SaaS Apps
     'events',
+
+    'django_countries',
+    "marketing_studio",
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware', # Globalization
+
+    # Automatically translate HTML using LibreTranslate
+    'events.translation_middleware.TranslationMiddleware',
+
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -75,6 +86,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'events.context_processors.unread_notification_count',
             ],
         },
     },
@@ -121,14 +133,56 @@ LOGOUT_REDIRECT_URL = 'events:home'
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
+# LANGUAGE_CODE = 'en-us'
+
+# TIME_ZONE = 'UTC'
+
+# USE_I18N = True
+
+# USE_TZ = True
+
+################### NEW GLOBALIZATION
+
+# Internationalization
 LANGUAGE_CODE = 'en-us'
 
+LANGUAGES = [
+    ('en', 'English'),
+    ('es', 'Español'),
+    ('fr', 'Français'),
+    ('pt', 'Português'),
+]
+
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
+########################
 
+############# DJANGO COUNTRIES
+
+# Countries displayed in the Favorite Upcoming Events filter.
+# Use ISO 3166-1 alpha-2 country codes.
+FAVORITE_UPCOMING_COUNTRIES = [
+    'US',  # United States
+    'GB',  # United Kingdom
+    'CA',  # Canada
+    'AU',  # Australia
+    'DE',  # Germany
+    'FR',  # France
+    'ES',  # Spain
+    'IT',  # Italy
+    'NL',  # Netherlands
+    'JP',  # Japan
+    'AE',  # United Arab Emirates
+    'NG',  # Nigeria
+    'ZA',  # South Africa
+    'BR',  # Brazil
+    'SG',  # Singapore
+    'IN',  # India
+    'MX',  # Mexico
+]
+
+#################
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -162,3 +216,26 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 STRIPE_PUBLISHABLE_KEY = config("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
+
+STRIPE_SINGLE_PRO_PRICE_ID = config("STRIPE_SINGLE_PRO_PRICE_ID")
+STRIPE_PRO_UNLIMITED_PRICE_ID = config("STRIPE_PRO_UNLIMITED_PRICE_ID")
+
+############
+APPLE_PASS_TYPE_IDENTIFIER = "pass.com.yourcompany.eventpass"
+APPLE_TEAM_IDENTIFIER = "YOUR_ACTUAL_TEAM_ID"
+APPLE_PASS_ORGANIZATION_NAME = "YoursEvently"
+APPLE_PASS_CERT_PASSWORD = config(
+    "APPLE_PASS_CERT_PASSWORD",
+    default="",
+)
+############
+
+GOOGLE_WALLET_KEY_PATH = BASE_DIR / 'secrets' / 'upheld-beach-509713-p2-9a36adb4e33d.json'
+GOOGLE_WALLET_ISSUER_ID = '3388000000023209763'
+
+SINGLE_EVENT_PRICE = 19
+PRO_UNLIMITED_PRICE = 29
+
+
+########
+SITE_URL = 'http://127.0.0.1:8000'

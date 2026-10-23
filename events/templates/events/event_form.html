@@ -4,15 +4,65 @@
 {% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} Event | YoursEvently{% endblock %}
 
 {% block content %}
-<div class="min-h-[calc(100vh-70px)] py-12 px-4 flex justify-center items-center">
-    <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
+<style>
+    /* Universal dark theme overrides to guarantee #0f172a consistency across Django rendered widgets */
+    body {
+        background-color: #0f172a !important;
+    }
+    #event-form-wrapper {
+        background-color: #0f172a !important;
+    }
+    #event-form-container {
+        background-color: #0f172a !important;
+        color: #f8fafc !important;
+    }
+    #event-form-container input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="file"]),
+    #event-form-container select,
+    #event-form-container textarea {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+        color: #f8fafc !important;
+    }
+    #event-form-container input::placeholder,
+    #event-form-container textarea::placeholder {
+        color: #64748b !important;
+    }
+    #event-form-container select option {
+        background-color: #0f172a !important;
+        color: #f8fafc !important;
+    }
+    #event-form-container input[type="checkbox"] {
+        accent-color: #2563eb !important;
+        background-color: #0f172a !important;
+        border-color: #475569 !important;
+    }
+    .inline-flex-pro {
+        background-color: goldenrod !important;
+    }
+    /* .gallery-decs-input {
+        border: 2px solide blue;
+    } */
+</style>
+
+<div id="event-form-wrapper" class="min-h-[calc(100vh-70px)] py-12 px-4 flex justify-center items-center bg-[#0f172a]" style="background-color: #0f172a !important;">
+    <div id="event-form-container" class="max-w-xl w-full rounded-2xl shadow-2xl border border-slate-800 p-8 bg-[#0f172a] text-slate-100" style="background-color: #0f172a !important; color: #f8fafc !important;">
         
         <!-- Header -->
-        <div class="mb-6 border-b border-slate-100 pb-4">
-            <h1 class="text-2xl font-bold text-slate-900">
+        <div class="mb-6 border-b border-slate-800 pb-4">
+            <h1 class="text-2xl font-bold text-white">
                 {% if form.instance.pk %}Edit Event{% else %}Create New Event{% endif %}
             </h1>
-            <p class="text-slate-500 text-sm mt-1">Fill out the form below to publish or update your event page.</p>
+            <p class="text-slate-400 text-sm mt-1">Fill out the form below to publish or update your event page.</p>
+        </div>
+
+        <!-- Pro Subscription Notice -->
+        <div class="mb-6 p-4 rounded-xl bg-amber-950/40 border border-amber-500/40 text-amber-200 flex items-start gap-3 shadow-sm" style="background-color: rgba(69, 26, 3, 0.4) !important; border-color: rgba(245, 158, 11, 0.4) !important;">
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-white shrink-0 mt-0.5 text-xs font-bold shadow-xs">
+                ★
+            </span>
+            <div class="text-xs leading-relaxed text-amber-200/90">
+                <strong class="font-bold text-amber-300">Pro Feature Notice:</strong> Features marked with the <span class="inline-flex inline-flex-pro items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-xs">★ PRO</span> badge are part of our premium subscription plans. If you enable any Pro features, saving or updating your event will automatically redirect you to select an upgrade plan to activate them.
+            </div>
         </div>
 
         <!-- Form Body -->
@@ -20,372 +70,626 @@
             {% csrf_token %}
             
             {% if form.non_field_errors %}
-                <div class="p-4 rounded-xl bg-red-50 text-red-800 border border-red-200 text-sm font-medium">
+                <div class="p-4 rounded-xl bg-red-950/50 text-red-300 border border-red-800/80 text-sm font-medium">
                     {{ form.non_field_errors }}
                 </div>
             {% endif %}
 
             <!-- Section 1: Event Details -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3">1. Event Details</h2>
+            <!-- <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-sm space-y-4" style="background-color: #0f172a !important; border-color: #1e293b !important;">
+                <h2 class="text-base font-bold text-slate-100 border-b border-slate-800 pb-3">1.0. Event Details</h2>
 
                 <div>
-                    <label for="{{ form.title.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">Title *</label>
-                    {{ form.title }}
-                    {% if form.title.errors %}<p class="text-xs text-red-600 mt-1">{{ form.title.errors.0 }}</p>{% endif %}
+                    <label for="{{ form.title.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Title *</label>
+                    {% render_field form.title class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" placeholder="My Special Event" %}
+                    {% if form.title.errors %}<p class="text-xs text-red-400 mt-1">{{ form.title.errors.0 }}</p>{% endif %}
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="{{ form.event_date.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">Date & Time *</label>
-                        {{ form.event_date }}
-                        {% if form.event_date.errors %}<p class="text-xs text-red-600 mt-1">{{ form.event_date.errors.0 }}</p>{% endif %}
+                        <label for="{{ form.event_date.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Date & Time *</label>
+                        {% render_field form.event_date class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" %}
+                        {% if form.event_date.errors %}<p class="text-xs text-red-400 mt-1">{{ form.event_date.errors.0 }}</p>{% endif %}
                     </div>
                     <div>
-                        <label for="{{ form.location_name.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">Location / Venue *</label>
-                        {{ form.location_name }}
-                        {% if form.location_name.errors %}<p class="text-xs text-red-600 mt-1">{{ form.location_name.errors.0 }}</p>{% endif %}
+                        <label for="{{ form.location_name.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Location / Venue *</label>
+                        {% render_field form.location_name class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" placeholder="Venue Name" %}
+                        {% if form.location_name.errors %}<p class="text-xs text-red-400 mt-1">{{ form.location_name.errors.0 }}</p>{% endif %}
                     </div>
                 </div>
 
                 <div>
-                    <label for="{{ form.address.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">Address</label>
-                    {{ form.address }}
-                    {% if form.address.errors %}<p class="text-xs text-red-600 mt-1">{{ form.address.errors.0 }}</p>{% endif %}
+                    <label for="{{ form.address.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Address</label>
+                    {% render_field form.address class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" placeholder="123 Street Ave, City" %}
+                    {% if form.address.errors %}<p class="text-xs text-red-400 mt-1">{{ form.address.errors.0 }}</p>{% endif %}
+                </div>
+            </div> -->
+
+            <!-- Section 1: Event Details -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-sm space-y-4" style="background-color: #0f172a !important; border-color: #1e293b !important;">
+                <h2 class="text-base font-bold text-slate-100 border-b border-slate-800 pb-3">1.0. Event Details</h2>
+
+                <div>
+                    <label for="{{ form.title.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Title *</label>
+                    {% render_field form.title class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" placeholder="My Special Event" %}
+                    {% if form.title.errors %}<p class="text-xs text-red-400 mt-1">{{ form.title.errors.0 }}</p>{% endif %}
+                </div>
+                <!-- NOW -->
+                <!-- Main Event Description -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1"> Event Description</label>
+                    {% render_field form.description class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" rows="5" placeholder="Describe your event, its purpose, activities, intended audience, and what guests can expect." %}
+                    {% if form.description.errors %}
+                        <p class="text-xs text-red-400 mt-1">
+                            {{ form.description.errors.0 }}
+                        </p>
+                    {% endif %}
+                    <p class="text-[11px] text-slate-400 mt-1">Give guests a clear picture of your event. This information can also help the AI Marketing Studio create more relevant promotional content.</p>
+                </div>
+                <!--  -->
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.event_date.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Date & Time *</label>
+                        {% render_field form.event_date class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" %}
+                        {% if form.event_date.errors %}<p class="text-xs text-red-400 mt-1">{{ form.event_date.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.location_name.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Location / Venue</label>
+                        {% render_field form.location_name class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" placeholder="Venue Name (optional)" %}
+                        {% if form.location_name.errors %}<p class="text-xs text-red-400 mt-1">{{ form.location_name.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.address.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Address</label>
+                    {% render_field form.address class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" placeholder="123 Street Ave (optional)" %}
+                    {% if form.address.errors %}<p class="text-xs text-red-400 mt-1">{{ form.address.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.city.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">City</label>
+                    {% render_field form.city class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" placeholder="City (optional)" %}
+                    {% if form.city.errors %}<p class="text-xs text-red-400 mt-1">{{ form.city.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.country.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Country *</label>
+                    {% render_field form.country class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white focus:outline-none focus:border-blue-500" %}
+                    {% if form.country.errors %}<p class="text-xs text-red-400 mt-1">{{ form.country.errors.0 }}</p>{% endif %}
                 </div>
             </div>
+            <!-- Event Type -->
+            <div>
+                <label for="{{ form.event_type.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Event Type * </label>
+                {% render_field form.event_type class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white focus:outline-none focus:border-blue-500" %}
+                {% if form.event_type.errors %}
+                    <p class="text-xs text-red-400 mt-1">{{ form.event_type.errors.0 }}</p>
+                {% endif %}
+                <p class="text-[11px] text-slate-400 mt-1">Choose the category that best describes your event. This helps guests discover relevant events and helps the AI Marketing Studio create suitable promotional content.</p>
+            </div>
+            <!--  -->
+            <!-- Food Served Option -->
+            <div class="flex items-start gap-3 p-4 rounded-xl border border-slate-800 bg-slate-800/60"
+                style="background-color: rgba(30, 41, 59, 0.6) !important; border-color: #334155 !important;">
 
-            <!-- Ticketing Option -->
-            <div class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-slate-50">
                 <div class="flex items-center h-5 mt-0.5">
-                    {{ form.is_ticketed }}
+                    {% render_field form.food_served class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-700 bg-slate-900 cursor-pointer" %}
                 </div>
-                <div>
-                    <h2 class="text-base font-bold text-slate-800 pb-1">1.5. Enable Paid Ticketing</h2>
-                    <label for="{{ form.is_ticketed.id_for_label }}" class="text-sm font-semibold text-slate-700 cursor-pointer"></label>
-                    <p class="text-xs text-slate-500 mt-0.5">When enabled, the public page renders pricing cards and switches the RSVP form to a secure Stripe checkout flow.</p>
+
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 pb-1">
+                        <h2 class="text-base font-bold text-slate-100">
+                            Will Food Be Served?
+                        </h2>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <label for="{{ form.food_served.id_for_label }}"
+                            class="text-sm font-semibold text-slate-200 cursor-pointer">
+                            Provide Food or Refreshments
+                        </label>
+                    </div>
+
+                    <p class="text-xs text-slate-400 mt-1">
+                        Enable this option if food or refreshments will be provided.
+                        Guests can then share their dietary requirements when RSVPing.
+                    </p>
+
+                    {% if form.food_served.errors %}
+                        <p class="text-sm text-red-400 mt-1">
+                            {{ form.food_served.errors|striptags }}
+                        </p>
+                    {% endif %}
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3">2. Maximum Venue Capacity</h2>
+            <!-- Ticketing Option (PRO FEATURE) -->
+            <div class="flex items-start gap-3 p-4 rounded-xl border border-slate-800 bg-slate-800/60" style="background-color: rgba(30, 41, 59, 0.6) !important; border-color: #334155 !important;">
+                <div class="flex items-center h-5 mt-0.5">
+                    {% render_field form.is_ticketed class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-700 bg-slate-900 cursor-pointer" %}
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 pb-1">
+                        <h2 class="text-base font-bold text-slate-100">2.0. Enable Paid Ticketing</h2>
+                        <span class="inline-flex inline-flex-pro items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-sm">
+                            <svg class="w-3.5 h-3.5 fill-current text-white shrink-0" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            PRO
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="{{ form.is_ticketed.id_for_label }}" class="text-sm font-semibold text-slate-200 cursor-pointer">
+                            Enable Paid Ticket
+                        </label>
+                        <!-- <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-sm">
+                            <svg class="w-3.5 h-3.5 fill-current text-white shrink-0" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            PRO
+                        </span> -->
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">When enabled, the public page renders pricing cards and switches the RSVP form to a secure Stripe checkout flow.</p>
+                </div>
+            </div>
+
+            <!-- QR Check-ins Checkbox -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-sm space-y-2" style="background-color: #0f172a !important; border-color: #1e293b !important;">
+                <div class="flex items-center space-x-3">
+                    {% render_field form.enable_qr_checkins class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-700 bg-slate-900 cursor-pointer" %}
+                    <label for="{{ form.enable_qr_checkins.id_for_label }}" class="text-sm font-semibold text-slate-200 select-none cursor-pointer">
+                       2.5. Enable digital ticket QR codes and door scanner interface
+                    </label>
+                    <span class="inline-flex inline-flex-pro items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-sm">
+                        <svg class="w-3.5 h-3.5 fill-current text-white shrink-0" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        PRO
+                    </span>
+                    {% if form.enable_qr_checkins.errors %}
+                        <p class="text-xs text-red-400 mt-1">{{ form.enable_qr_checkins.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <p class="text-[11px] text-slate-400 pl-7">Generates a unique QR pass for every attendee and provides hosts with a live check-in dashboard at the door.</p>
+            </div>
+
+            <!-- Section 2: Maximum Venue Capacity -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-sm space-y-4" style="background-color: #0f172a !important; border-color: #1e293b !important;">
+                <h2 class="text-base font-bold text-slate-100 border-b border-slate-800 pb-3">3.0. Maximum Venue Capacity</h2>
                 <div>
-                    <label for="{{ form.max_capacity.id_for_label }}" class="block text-xs font-semibold uppercase mb-1 text-slate-700">Maximum Venue Capacity (Optional)</label>
-                    {{ form.max_capacity }}
+                    <label for="{{ form.max_capacity.id_for_label }}" class="block text-xs font-semibold uppercase mb-1 text-slate-300">Maximum Venue Capacity (Optional)</label>
+                    {% render_field form.max_capacity class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" placeholder="Leave blank for unlimited" %}
                     <p class="text-[11px] mt-1 text-slate-400">Leave blank for unlimited venue capacity.</p>
-                    {% if form.max_capacity.errors %}<p class="text-xs text-red-600 mt-1">{{ form.max_capacity.errors.0 }}</p>{% endif %}
+                    {% if form.max_capacity.errors %}<p class="text-xs text-red-400 mt-1">{{ form.max_capacity.errors.0 }}</p>{% endif %}
                 </div>
             </div>
 
             <!-- Section 2: Plus-One & Guest Options -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3">2.5 Plus-One & Guest Options</h2>
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-sm space-y-4" style="background-color: #0f172a !important; border-color: #1e293b !important;">
+                <h2 class="text-base font-bold text-slate-100 border-b border-slate-800 pb-3">4.0. Plus-One & Guest Options</h2>
 
                 <!-- Allow Plus Ones Checkbox -->
                 <div class="flex items-center space-x-3">
-                    {{ form.allow_plus_ones }}
-                    <label for="{{ form.allow_plus_ones.id_for_label }}" class="text-sm font-semibold text-slate-700 select-none cursor-pointer">
+                    {% render_field form.allow_plus_ones class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-700 bg-slate-900 cursor-pointer" %}
+                    <label for="{{ form.allow_plus_ones.id_for_label }}" class="text-sm font-semibold text-slate-200 select-none cursor-pointer">
                         Allow guests to bring plus-ones
                     </label>
                     {% if form.allow_plus_ones.errors %}
-                        <p class="text-xs text-red-600 mt-1">{{ form.allow_plus_ones.errors.0 }}</p>
+                        <p class="text-xs text-red-400 mt-1">{{ form.allow_plus_ones.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Max Plus Ones per Guest -->
                 <div id="maxPlusOnesWrapper" class="space-y-1 pt-2">
-                    <label for="{{ form.max_plus_ones_per_guest.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                    <label for="{{ form.max_plus_ones_per_guest.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">
                         Max Plus-Ones Per Guest
                     </label>
-                    {{ form.max_plus_ones_per_guest }}
+                    {% render_field form.max_plus_ones_per_guest class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" %}
                     <p class="text-[11px] text-slate-400 mt-1">Maximum number of accompanying guests a single attendee can register.</p>
                     {% if form.max_plus_ones_per_guest.errors %}
-                        <p class="text-xs text-red-600 mt-1">{{ form.max_plus_ones_per_guest.errors.0 }}</p>
+                        <p class="text-xs text-red-400 mt-1">{{ form.max_plus_ones_per_guest.errors.0 }}</p>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Section 2.5: Guest Message Options -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3">3. Guest Message Options</h2>
+            <!-- Section 3.5: After Event Guest Message Options -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-sm space-y-4" style="background-color: #0f172a !important; border-color: #1e293b !important;">
+                <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <h2 class="text-base font-bold text-slate-100">5.0. Guest Message Options</h2>
+                    <span class="inline-flex inline-flex-pro items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-sm">
+                        <svg class="w-3.5 h-3.5 fill-current text-white shrink-0" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        PRO
+                    </span>
+                </div>
 
                 <!-- Allow Guest Messages Checkbox -->
                 <div class="flex items-center space-x-3">
-                    {{ form.allow_guest_messages }}
-                    <label for="{{ form.allow_guest_messages.id_for_label }}" class="text-sm font-semibold text-slate-700 select-none cursor-pointer">
+                    {% render_field form.allow_guest_messages class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-700 bg-slate-900 cursor-pointer" %}
+                    <label for="{{ form.allow_guest_messages.id_for_label }}" class="text-sm font-semibold text-slate-200 select-none cursor-pointer">
                         Allow guests to leave a special message for the celebrant
                     </label>
                     {% if form.allow_guest_messages.errors %}
-                        <p class="text-xs text-red-600 mt-1">{{ form.allow_guest_messages.errors.0 }}</p>
+                        <p class="text-xs text-red-400 mt-1">{{ form.allow_guest_messages.errors.0 }}</p>
                     {% endif %}
                 </div>
                 <p class="text-[11px] text-slate-400 mt-1 pl-7">Enables a dedicated text field on your public RSVP form for personal notes, displayed via a scrolling carousel on your event dashboard.</p>
             </div>
 
             <!-- Section: Announcement Banner Controls -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3">4. Live Announcement Banner</h2>
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-sm space-y-4" style="background-color: #0f172a !important; border-color: #1e293b !important;">
+                <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <h2 class="text-base font-bold text-slate-100">6.0. Live Announcement Banner</h2>
+                    <span class="inline-flex inline-flex-pro items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-sm">
+                        <svg class="w-3.5 h-3.5 fill-current text-white shrink-0" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        PRO
+                    </span>
+                </div>
 
                 <!-- Show Announcement Checkbox -->
                 <div class="flex items-center space-x-3">
-                    {{ form.show_announcement }}
-                    <label for="{{ form.show_announcement.id_for_label }}" class="text-sm font-semibold text-slate-700 select-none cursor-pointer">
+                    {% render_field form.show_announcement class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-700 bg-slate-900 cursor-pointer" %}
+                    <label for="{{ form.show_announcement.id_for_label }}" class="text-sm font-semibold text-slate-200 select-none cursor-pointer">
                         Display active announcement banner on public page
                     </label>
                     {% if form.show_announcement.errors %}
-                        <p class="text-xs text-red-600 mt-1">{{ form.show_announcement.errors.0 }}</p>
+                        <p class="text-xs text-red-400 mt-1">{{ form.show_announcement.errors.0 }}</p>
                     {% endif %}
                 </div>
                 <p class="text-[11px] text-slate-400 mt-1 pl-7">Allows you to draft announcements and toggle them live or off instantly without deleting your copy.</p>
 
                 <!-- Announcement Title -->
                 <div class="space-y-1 pt-2">
-                    <label for="{{ form.announcement_title.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                    <label for="{{ form.announcement_title.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">
                         Announcement Header Title
                     </label>
-                    {{ form.announcement_title }}
+                    {% render_field form.announcement_title class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" %}
                     {% if form.announcement_title.errors %}
-                        <p class="text-xs text-red-600 mt-1">{{ form.announcement_title.errors.0 }}</p>
+                        <p class="text-xs text-red-400 mt-1">{{ form.announcement_title.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Announcement Text Content -->
                 <div class="space-y-1">
-                    <label for="{{ form.announcement_text.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                    <label for="{{ form.announcement_text.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">
                         Announcement Message
                     </label>
-                    {{ form.announcement_text }}
+                    {% render_field form.announcement_text class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" rows="2" %}
                     <p class="text-[11px] text-slate-400 mt-1">Provide real-time updates for guests (e.g. parking directions, schedule adjustments, gate info).</p>
                     {% if form.announcement_text.errors %}
-                        <p class="text-xs text-red-600 mt-1">{{ form.announcement_text.errors.0 }}</p>
+                        <p class="text-xs text-red-400 mt-1">{{ form.announcement_text.errors.0 }}</p>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- QR Check-ins Checkbox -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-                <div class="flex items-center space-x-3">
-                    {{ form.enable_qr_checkins }}
-                    <label for="{{ form.enable_qr_checkins.id_for_label }}" class="text-sm font-semibold text-slate-700 select-none cursor-pointer">
-                        Enable digital ticket QR codes and door scanner interface
-                    </label>
-                    {% if form.enable_qr_checkins.errors %}
-                        <p class="text-xs text-red-600 mt-1">{{ form.enable_qr_checkins.errors.0 }}</p>
-                    {% endif %}
-                </div>
-                <p class="text-[11px] text-slate-400 pl-7">Generates a unique QR pass for every attendee and provides hosts with a live check-in dashboard at the door.</p>
-            </div>
-
-            <!-- Section 3: Visual Customization & Theme -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3">
-                    3.5. Theme & Custom Design Options
+            <!-- Section 4.5: Visual Customization & Theme -->
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-sm space-y-6" style="background-color: #0f172a !important; border-color: #1e293b !important;">
+                <h2 class="text-base font-bold text-slate-100 border-b border-slate-800 pb-3">
+                    7.0. Theme & Custom Design Options
                 </h2>
+                <!-- ////////////////////// -->
+                 <!-- ========================================================= -->
+                <!-- HERO IMAGE -->
+                <!-- NOT controlled by About Section -->
+                <!-- NOT a Pro feature -->
+                <!-- ========================================================= -->
+                <div class="space-y-1">
 
-                <!-- Host Bio & About Section Master Toggle -->
-                <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <label for="{{ form.show_about_section.id_for_label }}" class="text-sm font-bold text-slate-800 cursor-pointer block">
-                                Enable Host Bio / About Section
-                            </label>
-                            <p class="text-xs text-slate-500 mt-0.5">Allows rendering the about section and photo gallery on your event details page.</p>
-                        </div>
-                        <div class="flex items-center h-5">
-                            {{ form.show_about_section }}
-                        </div>
-                    </div>
-                    {% if form.show_about_section.errors %}
-                        <p class="text-xs text-red-600 mt-1">{{ form.show_about_section.errors.0 }}</p>
+                    <label for="{{ form.hero_image.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                        Upload Hero Header Image
+                    </label>
+
+                    {% render_field form.hero_image class="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer" %}
+
+                    {% if form.hero_image.errors %}
+                        <p class="text-xs text-red-400 mt-1">
+                            {{ form.hero_image.errors.0 }}
+                        </p>
                     {% endif %}
-                </div>
 
-                <!-- WRAPPER CONTROLLED BY JS (Hides/Shows based on checkbox) -->
-                <div id="aboutSectionFieldsContainer" class="space-y-6 pt-2" style="display: none;">
-                    
-                    <!-- Host Bio Fields -->
-                    <div class="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
-                        <div>
-                            <label for="{{ form.about_title.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">About Section Title</label>
-                            {{ form.about_title }}
-                            {% if form.about_title.errors %}<p class="text-xs text-red-600 mt-1">{{ form.about_title.errors.0 }}</p>{% endif %}
-                        </div>
-                        <div>
-                            <label for="{{ form.about_text.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">Host Bio / About Text</label>
-                            {{ form.about_text }}
-                            {% if form.about_text.errors %}<p class="text-xs text-red-600 mt-1">{{ form.about_text.errors.0 }}</p>{% endif %}
-                        </div>
-                    </div>
+                    {% if form.instance.pk and form.instance.theme_settings.hero_image_url %}
+                        <div class="mt-2 flex items-center gap-3 p-2.5 bg-slate-800/80 rounded-xl border border-slate-700">
 
-                    <!-- Hero Image Upload -->
-                    <div class="space-y-1">
-                        <label for="{{ form.hero_image.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                            Upload Hero Header Image
-                        </label>
-                        {{ form.hero_image }}
-                        {% if form.hero_image.errors %}
-                            <p class="text-xs text-red-600 mt-1">{{ form.hero_image.errors.0 }}</p>
-                        {% endif %}
+                            <img
+                                src="{{ form.instance.theme_settings.hero_image_url }}"
+                                alt="Hero Preview"
+                                class="w-10 h-10 rounded-md object-cover border border-slate-700 flex-shrink-0"
+                            >
 
-                        {% if form.instance.pk and form.instance.theme_settings.hero_image_url %}
-                            <div class="mt-2 flex items-center gap-3 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                                <img src="{{ form.instance.theme_settings.hero_image_url }}" alt="Hero Preview" class="w-10 h-10 rounded-md object-cover border border-slate-200 flex-shrink-0">
-                                <div class="truncate">
-                                    <span class="block text-[10px] font-bold text-slate-500 uppercase">Current Hero Header</span>
-                                    <span class="font-mono text-[11px] text-slate-700 truncate block" title="{{ form.instance.theme_settings.hero_image_url }}">
-                                        {{ form.instance.theme_settings.hero_image_url }}
-                                    </span>
-                                </div>
+                            <div class="truncate">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase">
+                                    Current Hero Header
+                                </span>
+
+                                <span
+                                    class="font-mono text-[11px] text-slate-300 truncate block"
+                                    title="{{ form.instance.theme_settings.hero_image_url }}"
+                                >
+                                    {{ form.instance.theme_settings.hero_image_url }}
+                                </span>
                             </div>
-                        {% endif %}
+
+                        </div>
+                    {% endif %}
+
+                </div>
+                <!-- Section 3: About Section-->
+                <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-sm space-y-6" style="background-color: #0f172a !important; border-color: #1e293b !important;">
+                    <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <h2 class="text-base font-bold text-slate-100">
+                            7.5. About Section
+                        </h2>
+                        <span class="inline-flex inline-flex-pro items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-sm">
+                            <svg class="w-3.5 h-3.5 fill-current text-white shrink-0" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            PRO
+                        </span>
                     </div>
 
-                    <!-- Photo Gallery Formset Section -->
-                    <div class="space-y-4 pt-4 border-t border-slate-100">
+                    <!-- Host Bio & About Section Master Toggle -->
+                    <div class="p-4 rounded-xl border border-slate-800 bg-slate-800/60 space-y-2" style="background-color: rgba(30, 41, 59, 0.6) !important; border-color: #334155 !important;">
                         <div class="flex items-center justify-between">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 uppercase">
-                                    Event Gallery Images & Descriptions
+                                <label for="{{ form.show_about_section.id_for_label }}" class="text-sm font-bold text-slate-200 cursor-pointer block">
+                                    Enable Host Bio / About Section
                                 </label>
-                                <span class="text-[11px] text-slate-400">Manage existing slides or add new ones (Max 5 total)</span>
+                                <p class="text-xs text-slate-400 mt-0.5">
+                                    Allows rendering the about section and photo gallery on your event details page.
+                                </p>
                             </div>
-                            
-                            <!-- Professional "+ Add Image" Button -->
-                            <button type="button" id="add-gallery-row" class="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-semibold rounded-lg transition-colors border border-blue-200 flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
-                                Add Image
-                            </button>
+
+                            <div class="flex items-center h-5">
+                                {% render_field form.show_about_section class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-700 bg-slate-900 cursor-pointer" %}
+                            </div>
                         </div>
 
-                        <!-- Required Django Formset Management Fields -->
-                        {{ formset.management_form }}
-
-                        {% if formset.non_form_errors %}
-                            <div class="p-2 bg-red-50 text-red-600 text-xs rounded-lg">
-                                {{ formset.non_form_errors }}
-                            </div>
+                        {% if form.show_about_section.errors %}
+                            <p class="text-xs text-red-400 mt-1">
+                                {{ form.show_about_section.errors.0 }}
+                            </p>
                         {% endif %}
-
-                        <!-- Container holding all gallery rows -->
-                        <div id="gallery-form-container" class="space-y-3">
-                            {% for form in formset %}
-                                <div class="gallery-row flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                                    <!-- Hidden primary key & management fields -->
-                                    {{ form.id }}
-
-                                    <!-- Thumbnail preview if image already exists -->
-                                    {% if form.instance.pk and form.instance.image %}
-                                        <div class="w-12 h-12 rounded-lg overflow-hidden bg-slate-200 shrink-0 border border-slate-200">
-                                            <img src="{{ form.instance.image.url }}" alt="Gallery Preview" class="w-full h-full object-cover">
-                                        </div>
-                                    {% endif %}
-
-                                    <div class="flex-1 w-full space-y-2">
-                                        <div class="flex flex-col sm:flex-row gap-2">
-                                            <!-- Image Upload Field -->
-                                            <div class="flex-1">
-                                                {{ form.image }}
-                                                {% if form.image.errors %}
-                                                    <p class="text-xs text-red-600 mt-1">{{ form.image.errors.0 }}</p>
-                                                {% endif %}
-                                            </div>
-                                            <!-- Order Sequence Field -->
-                                            <div class="w-24">
-                                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Order</label>
-                                                {{ form.order }}
-                                            </div>
-                                        </div>
-
-                                        <!-- Description / Caption Field -->
-                                        <div>
-                                            {{ form.description }}
-                                            {% if form.description.errors %}
-                                                <p class="text-xs text-red-600 mt-1">{{ form.description.errors.0 }}</p>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-
-                                    <!-- Delete Checkbox (Only appears for existing items) -->
-                                    {% if form.instance.pk %}
-                                        <div class="flex items-center gap-1.5 text-xs text-red-600 self-end sm:self-center bg-white px-3 py-2 rounded-lg border border-slate-200">
-                                            {{ form.DELETE }} 
-                                            <label class="cursor-pointer text-[11px] font-medium">Delete</label>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            {% endfor %}
-                        </div>
                     </div>
 
-                </div> <!-- End of aboutSectionFieldsContainer -->
 
-                <!-- Color Palette & Background Controls -->
-                <div class="space-y-3 pt-4 border-t border-slate-100">
+                    <!-- ========================================================= -->
+                    <!-- ABOUT SECTION CONTENT + GALLERY -->
+                    <!-- Controlled by show_about_section -->
+                    <!-- ========================================================= -->
+                    <div id="aboutSectionFieldsContainer" class="space-y-6 pt-2" style="display: none;">
+
+                        <!-- Host Bio Fields -->
+                        <div class="p-4 rounded-xl border border-slate-800 bg-slate-800/80 space-y-3" style="background-color: #1e293b !important; border-color: #334155 !important;">
+                            <div>
+                                <label for="{{ form.about_title.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                                    About Section Title
+                                </label>
+
+                                {% render_field form.about_title class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" %}
+
+                                {% if form.about_title.errors %}
+                                    <p class="text-xs text-red-400 mt-1">
+                                        {{ form.about_title.errors.0 }}
+                                    </p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ form.about_text.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">
+                                    Host Bio / About Text
+                                </label>
+
+                                {% render_field form.about_text class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" rows="3" %}
+
+                                {% if form.about_text.errors %}
+                                    <p class="text-xs text-red-400 mt-1">
+                                        {{ form.about_text.errors.0 }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>                    
+
+                        <div class="p-4 rounded-xl border border-slate-800 bg-slate-800/80 space-y-3" style="background-color: #1e293b !important; border-color: #334155 !important;">
+                            <div class="w-full">
+                                <label for="{{ form.show_countdown.id_for_label }}"
+                                    class="flex w-full items-center gap-4 cursor-pointer">
+
+                                    <span class="flex-1 min-w-0">
+                                        <span class="text-sm font-bold text-slate-200 block">
+                                            Show event countdown
+                                        </span>
+                                        <span class="text-xs text-slate-400 mt-1 block">
+                                            Display a live countdown to your event on the public event page.
+                                        </span>
+                                    </span>
+
+                                    <span class="shrink-0 ml-auto">
+                                        {{ form.show_countdown }}
+                                    </span>
+                                </label>
+
+                                {% if form.show_countdown.errors %}
+                                    <p class="text-sm text-red-400 mt-1">
+                                        {{ form.show_countdown.errors }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <!-- ===================================================== -->
+                        <!-- PHOTO GALLERY -->
+                        <!-- Gallery belongs to About Section -->
+                        <!-- ===================================================== -->
+                        <div class="space-y-4 pt-4 border-t border-slate-800">
+
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 uppercase">
+                                        Event Gallery Images & Descriptions
+                                    </label>
+
+                                    <span class="text-[11px] text-slate-400">
+                                        Manage existing slides or add new ones (Max 5 total)
+                                    </span>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    id="add-gallery-row"
+                                    class="px-3 py-1.5 bg-blue-950/60 text-blue-400 hover:bg-blue-900/60 text-xs font-semibold rounded-lg transition-colors border border-blue-800/60 flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Add Image
+                                </button>
+                            </div>
+
+                            {{ formset.management_form }}
+
+                            {% if formset.non_form_errors %}
+                                <div class="p-2 bg-red-950/50 text-red-300 border border-red-800/60 text-xs rounded-lg">
+                                    {{ formset.non_form_errors }}
+                                </div>
+                            {% endif %}
+
+                            <div id="gallery-form-container" class="space-y-3">
+
+                                {% for form in formset %}
+
+                                    <div class="gallery-row flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-slate-800/70 rounded-xl border border-slate-700/80"
+                                        style="background-color: #1e293b !important; border-color: #334155 !important;">
+
+                                        {{ form.id }}
+
+                                        {% if form.instance.pk and form.instance.image %}
+                                            <div class="w-12 h-12 rounded-lg overflow-hidden bg-slate-900 shrink-0 border border-slate-700">
+                                                <img
+                                                    src="{{ form.instance.image.url }}"
+                                                    alt="Gallery Preview"
+                                                    class="w-full h-full object-cover"
+                                                >
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="flex-1 w-full space-y-2">
+
+                                            <div class="flex flex-col sm:flex-row gap-2">
+
+                                                <div class="flex-1">
+                                                    {% render_field form.image class="w-full text-xs text-slate-300 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white" %}
+
+                                                    {% if form.image.errors %}
+                                                        <p class="text-xs text-red-400 mt-1">
+                                                            {{ form.image.errors.0 }}
+                                                        </p>
+                                                    {% endif %}
+                                                </div>
+
+                                                <div class="w-24">
+                                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                                                        Order
+                                                    </label>
+
+                                                    {% render_field form.order class="w-full px-2 py-1 border border-slate-700 rounded text-xs bg-slate-800 text-white" %}
+                                                </div>
+
+                                            </div>
+
+                                            <div>
+                                                {% render_field form.description class="w-full px-2 py-1.5 border border-slate-700 rounded text-xs bg-slate-800 text-white placeholder-slate-500" placeholder="Description / caption" %}
+
+                                                {% if form.description.errors %}
+                                                    <p class="text-xs text-red-400 mt-1">
+                                                        {{ form.description.errors.0 }}
+                                                    </p>
+                                                {% endif %}
+                                            </div>
+
+                                        </div>
+
+                                        {% if form.instance.pk %}
+                                            <div class="flex items-center gap-1.5 text-xs text-red-400 self-end sm:self-center bg-slate-900 px-3 py-2 rounded-lg border border-slate-700 hover:bg-red-950/40 cursor-pointer">
+                                                {{ form.DELETE }}
+
+                                                <label class="cursor-pointer text-[11px] font-medium">
+                                                    Delete
+                                                </label>
+                                            </div>
+                                        {% endif %}
+
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    
+
+                </div>
+                <!-- ////////////////////// -->
+
+                <div class="space-y-3 pt-4 border-t border-slate-800">
                     <div class="flex items-center justify-between">
-                        <span class="block text-xs font-bold text-slate-600 uppercase tracking-wide">Color & Background Theme</span>
-                        <span class="text-[10px] text-indigo-600 font-medium">✨ Use dropdown choices or click the palette icon for custom hex codes</span>
+                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide">Color & Background Theme</span>
+                        <span class="text-[10px] text-indigo-400 font-medium">✨ Use dropdown choices or click the palette icon for custom hex codes</span>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- Primary Accent Color Picker -->
                         <div class="space-y-1">
-                            <label for="{{ form.theme_color.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                            <label for="{{ form.theme_color.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1 flex items-center justify-between">
                                 Primary Accent
-                                <button type="button" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1" onclick="toggleColorPicker(this)">
+                                <button type="button" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 cursor-pointer" onclick="toggleColorPicker(this)">
                                     🎨 Custom
                                 </button>
                             </label>
                             <div class="relative">
-                                {{ form.theme_color }}
-                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-900 border border-indigo-500/30 rounded-lg p-2 shadow-xl hidden items-center gap-2">
+                                {% render_field form.theme_color class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white focus:outline-none focus:border-blue-500" %}
+                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-950 border border-indigo-500/40 rounded-lg p-2 shadow-xl hidden items-center gap-2">
                                     <input type="color" class="w-7 h-7 rounded border-0 cursor-pointer bg-transparent" onchange="applyCustomHex(this)">
                                     <span class="text-xs font-mono text-slate-300 hex-label">#3b82f6</span>
                                 </div>
                             </div>
                             {% if form.theme_color.errors %}
-                                <p class="text-xs text-red-600 mt-1">{{ form.theme_color.errors.0 }}</p>
+                                <p class="text-xs text-red-400 mt-1">{{ form.theme_color.errors.0 }}</p>
                             {% endif %}
                         </div>
 
-                        <!-- Page Background Dropdown -->
                         <div class="space-y-1">
-                            <label for="{{ form.page_bg_color.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                            <label for="{{ form.page_bg_color.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1 flex items-center justify-between">
                                 Page Background
-                                <button type="button" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1" onclick="toggleColorPicker(this)">
+                                <button type="button" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 cursor-pointer" onclick="toggleColorPicker(this)">
                                     🎨 Custom
                                 </button>
                             </label>
                             <div class="relative">
-                                {{ form.page_bg_color }}
-                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-900 border border-indigo-500/30 rounded-lg p-2 shadow-xl hidden items-center gap-2">
+                                {% render_field form.page_bg_color class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white focus:outline-none focus:border-blue-500" %}
+                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-950 border border-indigo-500/40 rounded-lg p-2 shadow-xl hidden items-center gap-2">
                                     <input type="color" class="w-7 h-7 rounded border-0 cursor-pointer bg-transparent" onchange="applyCustomHex(this)">
                                     <span class="text-xs font-mono text-slate-300 hex-label">#0f172a</span>
                                 </div>
                             </div>
                             {% if form.page_bg_color.errors %}
-                                <p class="text-xs text-red-600 mt-1">{{ form.page_bg_color.errors.0 }}</p>
+                                <p class="text-xs text-red-400 mt-1">{{ form.page_bg_color.errors.0 }}</p>
                             {% endif %}
                         </div>
 
-                        <!-- Section / Card Background Dropdown -->
                         <div class="space-y-1">
-                            <label for="{{ form.section_bg_color.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                            <label for="{{ form.section_bg_color.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1 flex items-center justify-between">
                                 Section / Card Color
-                                <button type="button" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1" onclick="toggleColorPicker(this)">
+                                <button type="button" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 cursor-pointer" onclick="toggleColorPicker(this)">
                                     🎨 Custom
                                 </button>
                             </label>
                             <div class="relative">
-                                {{ form.section_bg_color }}
-                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-900 border border-indigo-500/30 rounded-lg p-2 shadow-xl hidden items-center gap-2">
+                                {% render_field form.section_bg_color class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white focus:outline-none focus:border-blue-500" %}
+                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-950 border border-indigo-500/40 rounded-lg p-2 shadow-xl hidden items-center gap-2">
                                     <input type="color" class="w-7 h-7 rounded border-0 cursor-pointer bg-transparent" onchange="applyCustomHex(this)">
                                     <span class="text-xs font-mono text-slate-300 hex-label">#ffffff</span>
                                 </div>
                             </div>
                             {% if form.section_bg_color.errors %}
-                                <p class="text-xs text-red-600 mt-1">{{ form.section_bg_color.errors.0 }}</p>
+                                <p class="text-xs text-red-400 mt-1">{{ form.section_bg_color.errors.0 }}</p>
                             {% endif %}
                         </div>
                     </div>
@@ -393,114 +697,112 @@
                     <!-- Typography Color Controls -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3">
                         <div class="space-y-1">
-                            <label for="{{ form.heading_color.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                            <label for="{{ form.heading_color.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1 flex items-center justify-between">
                                 Heading Color
-                                <button type="button" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1" onclick="toggleColorPicker(this)">
+                                <button type="button" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 cursor-pointer" onclick="toggleColorPicker(this)">
                                     🎨 Custom
                                 </button>
                             </label>
                             <div class="relative">
-                                {{ form.heading_color }}
-                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-900 border border-indigo-500/30 rounded-lg p-2 shadow-xl hidden items-center gap-2">
+                                {% render_field form.heading_color class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white focus:outline-none focus:border-blue-500" %}
+                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-950 border border-indigo-500/40 rounded-lg p-2 shadow-xl hidden items-center gap-2">
                                     <input type="color" class="w-7 h-7 rounded border-0 cursor-pointer bg-transparent" onchange="applyCustomHex(this)">
                                     <span class="text-xs font-mono text-slate-300 hex-label">#0f172a</span>
                                 </div>
                             </div>
                             {% if form.heading_color.errors %}
-                                <p class="text-xs text-red-600 mt-1">{{ form.heading_color.errors.0 }}</p>
+                                <p class="text-xs text-red-400 mt-1">{{ form.heading_color.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <div class="space-y-1">
-                            <label for="{{ form.body_color.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                            <label for="{{ form.body_color.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1 flex items-center justify-between">
                                 Body Text Color
-                                <button type="button" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1" onclick="toggleColorPicker(this)">
+                                <button type="button" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 cursor-pointer" onclick="toggleColorPicker(this)">
                                     🎨 Custom
                                 </button>
                             </label>
                             <div class="relative">
-                                {{ form.body_color }}
-                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-900 border border-indigo-500/30 rounded-lg p-2 shadow-xl hidden items-center gap-2">
+                                {% render_field form.body_color class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white focus:outline-none focus:border-blue-500" %}
+                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-950 border border-indigo-500/40 rounded-lg p-2 shadow-xl hidden items-center gap-2">
                                     <input type="color" class="w-7 h-7 rounded border-0 cursor-pointer bg-transparent" onchange="applyCustomHex(this)">
                                     <span class="text-xs font-mono text-slate-300 hex-label">#475569</span>
                                 </div>
                             </div>
                             {% if form.body_color.errors %}
-                                <p class="text-xs text-red-600 mt-1">{{ form.body_color.errors.0 }}</p>
+                                <p class="text-xs text-red-400 mt-1">{{ form.body_color.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <div class="space-y-1">
-                            <label for="{{ form.muted_color.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                            <label for="{{ form.muted_color.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1 flex items-center justify-between">
                                 Muted Text Color
-                                <button type="button" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1" onclick="toggleColorPicker(this)">
+                                <button type="button" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 cursor-pointer" onclick="toggleColorPicker(this)">
                                     🎨 Custom
                                 </button>
                             </label>
                             <div class="relative">
-                                {{ form.muted_color }}
-                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-900 border border-indigo-500/30 rounded-lg p-2 shadow-xl hidden items-center gap-2">
+                                {% render_field form.muted_color class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white focus:outline-none focus:border-blue-500" %}
+                                <div class="custom-palette-popup absolute right-0 top-0 mt-1 z-20 bg-slate-950 border border-indigo-500/40 rounded-lg p-2 shadow-xl hidden items-center gap-2">
                                     <input type="color" class="w-7 h-7 rounded border-0 cursor-pointer bg-transparent" onchange="applyCustomHex(this)">
                                     <span class="text-xs font-mono text-slate-300 hex-label">#94a3b8</span>
                                 </div>
                             </div>
                             {% if form.muted_color.errors %}
-                                <p class="text-xs text-red-600 mt-1">{{ form.muted_color.errors.0 }}</p>
+                                <p class="text-xs text-red-400 mt-1">{{ form.muted_color.errors.0 }}</p>
                             {% endif %}
                         </div>
                     </div>
                 </div>
 
                 <!-- Layout & Typography Selection -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
-                    <!-- Font Family Dropdown -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
                     <div class="space-y-1">
-                        <label for="{{ form.font_family.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                        <label for="{{ form.font_family.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">
                             Typography Style
                         </label>
-                        {{ form.font_family }}
+                        {% render_field form.font_family class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white focus:outline-none focus:border-blue-500" %}
                         {% if form.font_family.errors %}
-                            <p class="text-xs text-red-600 mt-1">{{ form.font_family.errors.0 }}</p>
+                            <p class="text-xs text-red-400 mt-1">{{ form.font_family.errors.0 }}</p>
                         {% endif %}
                     </div>
 
-                    <!-- Layout Style Dropdown -->
                     <div class="space-y-1">
-                        <label for="{{ form.layout_style.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                        <label for="{{ form.layout_style.id_for_label }}" class="block text-xs font-semibold text-slate-300 uppercase mb-1">
                             Layout Structure
                         </label>
-                        {{ form.layout_style }}
+                        {% render_field form.layout_style class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800 text-white focus:outline-none focus:border-blue-500" %}
                         {% if form.layout_style.errors %}
-                            <p class="text-xs text-red-600 mt-1">{{ form.layout_style.errors.0 }}</p>
+                            <p class="text-xs text-red-400 mt-1">{{ form.layout_style.errors.0 }}</p>
                         {% endif %}
                     </div>
                 </div>
             </div> <!-- End of Section 3 Wrapper -->
 
             <!-- Organizer Contact Footer Configuration -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <span class="block text-xs font-bold text-slate-600 uppercase tracking-wide">Questions or Enquiries?</span>
+            <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-sm space-y-3" style="background-color: #0f172a !important; border-color: #1e293b !important;">
+                <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide">Questions or Enquiries?</span>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-700 mb-1">Phone Number</label>
-                        <input type="text" name="organizer_phone" value="{{ form.instance.theme_settings.organizer_contacts.phone }}" placeholder="+33 6 00 00 00 00" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Phone Number</label>
+                        <input type="text" name="organizer_phone" value="{{ form.instance.theme_settings.organizer_contacts.phone }}" placeholder="+33 6 00 00 00 00" class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800/90 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" style="background-color: #1e293b !important; border-color: #334155 !important; color: #ffffff !important;">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-700 mb-1">WhatsApp Number</label>
-                        <input type="text" name="organizer_whatsapp" value="{{ form.instance.theme_settings.organizer_contacts.whatsapp }}" placeholder="+33600000000" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">WhatsApp Number</label>
+                        <input type="text" name="organizer_whatsapp" value="{{ form.instance.theme_settings.organizer_contacts.whatsapp }}" placeholder="+33600000000" class="w-full px-3 py-2 border border-slate-700 rounded-lg text-sm bg-slate-800/90 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" style="background-color: #1e293b !important; border-color: #334155 !important; color: #ffffff !important;">
                     </div>
                 </div>
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="w-full py-3.5 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition cursor-pointer">
-                {% if form.instance.pk %}Update Event Details{% else %}Save Event & Publish Page{% endif %}
+            <button type="submit" class="w-full py-3.5 px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition cursor-pointer">
+                {% if action == 'Edit' %}Update Event Details{% else %}Save Event & Publish Page{% endif %}
             </button>
         </form>
 
         <!-- Footer / Navigation -->
-        <div class="mt-6 pt-4 border-t border-slate-100 text-center">
-            <a href="{% url 'events:dashboard' %}" class="inline-flex items-center text-sm font-semibold text-slate-600 hover:text-blue-600 transition">
+        <div class="mt-6 pt-4 border-t border-slate-800 text-center">
+            <a href="{% url 'events:dashboard' %}" class="inline-flex items-center text-sm font-semibold text-slate-400 hover:text-blue-400 transition">
                 ← Back to Dashboard
             </a>
         </div>
@@ -510,10 +812,10 @@
 
 <!-- Hidden Empty Form Template for JavaScript Dynamic Cloning -->
 <div id="empty-form-template" class="hidden">
-    <div class="gallery-row flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-blue-50/40 rounded-xl border border-blue-200">
+    <div class="gallery-row flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-slate-800/70 rounded-xl border border-blue-900/40" style="background-color: #1e293b !important; border-color: #334155 !important;">
         <div class="flex-1 w-full space-y-2">
             <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600">New Slide Upload</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-blue-400">New Slide Upload</span>
             </div>
             <div class="flex flex-col sm:flex-row gap-2">
                 <div class="flex-1">
@@ -528,7 +830,7 @@
                 {{ formset.empty_form.description }}
             </div>
         </div>
-        <button type="button" class="remove-new-row text-xs text-red-600 bg-white px-3 py-2 rounded-lg border border-slate-200 hover:bg-red-50 self-end sm:self-center">
+        <button type="button" class="remove-new-row text-xs text-red-400 bg-slate-900 px-3 py-2 rounded-lg border border-slate-700 hover:bg-red-950/40 self-end sm:self-center cursor-pointer">
             Remove
         </button>
     </div>
@@ -536,16 +838,22 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const colorInput = document.querySelector('input[name="theme_color"]');
-        const hexDisplay = document.getElementById('theme_color_hex_display');
-        
-        // Plus-one toggle functionality
-        const allowPlusOnesCheckbox = document.querySelector('input[name="allow_plus_ones"]');
-        const maxPlusOnesWrapper = document.getElementById('maxPlusOnesWrapper');
+        // ==========================================
+        // 1. PLUS-ONE TOGGLE FUNCTIONALITY
+        // ==========================================
+        const allowPlusOnesCheckbox =
+            document.querySelector('input[name="allow_plus_ones"]') ||
+            document.getElementById('id_allow_plus_ones');
+
+        const maxPlusOnesWrapper =
+            document.getElementById('maxPlusOnesWrapper');
 
         function togglePlusOneLimitVisibility() {
             if (allowPlusOnesCheckbox && maxPlusOnesWrapper) {
-                if (allowPlusOnesCheckbox.checked) {
+                const hasErrors =
+                    maxPlusOnesWrapper.querySelectorAll('.text-red-400').length > 0;
+
+                if (allowPlusOnesCheckbox.checked || hasErrors) {
                     maxPlusOnesWrapper.style.display = 'block';
                 } else {
                     maxPlusOnesWrapper.style.display = 'none';
@@ -554,17 +862,37 @@
         }
 
         if (allowPlusOnesCheckbox) {
-            allowPlusOnesCheckbox.addEventListener('change', togglePlusOneLimitVisibility);
+            allowPlusOnesCheckbox.addEventListener(
+                'change',
+                togglePlusOneLimitVisibility
+            );
+
             togglePlusOneLimitVisibility();
         }
 
-        // Host Bio & Gallery Master Toggle functionality
-        const showAboutCheckbox = document.querySelector('input[name="show_about_section"]');
-        const aboutSectionFieldsContainer = document.getElementById('aboutSectionFieldsContainer');
+
+        // ==========================================
+        // 2. ABOUT SECTION (BIO + GALLERY) TOGGLE
+        // ==========================================
+        // IMPORTANT:
+        // This controls ONLY the About/Bio fields and Gallery.
+        //
+        // The Hero Image is intentionally NOT inside this
+        // container and is therefore NOT affected by this toggle.
+        // ==========================================
+        const showAboutCheckbox =
+            document.querySelector('input[name="show_about_section"]') ||
+            document.getElementById('id_show_about_section');
+
+        const aboutSectionFieldsContainer =
+            document.getElementById('aboutSectionFieldsContainer');
 
         function toggleAboutSectionVisibility() {
             if (showAboutCheckbox && aboutSectionFieldsContainer) {
-                if (showAboutCheckbox.checked) {
+                const hasErrors =
+                    aboutSectionFieldsContainer.querySelectorAll('.text-red-400').length > 0;
+
+                if (showAboutCheckbox.checked || hasErrors) {
                     aboutSectionFieldsContainer.style.display = 'block';
                 } else {
                     aboutSectionFieldsContainer.style.display = 'none';
@@ -573,89 +901,411 @@
         }
 
         if (showAboutCheckbox && aboutSectionFieldsContainer) {
-            showAboutCheckbox.addEventListener('change', toggleAboutSectionVisibility);
-            toggleAboutSectionVisibility(); // Run on initial load
+            showAboutCheckbox.addEventListener(
+                'change',
+                toggleAboutSectionVisibility
+            );
+
+            toggleAboutSectionVisibility();
         }
 
-        // Update color hex code text dynamically when selected
+
+        // ==========================================
+        // 3. COLOR PALETTE INPUTS
+        // ==========================================
+        const colorInput =
+            document.querySelector('input[name="theme_color"]');
+
+        const hexDisplay =
+            document.getElementById('theme_color_hex_display');
+
         if (colorInput && hexDisplay) {
-            colorInput.addEventListener('input', function(e) {
+            colorInput.addEventListener('input', function (e) {
                 hexDisplay.textContent = e.target.value;
             });
         }
 
+
         // ==========================================
-        // DYNAMIC GALLERY FORMSET ADD/REMOVE HANDLER
+        // 4. DYNAMIC GALLERY FORMSET
+        //    RE-INDEXING & HANDLERS
         // ==========================================
-        const addButton = document.getElementById('add-gallery-row');
-        const container = document.getElementById('gallery-form-container');
-        const totalFormsInput = document.querySelector('#id_gallery_images-TOTAL_FORMS');
+        const addButton =
+            document.getElementById('add-gallery-row');
+
+        const galleryContainer =
+            document.getElementById('gallery-form-container');
+
+        const totalFormsInput =
+            document.querySelector('input[name$="-TOTAL_FORMS"]') ||
+            document.getElementById('id_gallery_images-TOTAL_FORMS');
+
         const maxLimit = 5;
 
-        if (addButton && container && totalFormsInput) {
-            addButton.addEventListener('click', function() {
-                const currentRows = container.querySelectorAll('.gallery-row').length;
-                
-                // Enforce maximum 5 images limit
+
+        function reindexGalleryFormset() {
+            if (!galleryContainer || !totalFormsInput) {
+                return;
+            }
+
+            const rows =
+                galleryContainer.querySelectorAll('.gallery-row');
+
+            rows.forEach(function (row, idx) {
+
+                row.querySelectorAll(
+                    'input, select, textarea, label'
+                ).forEach(function (el) {
+
+                    if (el.name) {
+                        el.name = el.name.replace(
+                            /gallery_images-\w+-/,
+                            'gallery_images-' + idx + '-'
+                        );
+                    }
+
+                    if (el.id) {
+                        el.id = el.id.replace(
+                            /id_gallery_images-\w+-/,
+                            'id_gallery_images-' + idx + '-'
+                        );
+                    }
+
+                    if (el.htmlFor) {
+                        el.htmlFor = el.htmlFor.replace(
+                            /id_gallery_images-\w+-/,
+                            'id_gallery_images-' + idx + '-'
+                        );
+                    }
+                });
+
+
+                // Automatically assign gallery order
+                const orderInput =
+                    row.querySelector('input[name$="-order"]');
+
+                if (
+                    orderInput &&
+                    (!orderInput.value || orderInput.value === '0')
+                ) {
+                    orderInput.value = idx + 1;
+                }
+            });
+
+            totalFormsInput.value = rows.length;
+        }
+
+
+        if (addButton && galleryContainer && totalFormsInput) {
+
+            // ------------------------------------------
+            // ADD GALLERY IMAGE
+            // ------------------------------------------
+            addButton.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const currentRows =
+                    galleryContainer.querySelectorAll('.gallery-row').length;
+
                 if (currentRows >= maxLimit) {
-                    alert('You can upload a maximum of 5 gallery images.');
+                    alert(
+                        'You can upload a maximum of ' +
+                        maxLimit +
+                        ' gallery images.'
+                    );
                     return;
                 }
 
-                const formIndex = parseInt(totalFormsInput.value);
-                const templateHtml = document.getElementById('empty-form-template').innerHTML;
-                
-                // Replace Django's __prefix__ placeholder with the correct index counter
-                const newRowHtml = templateHtml.replace(/__prefix__/g, formIndex);
-                
-                // Append the new row slot to the container
-                container.insertAdjacentHTML('beforeend', newRowHtml);
-                
-                // Increment Django's TOTAL_FORMS count so backend formset validation passes
-                totalFormsInput.value = formIndex + 1;
+                const emptyTemplate =
+                    document.getElementById('empty-form-template');
+
+                if (!emptyTemplate) {
+                    return;
+                }
+
+                const formIndex = currentRows;
+
+                const newRowHtml =
+                    emptyTemplate.innerHTML.replace(
+                        /__prefix__/g,
+                        formIndex
+                    );
+
+                const tempDiv =
+                    document.createElement('div');
+
+                tempDiv.innerHTML = newRowHtml.trim();
+
+                const newRow =
+                    tempDiv.firstElementChild;
+
+
+                // Ensure the new form has an ID field
+                if (
+                    newRow &&
+                    !newRow.querySelector(
+                        'input[name="gallery_images-' +
+                        formIndex +
+                        '-id"]'
+                    )
+                ) {
+                    const hiddenId =
+                        document.createElement('input');
+
+                    hiddenId.type = 'hidden';
+
+                    hiddenId.name =
+                        'gallery_images-' +
+                        formIndex +
+                        '-id';
+
+                    hiddenId.id =
+                        'id_gallery_images-' +
+                        formIndex +
+                        '-id';
+
+                    newRow.prepend(hiddenId);
+                }
+
+
+                if (newRow) {
+                    galleryContainer.appendChild(newRow);
+                }
+
+                reindexGalleryFormset();
             });
 
-            // Delegate remove/delete click for newly added rows
-            container.addEventListener('click', function(e) {
-                if (e.target.classList.contains('remove-new-row')) {
-                    e.target.closest('.gallery-row').remove();
-                    // Decrement total forms count
-                    totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+
+            // ------------------------------------------
+            // GALLERY ROW CLICK HANDLERS
+            // ------------------------------------------
+            galleryContainer.addEventListener('click', function (e) {
+
+                // Remove newly-added gallery row
+                const removeBtn =
+                    e.target.closest('.remove-new-row');
+
+                if (removeBtn) {
+                    e.preventDefault();
+
+                    const row =
+                        removeBtn.closest('.gallery-row');
+
+                    if (row) {
+                        row.remove();
+                        reindexGalleryFormset();
+                    }
+
+                    return;
+                }
+
+
+                // Existing gallery image DELETE checkbox
+                const deleteLabel =
+                    e.target.closest('label');
+
+                if (
+                    deleteLabel &&
+                    deleteLabel.textContent
+                        .trim()
+                        .toLowerCase() === 'delete'
+                ) {
+
+                    const deleteWrapper =
+                        deleteLabel.closest('div');
+
+                    const deleteCheckbox =
+                        deleteWrapper
+                            ? deleteWrapper.querySelector(
+                                'input[type="checkbox"][name$="-DELETE"]'
+                            )
+                            : null;
+
+                    if (deleteCheckbox) {
+
+                        const row =
+                            deleteLabel.closest('.gallery-row');
+
+                        if (row && deleteCheckbox.checked) {
+                            row.classList.add('opacity-40');
+                        } else if (row) {
+                            row.classList.remove('opacity-40');
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // ==========================================
+        // 5. PRE-SUBMISSION CLEANUP
+        // ==========================================
+        const eventForm =
+            document.querySelector('form');
+
+        if (eventForm) {
+
+            eventForm.addEventListener('submit', function () {
+
+                // --------------------------------------
+                // ABOUT SECTION DISABLED
+                // --------------------------------------
+                // Remove newly-added gallery rows when
+                // About Section is not enabled.
+                //
+                // Existing database gallery rows are NOT
+                // automatically deleted here.
+                // --------------------------------------
+                if (
+                    showAboutCheckbox &&
+                    !showAboutCheckbox.checked &&
+                    galleryContainer
+                ) {
+
+                    const dynamicRows =
+                        galleryContainer.querySelectorAll(
+                            '.gallery-row'
+                        );
+
+                    dynamicRows.forEach(function (row) {
+
+                        const idInput =
+                            row.querySelector(
+                                'input[name$="-id"]'
+                            );
+
+                        if (idInput && !idInput.value) {
+                            row.remove();
+                        }
+                    });
+
+                    reindexGalleryFormset();
+
+                } else if (galleryContainer) {
+
+                    // ----------------------------------
+                    // REMOVE EMPTY NEW GALLERY ROWS
+                    // ----------------------------------
+                    const dynamicRows =
+                        galleryContainer.querySelectorAll(
+                            '.gallery-row'
+                        );
+
+                    dynamicRows.forEach(function (row) {
+
+                        const idInput =
+                            row.querySelector(
+                                'input[name$="-id"]'
+                            );
+
+                        const fileInput =
+                            row.querySelector(
+                                'input[type="file"]'
+                            );
+
+                        if (
+                            idInput &&
+                            !idInput.value &&
+                            fileInput &&
+                            (
+                                !fileInput.files ||
+                                fileInput.files.length === 0
+                            )
+                        ) {
+                            row.remove();
+                        }
+                    });
+
+                    reindexGalleryFormset();
                 }
             });
         }
     });
 
-    //// CUSTOM COLOR PALETTE
+
+    // ==========================================
+    // CUSTOM COLOR PALETTE
+    // ==========================================
+
     function toggleColorPicker(btn) {
-        const wrapper = btn.closest('.space-y-1');
-        const popup = wrapper.querySelector('.custom-palette-popup');
-        // Toggle display
-        popup.classList.toggle('hidden');
-        popup.classList.toggle('flex');
+        const wrapper =
+            btn.closest('.space-y-1');
+
+        if (!wrapper) {
+            return;
+        }
+
+        const popup =
+            wrapper.querySelector('.custom-palette-popup');
+
+        if (popup) {
+            popup.classList.toggle('hidden');
+            popup.classList.toggle('flex');
+        }
     }
 
-    function applyCustomHex(colorInput) {
-        const hex = colorInput.value;
-        const popup = colorInput.closest('.custom-palette-popup');
-        const wrapper = colorInput.closest('.space-y-1');
-        const hexLabel = popup.querySelector('.hex-label');
-        hexLabel.textContent = hex;
 
-        const selectField = wrapper.querySelector('select, input[type="text"]');
+    function applyCustomHex(colorInput) {
+        const hex =
+            colorInput.value;
+
+        const popup =
+            colorInput.closest('.custom-palette-popup');
+
+        const wrapper =
+            colorInput.closest('.space-y-1');
+
+        if (!popup || !wrapper) {
+            return;
+        }
+
+
+        const hexLabel =
+            popup.querySelector('.hex-label');
+
+        if (hexLabel) {
+            hexLabel.textContent = hex;
+        }
+
+
+        const selectField =
+            wrapper.querySelector(
+                'select, input[type="text"]'
+            );
+
         if (selectField) {
+
             if (selectField.tagName === 'SELECT') {
-                let existingOpt = Array.from(selectField.options).find(opt => opt.value.toLowerCase() === hex.toLowerCase());
+
+                let existingOpt =
+                    Array.from(selectField.options).find(
+                        function (opt) {
+                            return (
+                                opt.value.toLowerCase() ===
+                                hex.toLowerCase()
+                            );
+                        }
+                    );
+
                 if (!existingOpt) {
-                    let newOpt = new Option(hex + ' (Custom)', hex);
+                    let newOpt =
+                        new Option(
+                            hex + ' (Custom)',
+                            hex
+                        );
+
                     selectField.add(newOpt);
                 }
             }
+
             selectField.value = hex;
-            selectField.dispatchEvent(new Event('change'));
+
+            selectField.dispatchEvent(
+                new Event('change')
+            );
         }
-        
-        // Hide popup after picking
+
+
         popup.classList.add('hidden');
         popup.classList.remove('flex');
     }

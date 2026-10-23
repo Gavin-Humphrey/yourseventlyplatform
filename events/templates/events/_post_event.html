@@ -1,0 +1,138 @@
+<div class="space-y-6">
+    <!-- 1. Thank You & Conclusion Banner -->
+    <div class="p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-3" style="background-color: {{ style_section_bg }} !important;">
+        <h2 class="text-xl font-bold border-b border-slate-100 pb-3" style="color: {{ style_heading }} !important;">Thank You for Attending!</h2>
+        <p class="text-sm leading-relaxed" style="color: {{ style_body }} !important;">
+            This event has concluded. We hope you had a fantastic experience. Explore the highlights, share your thoughts, and download your certificate below.
+        </p>
+    </div>
+
+    <!-- 2. Attendance Certificate Section -->
+    {% if event.enable_certificates %}
+    <div class="p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4" style="background-color: {{ style_section_bg }} !important;">
+        <h3 class="text-lg font-bold border-b border-slate-100 pb-3" style="color: {{ style_heading }} !important;">Certificate of Attendance</h3>
+        <p class="text-sm" style="color: {{ style_body }} !important;">Did you check in at the event? Download your official certificate below.</p>
+        
+        <a href="{% url 'events:download_certificate' event.slug %}" download style="background-color: {{ style_primary }} !important;" class="w-full flex items-center justify-center gap-2 py-3.5 text-center text-white font-semibold text-sm rounded-xl shadow-md transition hover:opacity-95 focus:ring-4 focus:ring-blue-200 cursor-pointer" target="_blank">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            <span>Download Certificate</span>
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- 2.5 Uploaded Speech / Presentation Download Section -->
+    {% if event.presentation_file %}
+    <div class="p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4" style="background-color: {{ style_section_bg }} !important;">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-lg font-bold" style="color: {{ style_heading }} !important;">Keynote & Presentation Files</h3>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 uppercase tracking-wider">Available</span>
+        </div>
+        <p class="text-sm" style="color: {{ style_body }} !important;">{{ event.presentation_file.field.help_text|default:"Download presentation slides, code zip, or resource guide." }}</p>
+        <a href="{{ event.presentation_file.url }}" download style="background-color: {{ style_primary }} !important;" class="w-full flex items-center justify-center gap-2 py-3.5 text-center text-white font-semibold text-sm rounded-xl shadow-md transition hover:opacity-95 focus:ring-4 focus:ring-blue-200 cursor-pointer" target="_blank">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            <span>Download Presentation File</span>
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- 3. Feedback & Community Discussion Loop (Restored to original position) -->
+    <div class="p-6 md:p-8 rounded-2xl border border-slate-200 shadow-xl space-y-5" style="background-color: {{ style_page_bg }} !important;">
+        <h3 class="text-xl font-bold border-b border-slate-100 pb-3" style="color: {{ style_heading }} !important;">Event Feedback & Discussion</h3>
+        
+        {% if user_rsvp %}
+            {% if user_has_submitted %}
+                <!-- Feedback Submitted State -->
+                <div class="p-4 rounded-xl  text-sm space-y-1" style="color: {{ style_body }} !important; background-color: {{ style_section_bg }} !important;">
+                    <p class="font-semibold " style="color: {{ style_heading }} !important;">Feedback Submitted!</p>
+                    <p class="text-xs">Thank you for sharing your thoughts and rating for this event.</p>
+                </div>
+            {% else %}
+                <!-- Feedback Form for Verified RSVP Session -->
+                <form method="post" action="{% url 'events:submit_feedback' event.slug %}" class="space-y-4">
+                    {% csrf_token %}
+                    <div class="space-y-3 text-sm" style="color: {{ style_body }} !important;">
+                        {{ feedback_form.as_p }}
+                    </div>
+                    <button type="submit" style="background-color: {{ style_primary }} !important;" class="w-full py-3.5 text-white font-semibold text-sm rounded-xl shadow-md transition hover:opacity-95 focus:ring-4 focus:ring-blue-200 cursor-pointer">
+                        Submit Feedback
+                    </button>
+                </form>
+            {% endif %}
+        {% else %}
+            <!-- Email Verification Gate (Shown First Before Feedback Form Unlocks) -->
+            <div class="space-y-3">
+                <p class="text-sm" style="color: {{ style_body }} !important;">
+                    <span class="font-semibold" style="color: {{ style_primary }} !important;">Confirmed Attendees Only:</span> Enter your RSVP email address below to unlock the feedback form.
+                </p>
+                <form method="post" action="{% url 'events:verify_rsvp_email' event.slug %}" class="space-y-3 pt-2">
+                    {% csrf_token %}
+                    <div>
+                        <input type="email" name="attendee_email" required placeholder="Enter your RSVP email..." 
+                               class="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <button type="submit" style="background-color: {{ style_primary }} !important;" class="w-full py-2.5 text-white font-semibold text-xs rounded-xl shadow transition hover:opacity-95 cursor-pointer">
+                        Verify & Unlock Feedback Form
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+
+        <!-- Display Paginated Feedback/Reviews -->
+        <div class="space-y-3 pt-4 border-t border-slate-100">
+            <h4 class="text-xs font-semibold uppercase tracking-wider" style="color: {{ style_muted }} !important;">Attendee Reviews & Comments</h4>
+            <div class="space-y-3">
+                {% for feedback in feedbacks %}
+                    <div class="p-4 rounded-xl border border-slate-200/80 space-y-1.5" style="background-color: {{ style_section_bg }} !important;">
+                        <div class="flex items-center justify-between">
+                            <strong class="text-sm font-bold" style="color: {{ style_heading }} !important;">
+                                {% if feedback.rsvp %}
+                                    {{ feedback.rsvp.full_name }}
+                                {% elif feedback.user %}
+                                    {{ feedback.user.get_full_name|default:feedback.user.username }}
+                                {% else %}
+                                    Anonymous Attendee
+                                {% endif %}
+                            </strong>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                                ⭐ {{ feedback.rating }}/5
+                            </span>
+                        </div>
+                        <p class="text-xs leading-relaxed" style="color: {{ style_body }} !important;">{{ feedback.comment }}</p>
+                        <p class="text-[10px]" style="color: {{ style_muted }} !important;">{{ feedback.created_at|date:"M d, Y, g:i a" }}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-xs italic" style="color: {{ style_muted }} !important;">No feedback submitted yet. Be the first to share your thoughts!</p>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination Controls & Counter -->
+            {% if feedbacks.has_other_pages %}
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100 text-xs">
+                    <div>
+                        {% if feedbacks.has_previous %}
+                            <a href="?page={{ feedbacks.previous_page_number }}" class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition hover:bg-slate-50" style="color: {{ style_heading }} !important;">
+                                ← Previous
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <span class="font-medium" style="color: {{ style_muted }} !important;">
+                        Page {{ feedbacks.number }} of {{ feedbacks.paginator.num_pages }}
+                    </span>
+
+                    <div>
+                        {% if feedbacks.has_next %}
+                            <a href="?page={{ feedbacks.next_page_number }}" class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition hover:bg-slate-50" style="color: {{ style_heading }} !important;">
+                                Next →
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
