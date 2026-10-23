@@ -706,7 +706,6 @@ def create_checkout_session(request, pending_order):
         print(f"Unexpected checkout error: {exc}")
         return None
 
-
 def finalize_pending_ticket_order(checkout_session):
     """Finalize a paid Stripe ticket order and send its RSVP confirmation."""
 
@@ -730,91 +729,7 @@ def finalize_pending_ticket_order(checkout_session):
 
     session_id = checkout_session.get("id")
     rsvp = None
-
     refund_late_payment = False 
-
-    with transaction.atomic():
-        pending_order = (
-            PendingTicketOrder.objects
-            .select_for_update()
-            .select_related("event", "ticket_tier", "rsvp")
-            .get(pk=pending_order_id)
-        )
-
-        if (
-            pending_order.stripe_session_id
-            and pending_order.stripe_session_id != session_id
-        ):
-            raise ValueError(
-                "Stripe session does not match the pending order."
-            )
-
-        if pending_order.status == PendingTicketOrder.STATUS_PAID:
-            rsvp = pending_order.rsvp
-
-        else:
-            rsvp = pending_order.rsvp
-
-            if rsvp is None:
-                rsvp = RSVP.objects.create(
-                    event=pending_order.event,
-                    ticket_tier=pending_order.ticket_tier,
-                    ticket_quantity=pending_order.ticket_quantity,
-                    is_paid=True,
-                    email=pending_order.email,
-                    first_name=pending_order.first_name,
-                    last_name=pending_order.last_name,
-                    phone=pending_order.phone,
-                    status="ATTENDING",
-                    guest_message=pending_order.guest_message,
-                    dietary_restrictions=(
-                        pending_order.dietary_restrictions
-                    ),
-                )
-                pending_order.rsvp = rsvp
-
-            else:
-                update_fields = []
-
-                if not rsvp.is_paid:
-                    rsvp.is_paid = True
-                    update_fields.append("is_paid")
-
-                if update_fields:
-                    if hasattr(rsvp, "updated_at"):
-                        update_fields.append("updated_at")
-
-                    rsvp.save(update_fields=update_fields)
-
-            # Increase ticket sales only when finalizing the order
-            # for the first time.
-            pending_order.ticket_tier.sold_count += (
-                pending_order.ticket_quantity
-            )
-            pending_order.ticket_tier.save(
-                update_fields=["sold_count"]
-            )
-
-            # Preserve the existing individual-ticket QR workflow.
-            if pending_order.event.enable_qr_checkins:
-                for ticket_number in range(
-                    1, pending_order.ticket_quantity + 1
-                ):
-                    IndividualTicket.objects.get_or_create(
-                        rsvp=rsvp,
-                        ticket_number=ticket_number,
-                    )
-
-            pending_order.status = PendingTicketOrder.STATUS_PAID
-            pending_order.paid_at = timezone.now()
-            pending_order.save(
-                update_fields=[
-                    "rsvp",
-                    "status",
-                    "paid_at",
-                    "updated_at",
-                ]
-            )
 
     with transaction.atomic():
         pending_order = (
@@ -926,10 +841,9 @@ def finalize_pending_ticket_order(checkout_session):
             return None
 
     # The transaction has committed. Handle late payments separately.
-    # Do not create an RSVP or send a ticket confirmation for them.
     if refund_late_payment:
         try:
-            refund_pending_ticket_order(pending_order_id)
+            refund_pending_ticket_order(pending_order.pk)
 
             logger.warning(
                 "Late payment refund processed without issuing tickets: "
@@ -1008,6 +922,7 @@ def finalize_pending_ticket_order(checkout_session):
         )
 
     return rsvp
+
 
 def get_active_ticket_fee_percent():
     """

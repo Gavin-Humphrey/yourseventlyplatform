@@ -1897,9 +1897,13 @@ def event_analytics_dashboard(request, slug):
         for row in campaign_performance
     ]
 
+    # channel_attribution_data = [
+    #     row["tracked_visits"]
+    #     for row in campaign_performance
+    # ]
+
     channel_attribution_data = [
-        row["tracked_visits"]
-        for row in campaign_performance
+        row["attributed_rsvps"] for row in campaign_performance
     ]
 
     # ---------------------------------------------------------
