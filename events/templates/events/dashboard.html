@@ -240,7 +240,7 @@
         </div>
         <div>
           <p class="dashboard-metric-label">Total Guests Invited</p>
-          <p class="dashboard-metric-value">{{ total_guests }}</p>
+          <p class="dashboard-metric-value">{{ total_attendees }}</p>
         </div>
       </div>
 
@@ -250,7 +250,7 @@
         </div>
         <div>
           <p class="dashboard-metric-label">Attending Guests</p>
-          <p class="dashboard-metric-value dashboard-metric-success">{{ attending_guests }}</p>
+          <p class="dashboard-metric-value dashboard-metric-success">{{ attending_attendees }}</p>
         </div>
       </div>
     </div>
@@ -286,7 +286,7 @@
                 <a href="{% url 'events:event_detail' slug=event.slug %}" class="btn-subtle text-xs">
                   View Page
                 </a>
-                <a href="{% url 'events:event_rsvps_management' slug=event.slug %}" class="dashboard-action-badge">
+                <a href="{% url 'events:event_attendees_management' slug=event.slug %}" class="dashboard-action-badge">
                   Guest Management
                 </a>
                 <form action="{% url 'events:clone_event' event.slug %}" method="POST" class="inline">

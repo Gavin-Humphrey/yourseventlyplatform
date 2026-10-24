@@ -16,18 +16,19 @@ urlpatterns = [
     path('e/<slug:slug>/', views.event_detail, name='event_detail'),
     # path('events/<slug:slug>/edit/', views.edit_event, name='edit_event'),
     path('dashboard/events/<slug:slug>/edit/', views.edit_event, name='edit_event'),
-    path('e/<slug:slug>/rsvp/', views.submit_rsvp, name='submit_rsvp'),
-    path('rsvp/<slug:slug>/', views.public_rsvp, name='public_rsvp'),
-    path('dashboard/events/<slug:slug>/guests/', views.event_rsvps_management, name='event_rsvps_management'),
-    path('dashboard/events/<slug:slug>/guests/<int:pk>/', views.view_rsvp_detail, name='view_rsvp_detail'),
-    path('dashboard/events/<slug:slug>/guests/<int:pk>/edit/', views.edit_rsvp, name='edit_rsvp'),
+    path('e/<slug:slug>/attendee/', views.submit_event_attendance, name='submit_event_attendance'),
+    path('attendee/<slug:slug>/', views.public_event_attendance, name='public_event_attendance'),
+    path('dashboard/events/<slug:slug>/guests/', views.event_attendees_management, name='event_attendees_management'),
+    path('dashboard/events/<slug:slug>/guests/<int:pk>/', views.view_attendee_detail, name='view_attendee_detail'),
+    path('dashboard/events/<slug:slug>/guests/<int:pk>/edit/', views.edit_attendee, name='edit_attendee'),
+
 
     path('dashboard/events/<slug:slug>/clone/', views.clone_event, name='clone_event'),
 
     path('e/<slug:slug>/calendar/ics/', views.download_ics, name='download_ics'),
 
-    # Guest RSVP Confirmation page (where the QR code displays)
-    path('rsvp/<int:pk>/confirmed/', views.rsvp_confirmed_view, name='rsvp_confirmed'),
+    # EventAttendee Confirmation page (where the QR code displays)
+    path('attendee/<int:pk>/confirmed/', views.attendee_confirmed_view, name='attendee_confirmed'),
     
     # Host Door Check-in Verification (triggered when scanning the QR code)
     path('event/<slug:slug>/checkin/<uuid:token>/', views.verify_checkin, name='verify_checkin'),
@@ -65,15 +66,14 @@ urlpatterns = [
 
     path('events/<slug:slug>/tiers/', views.manage_event_tiers, name='manage_event_tiers'),
 
-    path('dashboard/events/<slug:slug>/guests/export/', views.export_rsvps_csv, name='export_rsvps_csv'),
+    path('dashboard/events/<slug:slug>/guests/export/', views.export_attendees_csv, name='export_attendees_csv'),
 
     path('dashboard/upgrade/unlimited/', views.start_dashboard_unlimited_checkout, name='start_dashboard_unlimited_checkout',),
 
     path('webhook/', stripe_webhook, name='stripe_webhook'),
     #path('events/webhook/', stripe_webhook, name='stripe_webhook'),
-    ############
 
-    path("rsvp/pending/<int:pending_order_id>/confirmed/", views.pending_rsvp_confirmed_view, name="pending_rsvp_confirmed",),
+    path("attendee/pending/<int:ticket_order_id>/confirmed/", views.ticket_order_confirmed_view, name="ticket_order_confirmed",),
 
     path('upgrade/<int:pk>/', views.upgrade_options, name='upgrade_options'),
     path('upgrade/<int:pk>/checkout/', views.start_upgrade_checkout, name='start_upgrade_checkout'),
@@ -91,7 +91,7 @@ urlpatterns = [
     path('e/<slug:slug>/feedback/', views.submit_feedback, name='submit_feedback'),
 
 
-    path('rsvp/<slug:slug>/verify-email/', views.verify_rsvp_email, name='verify_rsvp_email'),
+    path('attendee/<slug:slug>/verify-email/', views.verify_attendee_email, name='verify_attendee_email'),
 
     path('event/<slug:event_slug>/certificate/download/', views.download_certificate, name='download_certificate'),
 
@@ -106,45 +106,15 @@ urlpatterns = [
     path('notifications/preferences/', views.update_follow_notification_preferences, name='update_follow_notification_preferences'),
     path('notifications/unsubscribe/<uuid:token>/', views.unsubscribe_organizer_notifications, name='unsubscribe_organizer_notifications'),
 
+    path( "visitor/follow/<int:organizer_id>/", views.visitor_follow, name="visitor_follow",),
+    path("visitor/follow/<int:organizer_id>/send/", views.request_visitor_follow, name="request_visitor_follow",),
+    path("visitor/verify/<uuid:token>/", views.verify_visitor_follow, name="verify_visitor_follow",),
+    path("visitor/register/", views.register_visitor, name="visitor_register",),
 
-    #==============================
-    path(
-        "visitor/follow/<int:organizer_id>/",
-        views.visitor_follow,
-        name="visitor_follow",
-    ),
-    path(
-        "visitor/follow/<int:organizer_id>/send/",
-        views.request_visitor_follow,
-        name="request_visitor_follow",
-    ),
-    path(
-        "visitor/verify/<uuid:token>/",
-        views.verify_visitor_follow,
-        name="verify_visitor_follow",
-    ),
-    path(
-        "visitor/register/",
-        views.register_visitor,
-        name="visitor_register",
-    ),
+    path("notifications/", views.notifications_inbox, name="notifications_inbox",),
+    path("notifications/<int:notification_id>/open/", views.open_notification, name="open_notification",),
 
-    path(
-        "notifications/",
-        views.notifications_inbox,
-        name="notifications_inbox",
-    ),
-    path(
-        "notifications/<int:notification_id>/open/",
-        views.open_notification,
-        name="open_notification",
-    ),
-
-    path(
-        "notifications/mark-all-read/",
-        views.mark_all_notifications_read,
-        name="mark_all_notifications_read",
-    ),
+    path("notifications/mark-all-read/", views.mark_all_notifications_read, name="mark_all_notifications_read",),
 
     #==============================
 

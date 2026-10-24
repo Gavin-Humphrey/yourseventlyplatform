@@ -14,7 +14,7 @@
             <h1 class="text-2xl font-bold text-[var(--text-main)]">Manage Ticket Tiers</h1>
             <p class="text-sm text-[var(--text-muted)] mt-1">Configure pricing categories and enable paid entry for <span class="font-semibold text-[var(--text-main)]">{{ event.title }}</span></p>
         </div>
-        <a href="{% url 'events:event_rsvps_management' event.slug %}" class="dashboard-clone-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+        <a href="{% url 'events:event_attendees_management' event.slug %}" class="dashboard-clone-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
             &larr; Back to RSVPs
         </a>
     </div>
@@ -122,7 +122,7 @@
 
         <!-- Form Actions -->
         <div class="flex items-center justify-end gap-3 pt-2">
-            <a href="{% url 'events:event_rsvps_management' event.slug %}" class="dashboard-clone-btn" style="text-decoration: none;">
+            <a href="{% url 'events:event_attendees_management' event.slug %}" class="dashboard-clone-btn" style="text-decoration: none;">
                 Cancel
             </a>
             <button type="submit" class="dashboard-action-badge cursor-pointer" style="border: none;">

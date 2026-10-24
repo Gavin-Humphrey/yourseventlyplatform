@@ -82,7 +82,6 @@ def translate_html(html, target_language, source_language="en"):
 
     result = str(soup)
 
-    # Remove BeautifulSoup's serialized doctype text, if present.
     result = result.lstrip()
     if result.lower().startswith("html\n"):
         result = result[5:]
@@ -92,62 +91,6 @@ def translate_html(html, target_language, source_language="en"):
         result = "<!DOCTYPE html>\n" + result
 
     return result
-
-
-# WORKING THOUGH
-
-# class TranslationMiddleware:
-#     """
-#     Translate HTML responses for non-English language selections.
-#     """
-
-#     def __init__(self, get_response):
-#         self.get_response = get_response
-
-#     def __call__(self, request):
-#         response = self.get_response(request)
-
-#         # Do not modify redirects, errors, or other non-HTML responses.
-#         if response.status_code != 200:
-#             return response
-
-#         content_type = response.get("Content-Type", "")
-#         if "text/html" not in content_type.lower():
-#             return response
-
-#         # Streaming responses cannot be processed through response.content.
-#         if getattr(response, "streaming", False):
-#             return response
-
-#         # Use Django's active translation language thread-local lookup first
-#         language = (
-#             translation.get_language()
-#             or getattr(request, "LANGUAGE_CODE", None)
-#             or settings.LANGUAGE_CODE
-#         )
-
-#         target_language = (language or "en").lower().split("-")[0]
-
-#         if target_language in ("", "en"):
-#             return response
-
-#         try:
-#             charset = response.charset or "utf-8"
-#             html = response.content.decode(charset)
-
-#             translated_html = translate_html(
-#                 html,
-#                 target_language=target_language,
-#                 source_language="en",
-#             )
-
-#             response.content = translated_html.encode(charset)
-
-#         except Exception:
-#             # Never let translation failures break a page.
-#             return response
-
-#         return response
 
 class TranslationMiddleware:
     """

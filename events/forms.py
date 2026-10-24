@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.files.storage import default_storage
-from .models import OrganizerProfile, Event, TicketTier, GalleryImage, RSVP, RSVPGuest, Feedback
+from .models import OrganizerProfile, Event, TicketTier, GalleryImage, EventAttendee, FreeAttendeeGuest, Feedback
 from django.forms import inlineformset_factory
 import re
 
@@ -665,7 +665,7 @@ class EventTicketingForm(forms.ModelForm):
         model = Event
         fields = ['is_ticketed']
 
-class RSVPForm(forms.ModelForm):
+class EventAttendeeForm(forms.ModelForm):
     PHONE_PREFIX_CHOICES = [
         ('+33', '+33 (France)'),
         ('+1', '+1 (US/CA)'),
@@ -702,7 +702,7 @@ class RSVPForm(forms.ModelForm):
     )
 
     class Meta:
-        model = RSVP
+        model = EventAttendee
         fields = ['first_name', 'last_name', 'email', 'phone', 'status', 'dietary_restrictions']
 
     def __init__(self, *args, **kwargs):
@@ -734,9 +734,9 @@ class RSVPForm(forms.ModelForm):
             
         return cleaned_data
 
-class RSVPGuestForm(forms.ModelForm):
+class FreeAttendeeGuestForm(forms.ModelForm):
     class Meta:
-        model = RSVPGuest
+        model = FreeAttendeeGuest
         fields = '__all__'  
 
 class FeedbackForm(forms.ModelForm):

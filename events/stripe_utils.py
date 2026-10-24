@@ -10,10 +10,16 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from .models import (
-    Event, GalleryImage, PendingUpgrade, 
-    OrganizerProfile, RSVP, PlatformFee, 
-    PendingTicketOrder, IndividualTicket, 
-    TicketTier,)
+    Event,
+    GalleryImage,
+    PendingUpgrade,
+    OrganizerProfile,
+    EventAttendee,
+    PlatformFee,
+    TicketOrder,
+    IndividualTicket,
+    TicketTier,
+)
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import transaction
@@ -473,7 +479,6 @@ def finalize_edit_upgrade(pending):
 
     return event
 
-
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
@@ -502,43 +507,43 @@ def stripe_webhook(request):
             else {}
         )
 
-        # NEW: Finalize a paid ticket order created before checkout.
-        pending_order_id = metadata.get('pending_order_id')
+        # Finalize a paid ticket order created before checkout.
+        ticket_order_id = metadata.get('pending_order_id')
 
-        if pending_order_id:
+        if ticket_order_id:
             try:
-                finalize_pending_ticket_order(session)
+                finalize_ticket_order(session)
 
-            except PendingTicketOrder.DoesNotExist:
+            except TicketOrder.DoesNotExist:
                 print(
-                    f"Pending ticket order {pending_order_id} "
+                    f"Ticket order {ticket_order_id} "
                     "was not found."
                 )
                 return HttpResponse(status=500)
 
             except Exception as exc:
                 print(
-                    "Pending ticket order finalization failed: "
+                    "Ticket order finalization failed: "
                     f"{exc}"
                 )
                 return HttpResponse(status=500)
 
-        # EXISTING: Legacy RSVP payment handling.
-        rsvp_id = metadata.get('rsvp_id')
+        # Legacy attendee payment handling.
+        attendee_id = metadata.get('rsvp_id')
 
-        if rsvp_id:
+        if attendee_id:
             try:
-                rsvp = RSVP.objects.get(id=rsvp_id)
+                attendee = EventAttendee.objects.get(id=attendee_id)
 
-                if not rsvp.is_paid:
-                    rsvp.is_paid = True
-                    rsvp.save()
+                if not attendee.is_paid:
+                    attendee.is_paid = True
+                    attendee.save()
 
-                    if rsvp.ticket_tier:
-                        rsvp.ticket_tier.sold_count += 1
-                        rsvp.ticket_tier.save()
+                    if attendee.ticket_tier:
+                        attendee.ticket_tier.sold_count += 1
+                        attendee.ticket_tier.save()
 
-            except RSVP.DoesNotExist:
+            except EventAttendee.DoesNotExist:
                 pass
 
         # Pending upgrade handling.
@@ -603,15 +608,15 @@ def get_active_ticket_fee_percent():
 
     return fee.percentage if fee else Decimal('0')
 
-def create_checkout_session(request, pending_order):
+def create_checkout_session(request, ticket_order):
     from decimal import Decimal, ROUND_HALF_UP
 
     try:
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
-        event = pending_order.event
-        selected_tier = pending_order.ticket_tier
-        ticket_quantity = pending_order.ticket_quantity
+        event = ticket_order.event
+        selected_tier = ticket_order.ticket_tier
+        ticket_quantity = ticket_order.ticket_quantity
 
         organizer_profile = OrganizerProfile.objects.filter(
             user=event.host
@@ -653,8 +658,8 @@ def create_checkout_session(request, pending_order):
 
         success_url = request.build_absolute_uri(
             reverse(
-                "events:pending_rsvp_confirmed",
-                args=[pending_order.pk],
+                "events:ticket_order_confirmed",
+                args=[ticket_order.pk],
             )
         ) + "?session_id={CHECKOUT_SESSION_ID}"
 
@@ -675,11 +680,11 @@ def create_checkout_session(request, pending_order):
             ],
             success_url=success_url,
             cancel_url=request.build_absolute_uri(
-                reverse("events:public_rsvp", args=[event.slug])
+                reverse("events:public_event_attendance", args=[event.slug])
             ),
-            client_reference_id=str(pending_order.pk),
+            client_reference_id=str(ticket_order.pk),
             metadata={
-                "pending_order_id": str(pending_order.pk),
+                "pending_order_id": str(ticket_order.pk),
                 "event_id": str(event.pk),
                 "tier_id": str(selected_tier.pk),
                 "ticket_quantity": str(ticket_quantity),
@@ -694,8 +699,8 @@ def create_checkout_session(request, pending_order):
             },
         )
 
-        pending_order.stripe_session_id = checkout_session.id
-        pending_order.save(update_fields=["stripe_session_id", "updated_at"])
+        ticket_order.stripe_session_id = checkout_session.id
+        ticket_order.save(update_fields=["stripe_session_id", "updated_at"])
 
         return checkout_session
 
@@ -706,7 +711,7 @@ def create_checkout_session(request, pending_order):
         print(f"Unexpected checkout error: {exc}")
         return None
 
-def finalize_pending_ticket_order(checkout_session):
+def finalize_ticket_order(checkout_session):
     """Finalize a paid Stripe ticket order and send its RSVP confirmation."""
 
     # Stripe Session objects must be converted before using dict methods.
@@ -714,9 +719,9 @@ def finalize_pending_ticket_order(checkout_session):
         checkout_session = checkout_session.to_dict()
 
     metadata = checkout_session.get("metadata") or {}
-    pending_order_id = metadata.get("pending_order_id")
+    ticket_order_id = metadata.get("pending_order_id")
 
-    if not pending_order_id:
+    if not ticket_order_id:
         logger.warning(
             "Cannot finalize ticket order: Stripe session has no "
             "pending_order_id. Session ID: %s",
@@ -728,21 +733,21 @@ def finalize_pending_ticket_order(checkout_session):
         return None
 
     session_id = checkout_session.get("id")
-    rsvp = None
+    attendee = None
     refund_late_payment = False 
 
     with transaction.atomic():
-        pending_order = (
-            PendingTicketOrder.objects
+        ticket_order = (
+            TicketOrder.objects
             .select_for_update()
-            .select_related("event", "ticket_tier", "rsvp")
-            .get(pk=pending_order_id)
+            .select_related("event", "ticket_tier", "event_attendee")
+            .get(pk=ticket_order_id)
         )
 
         # Verify that the Stripe Session belongs to this order.
         if (
-            pending_order.stripe_session_id
-            and pending_order.stripe_session_id != session_id
+            ticket_order.stripe_session_id
+            and ticket_order.stripe_session_id != session_id
         ):
             raise ValueError(
                 "Stripe session does not match the pending order."
@@ -750,81 +755,81 @@ def finalize_pending_ticket_order(checkout_session):
 
         # A cancelled order may have received a late successful payment.
         # Never create an RSVP, issue tickets, or increment sold_count.
-        if pending_order.status == PendingTicketOrder.STATUS_CANCELLED:
+        if ticket_order.status == TicketOrder.STATUS_CANCELLED:
             refund_late_payment = True
 
         # A refunded order must never be finalized again.
-        elif pending_order.status == PendingTicketOrder.STATUS_REFUNDED:
+        elif ticket_order.status == TicketOrder.STATUS_REFUNDED:
             logger.info(
                 "Skipping finalization for refunded ticket order %s.",
-                pending_order_id,
+                ticket_order_id,
             )
             return None
 
         # Already finalized: do not create duplicate tickets or increment
         # sold_count again. The confirmation email may still be retried.
-        elif pending_order.status == PendingTicketOrder.STATUS_PAID:
-            rsvp = pending_order.rsvp
+        elif ticket_order.status == TicketOrder.STATUS_PAID:
+            attendee = ticket_order.event_attendee
 
         # Only an eligible, unfinalized order reaches this section.
-        elif pending_order.status == PendingTicketOrder.STATUS_PENDING:
-            rsvp = pending_order.rsvp
+        elif ticket_order.status == TicketOrder.STATUS_PENDING:
+            attendee = ticket_order.event_attendee
 
-            if rsvp is None:
-                rsvp = RSVP.objects.create(
-                    event=pending_order.event,
-                    ticket_tier=pending_order.ticket_tier,
-                    ticket_quantity=pending_order.ticket_quantity,
+            if attendee is None:
+                attendee = EventAttendee.objects.create(
+                    event=ticket_order.event,
+                    ticket_tier=ticket_order.ticket_tier,
+                    ticket_quantity=ticket_order.ticket_quantity,
                     is_paid=True,
-                    email=pending_order.email,
-                    first_name=pending_order.first_name,
-                    last_name=pending_order.last_name,
-                    phone=pending_order.phone,
+                    email=ticket_order.email,
+                    first_name=ticket_order.first_name,
+                    last_name=ticket_order.last_name,
+                    phone=ticket_order.phone,
                     status="ATTENDING",
-                    guest_message=pending_order.guest_message,
+                    guest_message=ticket_order.guest_message,
                     dietary_restrictions=(
-                        pending_order.dietary_restrictions
+                        ticket_order.dietary_restrictions
                     ),
                 )
-                pending_order.rsvp = rsvp
+                ticket_order.event_attendee = attendee
 
             else:
                 update_fields = []
 
-                if not rsvp.is_paid:
-                    rsvp.is_paid = True
+                if not attendee.is_paid:
+                    attendee.is_paid = True
                     update_fields.append("is_paid")
 
                 if update_fields:
-                    if hasattr(rsvp, "updated_at"):
+                    if hasattr(attendee, "updated_at"):
                         update_fields.append("updated_at")
 
-                    rsvp.save(update_fields=update_fields)
+                    attendee.save(update_fields=update_fields)
 
             # Increase sold inventory exactly once when finalizing
             # the order for the first time.
-            pending_order.ticket_tier.sold_count += (
-                pending_order.ticket_quantity
+            ticket_order.ticket_tier.sold_count += (
+                ticket_order.ticket_quantity
             )
-            pending_order.ticket_tier.save(
+            ticket_order.ticket_tier.save(
                 update_fields=["sold_count"]
             )
 
             # Preserve the existing individual-ticket QR workflow.
-            if pending_order.event.enable_qr_checkins:
+            if ticket_order.event.enable_qr_checkins:
                 for ticket_number in range(
-                    1, pending_order.ticket_quantity + 1
+                    1, ticket_order.ticket_quantity + 1
                 ):
                     IndividualTicket.objects.get_or_create(
-                        rsvp=rsvp,
+                        event_attendee=attendee,
                         ticket_number=ticket_number,
                     )
 
-            pending_order.status = PendingTicketOrder.STATUS_PAID
-            pending_order.paid_at = timezone.now()
-            pending_order.save(
+            ticket_order.status = TicketOrder.STATUS_PAID
+            ticket_order.paid_at = timezone.now()
+            ticket_order.save(
                 update_fields=[
-                    "rsvp",
+                    "event_attendee",
                     "status",
                     "paid_at",
                     "updated_at",
@@ -835,20 +840,20 @@ def finalize_pending_ticket_order(checkout_session):
             logger.error(
                 "Unexpected status '%s' for ticket order %s. "
                 "Finalization skipped.",
-                pending_order.status,
-                pending_order_id,
+                ticket_order.status,
+                ticket_order_id,
             )
             return None
 
     # The transaction has committed. Handle late payments separately.
     if refund_late_payment:
         try:
-            refund_pending_ticket_order(pending_order.pk)
+            refund_ticket_order(ticket_order.pk)
 
             logger.warning(
                 "Late payment refund processed without issuing tickets: "
                 "order=%s, session=%s",
-                pending_order_id,
+                ticket_order_id,
                 session_id,
             )
 
@@ -856,72 +861,72 @@ def finalize_pending_ticket_order(checkout_session):
             logger.exception(
                 "Could not refund late payment for cancelled order %s. "
                 "No RSVP or tickets were issued. Manual review is required.",
-                pending_order_id,
+                ticket_order_id,
             )
 
         return None
 
     # An already-paid order should have an associated RSVP.
-    if rsvp is None:
+    if attendee is None:
         logger.error(
             "Ticket order %s is paid, but no RSVP is associated with it.",
-            pending_order_id,
+            ticket_order_id,
         )
         return None
 
     # Send confirmation only for a successfully finalized paid order.
-    if not rsvp.confirmation_sent:
+    if not attendee.confirmation_sent:
         try:
-            from .views import send_rsvp_confirmation
+            from .views import send_attendance_confirmation
 
             logger.info(
                 "Sending paid RSVP confirmation: order=%s, RSVP=%s, "
                 "recipient=%s",
-                pending_order_id,
-                rsvp.pk,
-                rsvp.email,
+                ticket_order_id,
+                attendee.pk,
+                attendee.email,
             )
 
-            send_rsvp_confirmation(rsvp)
+            send_attendance_confirmation(attendee)
 
             # Verify whether the email function marked it as sent.
-            rsvp.refresh_from_db(fields=["confirmation_sent"])
+            attendee.refresh_from_db(fields=["confirmation_sent"])
 
-            if rsvp.confirmation_sent:
+            if attendee.confirmation_sent:
                 logger.info(
                     "Paid RSVP confirmation sent successfully: "
                     "order=%s, RSVP=%s, recipient=%s",
-                    pending_order_id,
-                    rsvp.pk,
-                    rsvp.email,
+                    ticket_order_id,
+                    attendee.pk,
+                    attendee.email,
                 )
             else:
                 logger.error(
                     "Paid RSVP confirmation was not marked as sent: "
                     "order=%s, RSVP=%s, recipient=%s. "
-                    "Check send_rsvp_confirmation() logs.",
-                    pending_order_id,
-                    rsvp.pk,
-                    rsvp.email,
+                    "Check send_attendance_confirmation() logs.",
+                    ticket_order_id,
+                    attendee.pk,
+                    attendee.email,
                 )
 
         except Exception:
             logger.exception(
                 "Failed to send paid RSVP confirmation: "
                 "order=%s, RSVP=%s, recipient=%s",
-                pending_order_id,
-                rsvp.pk,
-                rsvp.email,
+                ticket_order_id,
+                attendee.pk,
+                attendee.email,
             )
 
     else:
         logger.info(
             "Skipping duplicate confirmation email: RSVP %s "
             "is already marked as sent.",
-            rsvp.pk,
+            attendee.pk,
         )
 
-    return rsvp
+    return attendee
 
 
 def get_active_ticket_fee_percent():
@@ -937,7 +942,8 @@ def get_active_ticket_fee_percent():
     return fee.percentage if fee else Decimal('0')
 
 
-def refund_pending_ticket_order(order_id):
+
+def refund_ticket_order(order_id):
     """
     Refund a paid ticket order through Stripe Connect.
 
@@ -954,30 +960,30 @@ def refund_pending_ticket_order(order_id):
 
     # Read and validate the order while holding a short database lock.
     with transaction.atomic():
-        pending_order = (
-            PendingTicketOrder.objects
+        ticket_order = (
+            TicketOrder.objects
             .select_for_update()
             .get(pk=order_id)
         )
 
-        if pending_order.status == PendingTicketOrder.STATUS_REFUNDED:
-            return pending_order
+        if ticket_order.status == TicketOrder.STATUS_REFUNDED:
+            return ticket_order
 
-        if pending_order.status not in (
-            PendingTicketOrder.STATUS_PAID,
-            PendingTicketOrder.STATUS_CANCELLED,
+        if ticket_order.status not in (
+            TicketOrder.STATUS_PAID,
+            TicketOrder.STATUS_CANCELLED,
         ):
             raise ValueError(
                 "Only paid orders or cancelled orders with a late "
                 "payment can be refunded."
             )
 
-        if not pending_order.stripe_session_id:
+        if not ticket_order.stripe_session_id:
             raise ValueError(
                 "The order has no Stripe Checkout Session ID."
             )
 
-        session_id = pending_order.stripe_session_id
+        session_id = ticket_order.stripe_session_id
 
     checkout_session = stripe.checkout.Session.retrieve(session_id)
 
@@ -1017,18 +1023,18 @@ def refund_pending_ticket_order(order_id):
 
     # Stripe confirmed the refund. Now update the database atomically.
     with transaction.atomic():
-        pending_order = (
-            PendingTicketOrder.objects
+        ticket_order = (
+            TicketOrder.objects
             .select_for_update()
             .get(pk=order_id)
         )
 
-        if pending_order.status == PendingTicketOrder.STATUS_REFUNDED:
-            return pending_order
+        if ticket_order.status == TicketOrder.STATUS_REFUNDED:
+            return ticket_order
 
-        if pending_order.status not in (
-            PendingTicketOrder.STATUS_PAID,
-            PendingTicketOrder.STATUS_CANCELLED,
+        if ticket_order.status not in (
+            TicketOrder.STATUS_PAID,
+            TicketOrder.STATUS_CANCELLED,
         ):
             raise ValueError(
                 "The order status changed while the refund was "
@@ -1037,40 +1043,53 @@ def refund_pending_ticket_order(order_id):
 
         # Only an order that was finalized as paid sold inventory.
         was_finalized_paid = (
-            pending_order.status == PendingTicketOrder.STATUS_PAID
+            ticket_order.status == TicketOrder.STATUS_PAID
         )
 
         if (
             was_finalized_paid
-            and not pending_order.inventory_released
+            and not ticket_order.inventory_released
         ):
             ticket_tier = (
                 TicketTier.objects
                 .select_for_update()
-                .get(pk=pending_order.ticket_tier_id)
+                .get(pk=ticket_order.ticket_tier_id)
             )
 
-            if ticket_tier.sold_count < pending_order.ticket_quantity:
+            if ticket_tier.sold_count < ticket_order.ticket_quantity:
                 logger.warning(
                     "Inventory count is lower than the quantity being "
                     "released for ticket order %s. sold_count=%s, "
                     "order_quantity=%s. Reconcile inventory.",
-                    pending_order.pk,
+                    ticket_order.pk,
                     ticket_tier.sold_count,
-                    pending_order.ticket_quantity,
+                    ticket_order.ticket_quantity,
                 )
 
             ticket_tier.sold_count = max(
                 0,
-                ticket_tier.sold_count - pending_order.ticket_quantity,
+                ticket_tier.sold_count - ticket_order.ticket_quantity,
             )
             ticket_tier.save(update_fields=["sold_count"])
 
-            pending_order.inventory_released = True
+            ticket_order.inventory_released = True
 
-        pending_order.status = PendingTicketOrder.STATUS_REFUNDED
-        pending_order.refunded_at = timezone.now()
-        pending_order.stripe_refund_id = refund.id
+        ticket_order.status = TicketOrder.STATUS_REFUNDED
+        ticket_order.refunded_at = timezone.now()
+        ticket_order.stripe_refund_id = refund.id
+
+        ticket_order.save(
+            update_fields=[
+                "status",
+                "refunded_at",
+                "stripe_refund_id",
+                "inventory_released",
+                "updated_at",
+            ]
+        )
+
+        return ticket_order
+
 
 # Connect
 def create_stripe_express_account(user):

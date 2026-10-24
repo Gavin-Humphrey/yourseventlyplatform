@@ -43,7 +43,7 @@
     <div class="p-6 md:p-8 rounded-2xl border border-slate-200 shadow-xl space-y-5" style="background-color: {{ style_page_bg }} !important;">
         <h3 class="text-xl font-bold border-b border-slate-100 pb-3" style="color: {{ style_heading }} !important;">Event Feedback & Discussion</h3>
         
-        {% if user_rsvp %}
+        {% if user_attendee %}
             {% if user_has_submitted %}
                 <!-- Feedback Submitted State -->
                 <div class="p-4 rounded-xl  text-sm space-y-1" style="color: {{ style_body }} !important; background-color: {{ style_section_bg }} !important;">
@@ -68,7 +68,7 @@
                 <p class="text-sm" style="color: {{ style_body }} !important;">
                     <span class="font-semibold" style="color: {{ style_primary }} !important;">Confirmed Attendees Only:</span> Enter your RSVP email address below to unlock the feedback form.
                 </p>
-                <form method="post" action="{% url 'events:verify_rsvp_email' event.slug %}" class="space-y-3 pt-2">
+                <form method="post" action="{% url 'events:verify_attendee_email' event.slug %}" class="space-y-3 pt-2">
                     {% csrf_token %}
                     <div>
                         <input type="email" name="attendee_email" required placeholder="Enter your RSVP email..." 
@@ -89,8 +89,8 @@
                     <div class="p-4 rounded-xl border border-slate-200/80 space-y-1.5" style="background-color: {{ style_section_bg }} !important;">
                         <div class="flex items-center justify-between">
                             <strong class="text-sm font-bold" style="color: {{ style_heading }} !important;">
-                                {% if feedback.rsvp %}
-                                    {{ feedback.rsvp.full_name }}
+                                {% if feedback.event_attendee %}
+                                    {{ feedback.event_attendee.full_name }}
                                 {% elif feedback.user %}
                                     {{ feedback.user.get_full_name|default:feedback.user.username }}
                                 {% else %}

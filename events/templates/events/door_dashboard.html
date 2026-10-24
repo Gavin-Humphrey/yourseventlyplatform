@@ -17,7 +17,7 @@
                 <h1 class="door-header-title">{{ event.title }}</h1>
                 <p class="door-header-subtitle">Entrance & Check-In Control Center</p>
             </div>
-            <a href="{% url 'events:event_rsvps_management' event.slug %}" class="door-back-btn">
+            <a href="{% url 'events:event_attendees_management' event.slug %}" class="door-back-btn">
                 &larr; Back to Event Dashboard
             </a>
         </div>
@@ -25,8 +25,8 @@
         <!-- Metrics Cards -->
         <div class="door-metrics-grid">
             <div class="door-metric-card">
-                <p class="door-metric-label-total">Total RSVPs</p>
-                <p class="door-metric-value">{{ total_rsvps }}</p>
+                <p class="door-metric-label-total">Total Attendees</p>
+                <p class="door-metric-value">{{ total_attendees }}</p>
             </div>
             <div class="door-metric-card">
                 <p class="door-metric-label-emerald">Checked In</p>
@@ -69,56 +69,110 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for rsvp in rsvps %}
-                        <tr>
-                            <td>
-                                <div class="font-medium text-[var(--text-main)]">{{ rsvp.full_name }}</div>
-                                <div class="text-xs text-[var(--text-muted)]">{{ rsvp.email|default:"No email" }}</div>
-                            </td>
-                            <td>
-                                <span class="
-                                    {% if rsvp.status == 'ATTENDING' %}door-badge-attending
-                                    {% elif rsvp.status == 'DECLINED' %}door-badge-declined
-                                    {% else %}door-badge-pending{% endif %}">
-                                    {{ rsvp.get_status_display }}
-                                </span>
-                                {% if rsvp.plus_ones_count > 0 %}
-                                    <span class="text-xs text-[var(--text-muted)] ml-1">(+{{ rsvp.plus_ones_count }})</span>
-                                {% endif %}
-                            </td>
-                            {% if event.is_ticketed %}
-                            <td>
-                                {% if rsvp.ticket_tier %}
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                                        {{ rsvp.ticket_tier.name }}
+                        {% if event.is_ticketed %}
+                            {% for ticket in ticket_rows %}
+                            <tr>
+                                <td>
+                                    <div class="font-medium text-[var(--text-main)]">
+                                        {{ ticket.event_attendee.full_name }}
+                                    </div>
+                                    <div class="text-xs text-[var(--text-muted)]">
+                                        {{ ticket.event_attendee.email|default:"No email" }}
+                                    </div>
+                                    <div class="text-xs text-[var(--text-muted)]">
+                                        Ticket #{{ ticket.ticket_number }}
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="{% if ticket.event_attendee.status == 'ATTENDING' %}door-badge-attending{% elif ticket.event_attendee.status == 'DECLINED' %}door-badge-declined{% else %}door-badge-pending{% endif %}">
+                                        {{ ticket.event_attendee.get_status_display }}
                                     </span>
-                                {% else %}
-                                    <span class="text-xs text-[var(--text-dimmed)]">—</span>
-                                {% endif %}
-                            </td>
-                            {% endif %}
-                            <td>
-                                {% if rsvp.checked_in %}
-                                    <span class="door-checkin-active">
-                                        Checked In ({{ rsvp.checked_in_at|date:"H:i" }})
+                                </td>
+
+                                <td>
+                                    {% if ticket.event_attendee.ticket_tier %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                            {{ ticket.event_attendee.ticket_tier.name }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-xs text-[var(--text-dimmed)]">—</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if ticket.checked_in %}
+                                        <span class="door-checkin-active">
+                                            Checked In{% if ticket.checked_in_at %} ({{ ticket.checked_in_at|date:"H:i" }}){% endif %}
+                                        </span>
+                                    {% else %}
+                                        <span class="door-checkin-inactive">Not Arrived</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-right">
+                                    <a href="{% url 'events:verify_checkin' event.slug ticket.checkin_token %}{% if ticket.checked_in %}?undo=true{% endif %}"
+                                    class="door-action-btn">
+                                        {% if ticket.checked_in %}Undo Check In{% else %}Check In{% endif %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-[var(--text-dimmed)] italic">
+                                    No matching ticket records found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+                        {% else %}
+                            {% for attendee in attendees %}
+                            <tr>
+                                <td>
+                                    <div class="font-medium text-[var(--text-main)]">
+                                        {{ attendee.full_name }}
+                                    </div>
+                                    <div class="text-xs text-[var(--text-muted)]">
+                                        {{ attendee.email|default:"No email" }}
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="{% if attendee.status == 'ATTENDING' %}door-badge-attending{% elif attendee.status == 'DECLINED' %}door-badge-declined{% else %}door-badge-pending{% endif %}">
+                                        {{ attendee.get_status_display }}
                                     </span>
-                                {% else %}
-                                    <span class="door-checkin-inactive">
-                                        Not Arrived
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="text-right">
-                                <a href="{% url 'events:verify_checkin' event.slug rsvp.checkin_token %}{% if rsvp.checked_in %}?undo=true{% endif %}" class="door-action-btn">
-                                    {% if rsvp.checked_in %}Undo Check In{% else %}Check In{% endif %}
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="{% if event.is_ticketed %}5{% else %}4{% endif %}" class="py-8 text-center text-[var(--text-dimmed)] italic">No matching guest records found.</td>
-                        </tr>
-                        {% endfor %}
+                                    {% if attendee.plus_ones_count > 0 %}
+                                        <span class="text-xs text-[var(--text-muted)] ml-1">
+                                            (+{{ attendee.plus_ones_count }})
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if attendee.checked_in %}
+                                        <span class="door-checkin-active">
+                                            Checked In{% if attendee.checked_in_at %} ({{ attendee.checked_in_at|date:"H:i" }}){% endif %}
+                                        </span>
+                                    {% else %}
+                                        <span class="door-checkin-inactive">Not Arrived</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-right">
+                                    <a href="{% url 'events:verify_checkin' event.slug attendee.checkin_token %}{% if attendee.checked_in %}?undo=true{% endif %}"
+                                    class="door-action-btn">
+                                        {% if attendee.checked_in %}Undo Check In{% else %}Check In{% endif %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="py-8 text-center text-[var(--text-dimmed)] italic">
+                                    No matching guest records found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
                     </tbody>
                 </table>
             </div>

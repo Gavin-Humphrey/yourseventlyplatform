@@ -12,22 +12,37 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from .models import (
-    Event, FavoriteUpcomingEvent, PendingUpgrade, OrganizerProfile, 
-    OrganizerFollow, FollowNotificationPreference, InAppNotification, 
-    GalleryImage, RSVP, RSVPGuest, TicketTier, PlatformFee, IndividualTicket, 
-    PendingTicketOrder, CampaignVisit,
+    Event,
+    FavoriteUpcomingEvent,
+    PendingUpgrade,
+    OrganizerProfile,
+    OrganizerFollow,
+    FollowNotificationPreference,
+    InAppNotification,
+    GalleryImage,
+    EventAttendee,
+    FreeAttendeeGuest,
+    TicketTier,
+    PlatformFee,
+    IndividualTicket,
+    TicketOrder,
+    CampaignVisit,
 )
 from .forms import (
-    HostRegistrationForm, EventForm, RSVPForm, TicketTierFormSet, 
-    EventTicketingForm, FeedbackForm,
-) 
+    HostRegistrationForm,
+    EventForm,
+    EventAttendeeForm,
+    TicketTierFormSet,
+    EventTicketingForm,
+    FeedbackForm,
+)
 from django.forms import inlineformset_factory
 from django.utils.text import slugify
 from django.db.models import Count, Q, Value, Sum
 from decimal import Decimal
 from django.db.models.functions import Concat
 import csv
-from .utils import send_rsvp_confirmation, notify_organizer_of_new_follower, notify_followers_of_new_event, country_flag_emoji
+from .utils import send_attendance_confirmation, notify_organizer_of_new_follower, notify_followers_of_new_event, country_flag_emoji
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .wallet import generate_google_wallet_link, get_ticket_context
 import stripe
@@ -62,7 +77,7 @@ from .stripe_utils import (
     prepare_pending_data,
     store_pending_files,
 
-    finalize_pending_ticket_order,
+    finalize_ticket_order,
 
     create_stripe_express_account,
     generate_account_link,
@@ -294,7 +309,6 @@ def home(request):
 
     return render(request, 'events/home.html', context)
 
-
 def event_detail(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
@@ -314,7 +328,7 @@ def event_detail(request, slug):
             messages.error(request, "Incorrect unlock code. Please try again.")
 
     # Instantiate the form for the template
-    form = RSVPForm(event=event) 
+    form = EventAttendeeForm(event=event)
     
     # Safely retrieve theme settings
     raw_theme = event.theme_settings() if callable(getattr(event, 'theme_settings', None)) else getattr(event, 'theme_settings', None)
@@ -341,7 +355,7 @@ def event_detail(request, slug):
             'is_post_event': img_obj.is_post_event
         })
                 
-    guest_messages = event.rsvps.exclude(guest_message__isnull=True).exclude(guest_message__exact='')
+    guest_messages = event.attendees.exclude(guest_message__isnull=True).exclude(guest_message__exact='')
 
     # 1. Check if the authenticated user has already submitted feedback
     user_has_submitted = False
@@ -376,30 +390,40 @@ def event_detail(request, slug):
 @login_required
 def dashboard(request):
     events = Event.objects.filter(host=request.user).order_by('-created_at')
-    
+
     # Safely get or create the organizer profile so it's never None
-    organizer_profile, created = OrganizerProfile.objects.get_or_create(user=request.user)
-    
+    organizer_profile, created = OrganizerProfile.objects.get_or_create(
+        user=request.user
+    )
+
     # Check if the host has created at least one ticketed event
     has_ticketed_events = events.filter(is_ticketed=True).exists()
-    
+
     total_events = events.count()
-    total_guests = RSVP.objects.filter(event__host=request.user).count()
-    attending_guests = RSVP.objects.filter(event__host=request.user, status='ATTENDING').count()
+    total_attendees = EventAttendee.objects.filter(
+        event__host=request.user
+    ).count()
+    attending_attendees = EventAttendee.objects.filter(
+        event__host=request.user,
+        status='ATTENDING'
+    ).count()
 
     # Debug print using the safe profile instance
-    print(f"DEBUG DASHBOARD - Onboarding Complete Status: {organizer_profile.stripe_onboarding_complete}")
+    print(
+        f"DEBUG DASHBOARD - Onboarding Complete Status: "
+        f"{organizer_profile.stripe_onboarding_complete}"
+    )
 
     context = {
         'events': events,
         'total_events': total_events,
-        'total_guests': total_guests,
-        'attending_guests': attending_guests,
+        'total_attendees': total_attendees,
+        'attending_attendees': attending_attendees,
         'organizer_profile': organizer_profile,
         'has_ticketed_events': has_ticketed_events,
     }
-    return render(request, 'events/dashboard.html', context)
 
+    return render(request, 'events/dashboard.html', context)
 
 # Pro
 @login_required
@@ -470,7 +494,6 @@ def create_event(request):
         'formset': formset,
         'action': 'Create'
     })
-
 
 @login_required
 def edit_event(request, slug=None):
@@ -573,7 +596,6 @@ def edit_event(request, slug=None):
         'action': 'Edit'
     })
 
-
 def event_form_view(request, pk=None):
     # Fetch existing instance if editing; otherwise, create a new one (None)
     event = get_object_or_404(Event, pk=pk) if pk else None
@@ -595,102 +617,136 @@ def event_form_view(request, pk=None):
         'is_edit': event is not None
     })
 
-# 3. PUBLIC RSVP PAGE (Guest view)
-
-def public_rsvp(request, slug):
+def public_event_attendance(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
-    capture_event_campaign_attribution(request, event) # NEWLY ADDED ANALYTICS
-    
+    capture_event_campaign_attribution(request, event)
+
     # --- VAULT UNLOCK LOGIC ---
     vault_unlocked = request.session.get(f'vault_unlocked_{event.id}', False)
-    
-    # Always initialize form at the top so it's never unbound
-    form = RSVPForm(event=event)
-    
+
+    form = EventAttendeeForm(event=event)
+
     if request.method == 'POST':
         if 'unlock_vault_code' in request.POST:
             entered_code = request.POST.get('vault_code', '').strip()
-            expected_code = getattr(event, 'vault_code', 'YOURSECRETCODE') 
-            
+            expected_code = getattr(event, 'vault_code', 'YOURSECRETCODE')
+
             if entered_code == expected_code:
                 request.session[f'vault_unlocked_{event.id}'] = True
                 vault_unlocked = True
                 messages.success(request, "Photo vault successfully unlocked!")
                 return redirect(request.path)
-            else:
-                messages.error(request, "Incorrect unlock code. Please try again.")
+
+            messages.error(request, "Incorrect unlock code. Please try again.")
+
         else:
-            form = RSVPForm(request.POST, event=event)
+            form = EventAttendeeForm(request.POST, event=event)
+
             if form.is_valid():
-                rsvp = form.save(commit=False)
-                rsvp.event = event
-                rsvp.status = 'ATTENDING'
-                
+                attendee = form.save(commit=False)
+                attendee.event = event
+                attendee.status = 'ATTENDING'
+
                 requested_plus_ones = form.cleaned_data.get('plus_ones_count', 0)
                 total_requested = 1 + requested_plus_ones
-                
-                current_headcount = sum(r.plus_ones.count() + 1 for r in event.rsvps.filter(status='ATTENDING'))
-                if event.max_capacity and (current_headcount + total_requested > event.max_capacity):
-                    messages.error(request, "Sorry, this event does not have enough remaining capacity for your requested plus-ones.")
+
+                current_headcount = sum(
+                    person.plus_ones.count() + 1
+                    for person in event.attendees.filter(status='ATTENDING')
+                )
+
+                if event.max_capacity and (
+                    current_headcount + total_requested > event.max_capacity
+                ):
+                    messages.error(
+                        request,
+                        "Sorry, this event does not have enough remaining capacity "
+                        "for your requested plus-ones.",
+                    )
                 else:
-                    ### NEWLY ADDED ANALYTICS
                     attribution = get_event_campaign_attribution(request, event)
 
-                    rsvp.campaign_id = attribution.get("campaign_id")
-                    rsvp.campaign_platform = attribution.get("platform", "")
-                    rsvp.campaign_source = attribution.get("source", "")
-                    rsvp.campaign_medium = attribution.get("medium", "")
-                    #########
-                    rsvp.save()
-                    request.session[f'rsvp_verified_{event.pk}'] = rsvp.pk
-                    
+                    attendee.campaign_id = attribution.get("campaign_id")
+                    attendee.campaign_platform = attribution.get("platform", "")
+                    attendee.campaign_source = attribution.get("source", "")
+                    attendee.campaign_medium = attribution.get("medium", "")
+
+                    attendee.save()
+                    request.session[f'attendee_verified_{event.pk}'] = attendee.pk
+
                     plus_one_names = request.POST.getlist('plus_one_names[]')
                     for name in plus_one_names:
                         if name.strip():
-                            RSVPGuest.objects.create(rsvp=rsvp, full_name=name.strip())
-                    
+                            FreeAttendeeGuest.objects.create(
+                                event_attendee=attendee,
+                                full_name=name.strip(),
+                            )
+
                     try:
-                        send_rsvp_confirmation(rsvp)
+                        send_attendance_confirmation(attendee)
                     except Exception as e:
                         print(f"Email failed to send: {e}")
-                        
-                    return redirect('events:rsvp_confirmed', pk=rsvp.pk)
 
-    raw_theme = event.theme_settings() if callable(getattr(event, 'theme_settings', None)) else getattr(event, 'theme_settings', None)
-    
+                    return redirect('events:attendee_confirmed', pk=attendee.pk)
+
+    raw_theme = (
+        event.theme_settings()
+        if callable(getattr(event, 'theme_settings', None))
+        else getattr(event, 'theme_settings', None)
+    )
+
     theme = {}
     if isinstance(raw_theme, dict):
         theme = raw_theme.copy()
-        theme['theme_color'] = theme.get('theme_color') or theme.get('primary_color') or '#3b82f6'
+        theme['theme_color'] = (
+            theme.get('theme_color')
+            or theme.get('primary_color')
+            or '#3b82f6'
+        )
     elif raw_theme is not None:
         theme = raw_theme
 
     # --- MODEL-DRIVEN SYNCHRONIZED GALLERY LOGIC ---
     if event.is_past and vault_unlocked:
-        active_db_images = GalleryImage.objects.filter(event=event, is_post_event=True)
+        active_db_images = GalleryImage.objects.filter(
+            event=event,
+            is_post_event=True,
+        )
     else:
-        active_db_images = GalleryImage.objects.filter(event=event, is_post_event=False)[:5]
+        active_db_images = GalleryImage.objects.filter(
+            event=event,
+            is_post_event=False,
+        )[:5]
 
     normalized_gallery = []
     for img_obj in active_db_images:
         normalized_gallery.append({
-            'url': img_obj.image.url, 
-            'caption': img_obj.description or '', 
-            'is_post_event': img_obj.is_post_event
+            'url': img_obj.image.url,
+            'caption': img_obj.description or '',
+            'is_post_event': img_obj.is_post_event,
         })
 
-    guest_messages = event.rsvps.exclude(guest_message__isnull=True).exclude(guest_message__exact='')
+    guest_messages = (
+        event.attendees
+        .exclude(guest_message__isnull=True)
+        .exclude(guest_message__exact='')
+    )
 
-    user_rsvp = None
+    user_attendee = None
     user_has_submitted = False
-    
-    rsvp_id = request.session.get(f'rsvp_verified_{event.pk}')
-    if rsvp_id:
-        user_rsvp = event.rsvps.filter(pk=rsvp_id, status='ATTENDING').first()
-    
-    if user_rsvp:
-        user_has_submitted = event.feedbacks.filter(rsvp=user_rsvp).exists()
+
+    attendee_id = request.session.get(f'attendee_verified_{event.pk}')
+    if attendee_id:
+        user_attendee = event.attendees.filter(
+            pk=attendee_id,
+            status='ATTENDING',
+        ).first()
+
+    if user_attendee:
+        user_has_submitted = event.feedbacks.filter(
+            event_attendee=user_attendee,
+        ).exists()
 
     feedback_list = event.feedbacks.all().order_by('-created_at')
     paginator = Paginator(feedback_list, 2)
@@ -699,71 +755,93 @@ def public_rsvp(request, slug):
 
     feedback_form = FeedbackForm()
 
-    ######
     organizer_followers_count = OrganizerFollow.objects.filter(
         organizer=event.host
     ).count()
-    ##########
 
     context = {
         'event': event,
         'form': form,
         'theme': theme,
         'guest_messages': guest_messages,
-        'gallery_images': active_db_images,       
-        'normalized_gallery': normalized_gallery, 
-        'feedback_form': feedback_form,  
+        'gallery_images': active_db_images,
+        'normalized_gallery': normalized_gallery,
+        'feedback_form': feedback_form,
         'feedbacks': feedbacks,
         'user_has_submitted': user_has_submitted,
-        'user_rsvp': user_rsvp,
-        'vault_unlocked': vault_unlocked,  
-        'ticket_fee_percent': get_active_ticket_fee_percent(),   
-        "organizer_followers_count": organizer_followers_count, #####    
+        'user_attendee': user_attendee,
+        'vault_unlocked': vault_unlocked,
+        'ticket_fee_percent': get_active_ticket_fee_percent(),
+        'organizer_followers_count': organizer_followers_count,
     }
-    return render(request, 'events/public_rsvp.html', context)
-############
 
+    return render(request, 'events/public_event_attendance.html', context)
 
-def verify_rsvp_email(request, slug):
-    """Verifies the attendee's email against the event's RSVPs and unlocks the feedback form via session."""
+def verify_attendee_email(request, slug):
+    """Verify an attendee's email and unlock the feedback form for the event."""
     event = get_object_or_404(Event, slug=slug)
+
     if request.method == 'POST':
         email = request.POST.get('attendee_email', '').strip()
-        if email:
-            matching_rsvp = event.rsvps.filter(email__iexact=email, status='ATTENDING').first()
-            if matching_rsvp:
-                request.session[f'rsvp_verified_{event.pk}'] = matching_rsvp.pk
-                messages.success(request, "Identity verified! You can now submit your feedback.")
-            else:
-                messages.error(request, "No matching attending RSVP found with that email address.")
-    return redirect('events:public_rsvp', slug=event.slug)
 
+        if email:
+            matching_attendee = event.attendees.filter(
+                email__iexact=email,
+                status='ATTENDING',
+            ).first()
+
+            if matching_attendee:
+                request.session[f'attendee_verified_{event.pk}'] = (
+                    matching_attendee.pk
+                )
+                messages.success(
+                    request,
+                    "Identity verified! You can now submit your feedback.",
+                )
+            else:
+                messages.error(
+                    request,
+                    "No attending attendee was found with that email address.",
+                )
+
+    return redirect('events:public_event_attendance', slug=event.slug)
 
 # CONNECT
-def submit_rsvp(request, slug):
+def submit_event_attendance(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
     if event.is_past:
-        messages.error(request, "This event has concluded. RSVPs are closed.")
-        return redirect('events:public_rsvp', slug=event.slug)
-    
+        messages.error(
+            request,
+            "This event has concluded. Registration is closed.",
+        )
+        return redirect('events:public_event_attendance', slug=event.slug)
+
     if request.method == 'POST':
         email = request.POST.get('email', '').strip().lower()
         full_name = request.POST.get('full_name', '').strip()
-        first_name = request.POST.get('first_name') or (full_name.split(' ', 1)[0] if full_name else '')
-        last_name = request.POST.get('last_name') or (full_name.split(' ', 1)[1] if len(full_name.split(' ', 1)) > 1 else '')
-        
+
+        name_parts = full_name.split(' ', 1)
+        first_name = request.POST.get('first_name') or name_parts[0] if name_parts else ''
+        last_name = request.POST.get('last_name') or (
+            name_parts[1] if len(name_parts) > 1 else ''
+        )
+
         phone_prefix = request.POST.get('phone_prefix', '').strip()
         custom_prefix = request.POST.get('custom_phone_prefix', '').strip()
         raw_phone = request.POST.get('phone', '').strip()
 
-        active_prefix = custom_prefix if phone_prefix == 'OTHER' and custom_prefix else phone_prefix
+        active_prefix = (
+            custom_prefix
+            if phone_prefix == 'OTHER' and custom_prefix
+            else phone_prefix
+        )
         phone = f"{active_prefix} {raw_phone}".strip() if raw_phone else ''
 
         raw_status = request.POST.get('status', 'ATTENDING').upper()
         guest_message = request.POST.get('guest_message', '').strip()
         dietary = request.POST.get('dietary_restrictions', '').strip()
-        ticket_quantity = 1
+
         try:
             ticket_quantity = int(request.POST.get('ticket_quantity', '1'))
             if ticket_quantity < 1:
@@ -771,17 +849,18 @@ def submit_rsvp(request, slug):
         except (TypeError, ValueError):
             ticket_quantity = 0
 
-        #####
-
         selected_tier = None
         status = 'ATTENDING'
-        
+
         if raw_status == 'DECLINED':
             status = 'DECLINED'
         elif raw_status.startswith('TICKET_'):
             try:
                 tier_id = int(raw_status.split('_')[1])
-                selected_tier = TicketTier.objects.get(id=tier_id, event=event)
+                selected_tier = TicketTier.objects.get(
+                    id=tier_id,
+                    event=event,
+                )
                 status = 'ATTENDING'
             except (IndexError, ValueError, TicketTier.DoesNotExist):
                 selected_tier = None
@@ -789,81 +868,151 @@ def submit_rsvp(request, slug):
             status = raw_status
 
         try:
-            plus_ones_count = int(request.POST.get('plus_ones_count') or request.POST.get('guest_count', 0))
+            plus_ones_count = int(
+                request.POST.get('plus_ones_count')
+                or request.POST.get('guest_count', 0)
+            )
             if event.allow_plus_ones:
-                plus_ones_count = min(plus_ones_count, event.max_plus_ones_per_guest)
+                plus_ones_count = min(
+                    plus_ones_count,
+                    event.max_plus_ones_per_guest,
+                )
             else:
                 plus_ones_count = 0
-        except ValueError:
+        except (TypeError, ValueError):
             plus_ones_count = 0
 
         errors = {}
 
         if not email:
             errors['email'] = "Email is required."
-        elif RSVP.objects.filter(event=event, email=email).exists():
-            errors['email'] = "This email address has already been used to RSVP for this event."
+        elif EventAttendee.objects.filter(
+            event=event,
+            email=email,
+        ).exists():
+            errors['email'] = (
+                "This email address has already been used to register "
+                "for this event."
+            )
 
         if not first_name and not full_name:
             errors['full_name'] = "Full name is required."
 
         if not errors and selected_tier:
             if selected_tier.sold_count >= selected_tier.capacity:
-                errors['email'] = f"Sorry, the '{selected_tier.name}' pass is completely sold out."
+                errors['email'] = (
+                    f"Sorry, the '{selected_tier.name}' pass is completely sold out."
+                )
 
         if not errors and event.max_capacity and status == 'ATTENDING':
             incoming_headcount = 1 + plus_ones_count
-            
-            current_headcount = event.rsvps.filter(status='ATTENDING').aggregate(
+
+            current_headcount = event.attendees.filter(
+                status='ATTENDING',
+            ).aggregate(
                 total=Sum('plus_ones_count')
             )['total'] or 0
-            current_primary_count = event.rsvps.filter(status='ATTENDING').count()
-            total_current_attendees = current_primary_count + current_headcount
 
-            if (total_current_attendees + incoming_headcount) > event.max_capacity:
-                remaining_spots = max(0, event.max_capacity - total_current_attendees)
-                errors['plus_ones_count'] = f"Sorry, this event has reached its maximum venue capacity of {event.max_capacity} guests. Only {remaining_spots} spot(s) remaining."
+            current_primary_count = event.attendees.filter(
+                status='ATTENDING',
+            ).count()
+
+            total_current_attendees = (
+                current_primary_count + current_headcount
+            )
+
+            if (
+                total_current_attendees + incoming_headcount
+                > event.max_capacity
+            ):
+                remaining_spots = max(
+                    0,
+                    event.max_capacity - total_current_attendees,
+                )
+                errors['plus_ones_count'] = (
+                    f"Sorry, this event has reached its maximum venue capacity "
+                    f"of {event.max_capacity} guests. Only {remaining_spots} "
+                    "spot(s) remaining."
+                )
 
         if errors:
-            raw_theme = event.theme_settings() if callable(getattr(event, 'theme_settings', None)) else getattr(event, 'theme_settings', None)
-            theme = raw_theme.copy() if isinstance(raw_theme, dict) else (raw_theme or {})
-            if isinstance(theme, dict):
-                theme['theme_color'] = theme.get('theme_color') or theme.get('primary_color') or '#3b82f6'
+            raw_theme = (
+                event.theme_settings()
+                if callable(getattr(event, 'theme_settings', None))
+                else getattr(event, 'theme_settings', None)
+            )
+            theme = (
+                raw_theme.copy()
+                if isinstance(raw_theme, dict)
+                else (raw_theme or {})
+            )
 
-            raw_gallery = theme.get('gallery_slides') or theme.get('gallery_images', [])
+            if isinstance(theme, dict):
+                theme['theme_color'] = (
+                    theme.get('theme_color')
+                    or theme.get('primary_color')
+                    or '#3b82f6'
+                )
+
+            raw_gallery = (
+                theme.get('gallery_slides')
+                or theme.get('gallery_images', [])
+            )
+
             normalized_gallery = []
+
             for item in raw_gallery:
                 if isinstance(item, str):
-                    normalized_gallery.append({'url': item, 'caption': ''})
+                    normalized_gallery.append({
+                        'url': item,
+                        'caption': '',
+                    })
                 elif isinstance(item, dict):
                     url = item.get('url') or item.get('image') or ''
-                    caption = item.get('description') or item.get('caption') or item.get('text') or ''
+                    caption = (
+                        item.get('description')
+                        or item.get('caption')
+                        or item.get('text')
+                        or ''
+                    )
                     if url:
-                        normalized_gallery.append({'url': url, 'caption': caption})
+                        normalized_gallery.append({
+                            'url': url,
+                            'caption': caption,
+                        })
 
             context = {
                 'event': event,
                 'theme': theme,
-                'guest_messages': event.rsvps.exclude(guest_message__isnull=True).exclude(guest_message__exact=''),
+                'guest_messages': event.attendees.exclude(
+                    guest_message__isnull=True,
+                ).exclude(guest_message__exact=''),
                 'normalized_gallery': normalized_gallery,
-                'form_data': request.POST,  
-                'form_errors': errors,      
+                'form_data': request.POST,
+                'form_errors': errors,
             }
-            return render(request, 'events/public_rsvp.html', context)
 
-        # PAID TICKET FLOW        
+            return render(
+                request,
+                'events/public_event_attendance.html',
+                context,
+            )
+
+        # PAID TICKET FLOW
         if selected_tier and selected_tier.price > 0:
             if not getattr(settings, 'STRIPE_SECRET_KEY', None):
                 messages.error(
                     request,
                     "Online payment is currently unavailable. Please try again later.",
                 )
-                return redirect('events:public_rsvp', slug=event.slug)
+                return redirect(
+                    'events:public_event_attendance',
+                    slug=event.slug,
+                )
 
-            # Retrieve campaign attribution captured on the public event page.
             attribution = get_event_campaign_attribution(request, event)
 
-            pending_order = PendingTicketOrder.objects.create(
+            ticket_order = TicketOrder.objects.create(
                 event=event,
                 ticket_tier=selected_tier,
                 ticket_quantity=ticket_quantity,
@@ -873,8 +1022,6 @@ def submit_rsvp(request, slug):
                 phone=phone,
                 guest_message=guest_message,
                 dietary_restrictions=dietary,
-
-                # Campaign attribution
                 campaign_id=attribution.get("campaign_id"),
                 campaign_platform=attribution.get("platform", ""),
                 campaign_source=attribution.get("source", ""),
@@ -883,30 +1030,31 @@ def submit_rsvp(request, slug):
 
             checkout_session = create_checkout_session(
                 request,
-                pending_order,
+                ticket_order,
             )
 
             if checkout_session:
                 return redirect(checkout_session.url, code=303)
 
-            # Checkout could not be started, so remove the pending order.
-            pending_order.delete()
+            ticket_order.delete()
 
             messages.error(
                 request,
                 "Could not initiate payment. Please check whether the host "
                 "has connected their Stripe payout account, then try again.",
             )
-            return redirect('events:public_rsvp', slug=event.slug)
+            return redirect(
+                'events:public_event_attendance',
+                slug=event.slug,
+            )
 
-        # FREE RSVP FLOW — retain your existing behavior.
+        # FREE REGISTRATION FLOW
         is_paid = False
-        ###########
 
         if selected_tier and selected_tier.price == 0:
             is_paid = True
 
-        rsvp = RSVP.objects.create(
+        attendee = EventAttendee.objects.create(
             event=event,
             ticket_tier=selected_tier,
             ticket_quantity=ticket_quantity,
@@ -916,7 +1064,11 @@ def submit_rsvp(request, slug):
             last_name=last_name,
             phone=phone,
             status=status,
-            plus_ones_allowed=getattr(event, 'max_plus_ones_per_guest', 0),
+            plus_ones_allowed=getattr(
+                event,
+                'max_plus_ones_per_guest',
+                0,
+            ),
             plus_ones_count=plus_ones_count,
             guest_message=guest_message,
             dietary_restrictions=dietary,
@@ -924,7 +1076,6 @@ def submit_rsvp(request, slug):
 
         if status == 'ATTENDING' and event.allow_plus_ones:
             for i in range(1, plus_ones_count + 1):
-                # Accept the current field name and the previous field name.
                 guest_name = (
                     request.POST.get(f'guest_name_{i}')
                     or request.POST.get(f'plus_one_name_{i}')
@@ -932,13 +1083,13 @@ def submit_rsvp(request, slug):
                 ).strip()
 
                 if guest_name:
-                    RSVPGuest.objects.create(
-                        rsvp=rsvp,
+                    FreeAttendeeGuest.objects.create(
+                        event_attendee=attendee,
                         full_name=guest_name,
                     )
                 else:
                     print(
-                        f"RSVP DEBUG: Guest name {i} was not received. "
+                        f"Attendee DEBUG: Guest name {i} was not received. "
                         f"POST keys: {list(request.POST.keys())}"
                     )
 
@@ -947,21 +1098,24 @@ def submit_rsvp(request, slug):
             selected_tier.save()
 
         try:
-            send_rsvp_confirmation(rsvp)
+            send_attendance_confirmation(attendee)
         except Exception as e:
             print(f"Email delivery error: {e}")
 
         messages.success(
             request,
-            "Your RSVP and ticket selection have been recorded successfully!",
+            "Your registration and ticket selection have been recorded successfully!",
         )
-        return redirect('events:rsvp_confirmed', pk=rsvp.pk)
 
-    return redirect('events:public_rsvp', slug=slug)
+        return redirect(
+            'events:attendee_confirmed',
+            pk=attendee.pk,
+        )
 
+    return redirect('events:public_event_attendance', slug=slug)
 
 @login_required
-def event_rsvps_management(request, slug):
+def event_attendees_management(request, slug):
     event = get_object_or_404(
         Event,
         slug=slug,
@@ -998,49 +1152,50 @@ def event_rsvps_management(request, slug):
             "Post-event vault and deliverables updated successfully!",
         )
         return redirect(
-            'events:event_rsvps_management',
+            'events:event_attendees_management',
             slug=event.slug,
         )
 
-    # Annotate each RSVP with its latest associated ticket-order status.
-    latest_order = PendingTicketOrder.objects.filter(
-        rsvp_id=OuterRef('pk'),
+    # Annotate each attendee with the latest associated ticket-order status.
+    latest_order = TicketOrder.objects.filter(
+        event_attendee_id=OuterRef('pk'),
     ).order_by('-pk')
 
-    
-    rsvps = event.rsvps.all().annotate(
+    attendees = event.attendees.all().annotate(
         ticket_order_status=Subquery(
             latest_order.values('status')[:1]
         )
     )
 
-    # Preserve the complete RSVP queryset for summary calculations.
-    all_rsvps = rsvps
-    has_any_rsvps = event.rsvps.exists()
+    # Preserve the complete attendee queryset for summary calculations.
+    all_attendees = attendees
+    has_any_attendees = event.attendees.exists()
 
-    # Total Responses excludes refunded/cancelled ticket orders.
+    # Total responses excludes refunded/cancelled ticket orders.
     if event.is_ticketed:
-        total_rsvps = all_rsvps.exclude(
+        total_attendees = all_attendees.exclude(
             ticket_order_status__in=['refunded', 'cancelled']
         ).count()
     else:
-        total_rsvps = all_rsvps.count()
+        total_attendees = all_attendees.count()
 
     # Calculate confirmed ticket quantities independently of table filters.
-    attending_rsvps = event.rsvps.filter(status='ATTENDING')
+    attending_attendees = event.attendees.filter(status='ATTENDING')
 
     if event.is_ticketed:
-        attending_rsvps = attending_rsvps.filter(is_paid=True).exclude(
-            pending_ticket_order__status__in=['refunded', 'cancelled']
+        attending_attendees = attending_attendees.filter(
+            is_paid=True,
+        ).exclude(
+            ticket_order__status__in=['refunded', 'cancelled']
         )
 
-    attending_count = attending_rsvps.aggregate(
+    attending_count = attending_attendees.aggregate(
         total=Sum('ticket_quantity')
     )['total'] or 0
 
     # Calculate total headcount, including plus-ones.
-    extra = event.rsvps.filter(
-        status='ATTENDING'
+    extra = event.attendees.filter(
+        status='ATTENDING',
     ).aggregate(
         total=Sum('plus_ones_count')
     )['total'] or 0
@@ -1067,7 +1222,7 @@ def event_rsvps_management(request, slug):
     search_query = request.GET.get('q', '').strip()
 
     if search_query:
-        rsvps = rsvps.annotate(
+        attendees = attendees.annotate(
             computed_full_name=Concat(
                 'first_name',
                 Value(' '),
@@ -1085,99 +1240,142 @@ def event_rsvps_management(request, slug):
 
     if status_filter:
         if event.is_ticketed and status_filter in ('refunded', 'cancelled'):
-            matching_rsvp_ids = PendingTicketOrder.objects.filter(
-                rsvp_id__in=event.rsvps.values_list('pk', flat=True),
+            matching_attendee_ids = TicketOrder.objects.filter(
+                event_attendee_id__in=event.attendees.values_list(
+                    'pk',
+                    flat=True,
+                ),
                 status=status_filter,
-            ).values_list('rsvp_id', flat=True)
+            ).values_list('event_attendee_id', flat=True)
 
-            rsvps = rsvps.filter(pk__in=matching_rsvp_ids)
+            attendees = attendees.filter(
+                pk__in=matching_attendee_ids,
+            )
         else:
-            rsvps = rsvps.filter(status=status_filter)
+            attendees = attendees.filter(status=status_filter)
 
     # This count must match the queryset used to render the table.
-    filtered_rsvp_count = rsvps.count()
+    filtered_attendee_count = attendees.count()
 
     context = {
         'event': event,
-        'rsvps': rsvps,
+        'attendees': attendees,
         'search_query': search_query,
         'status_filter': status_filter,
-        'total_rsvps': total_rsvps,
-        'filtered_rsvp_count': filtered_rsvp_count,
+        'total_attendees': total_attendees,
+        'filtered_attendee_count': filtered_attendee_count,
         'attending_count': attending_count,
         'total_headcount': total_headcount,
         'capacity_status': capacity_status,
         'post_event_photos': event.gallery_images.filter(
-            is_post_event=True
+            is_post_event=True,
         ),
-        'has_any_rsvps': has_any_rsvps,
+        'has_any_attendees': has_any_attendees,
     }
 
     return render(
         request,
-        'events/event_rsvps_management.html',
+        'events/event_attendees_management.html',
         context,
     )
 
-def view_rsvp_detail(request, slug, pk):
+def view_attendee_detail(request, slug, pk):
     event = get_object_or_404(Event, slug=slug)
-    rsvp = get_object_or_404(RSVP, pk=pk, event=event)
-    
+
+    attendee = get_object_or_404(
+        EventAttendee,
+        pk=pk,
+        event=event,
+    )
+
     context = {
         'event': event,
-        'rsvp': rsvp,
-        'additional_guests': rsvp.plus_ones.all(),
+        'attendee': attendee,
+        'additional_guests': attendee.plus_ones.all(),
     }
-    return render(request, 'events/view_rsvp_detail.html', context)
 
+    return render(
+        request,
+        'events/view_attendee_detail.html',
+        context,
+    )
 
-def edit_rsvp(request, slug, pk):
+def edit_attendee(request, slug, pk):
     event = get_object_or_404(Event, slug=slug)
-    rsvp = get_object_or_404(RSVP, pk=pk, event=event)
+    attendee = get_object_or_404(
+        EventAttendee,
+        pk=pk,
+        event=event,
+    )
 
     if event.is_past:
-        messages.error(request, "This event has concluded. RSVPs are closed.")
-        return redirect('events:event_rsvps_management', slug=event.slug)
-    
+        messages.error(
+            request,
+            "This event has concluded. Registration is closed.",
+        )
+        return redirect(
+            'events:event_attendees_management',
+            slug=event.slug,
+        )
+
     if request.method == 'POST':
-        form = RSVPForm(request.POST, instance=rsvp)
+        form = EventAttendeeForm(request.POST, instance=attendee)
+
         if form.is_valid():
-            updated_rsvp = form.save(commit=False)
-            
-            # Handle guest count & dynamic plus-one names correctly using RSVPGuest
+            updated_attendee = form.save(commit=False)
+
+            # Handle guest count and dynamic plus-one names.
             if event.allow_plus_ones and event.max_plus_ones_per_guest > 0:
                 try:
                     guest_count = int(request.POST.get('guest_count', 0))
-                except ValueError:
+                except (TypeError, ValueError):
                     guest_count = 0
-                
-                if guest_count > event.max_plus_ones_per_guest:
-                    guest_count = event.max_plus_ones_per_guest
-                if guest_count < 0:
-                    guest_count = 0
-                
-                updated_rsvp.plus_ones_count = guest_count
-                updated_rsvp.save()
-                
-                # Clear and recreate plus-ones using RSVPGuest model
-                rsvp.plus_ones.all().delete()
+
+                guest_count = max(
+                    0,
+                    min(guest_count, event.max_plus_ones_per_guest),
+                )
+
+                updated_attendee.plus_ones_count = guest_count
+                updated_attendee.save()
+
+                # Clear and recreate plus-ones.
+                attendee.plus_ones.all().delete()
+
                 for i in range(1, guest_count + 1):
-                    guest_name = request.POST.get(f'plus_one_name_{i}')
+                    guest_name = request.POST.get(
+                        f'plus_one_name_{i}',
+                        '',
+                    ).strip()
+
                     if guest_name:
-                        RSVPGuest.objects.create(rsvp=updated_rsvp, full_name=guest_name)
+                        FreeAttendeeGuest.objects.create(
+                            event_attendee=updated_attendee,
+                            full_name=guest_name,
+                        )
             else:
-                updated_rsvp.save()
-                
-            return redirect('events:view_rsvp_detail', slug=event.slug, pk=rsvp.pk)
+                updated_attendee.save()
+
+            return redirect(
+                'events:view_attendee_detail',
+                slug=event.slug,
+                pk=updated_attendee.pk,
+            )
+
     else:
-        form = RSVPForm(instance=rsvp)
-        
+        form = EventAttendeeForm(instance=attendee)
+
     context = {
         'event': event,
-        'rsvp': rsvp,
+        'attendee': attendee,
         'form': form,
     }
-    return render(request, 'events/edit_rsvp.html', context)
+
+    return render(
+        request,
+        'events/edit_attendee.html',
+        context,
+    )
 
 # CLONE EXISTING EVENT
 @login_required
@@ -1222,25 +1420,24 @@ def download_ics(request, slug):
     start_date = event.event_date.strftime('%Y%m%d') if hasattr(event.event_date, 'strftime') else str(event.event_date)
     
     ics_content = f"""BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Manage My Event Platform//EN
-BEGIN:VEVENT
-SUMMARY:{event.title}
-DESCRIPTION:{getattr(event, 'description', '')}
-LOCATION:{getattr(event, 'location_name', '')}
-DTSTART:{start_date}
-DTEND:{start_date}
-END:VEVENT
-END:VCALENDAR"""
+    VERSION:2.0
+    PRODID:-//Manage My Event Platform//EN
+    BEGIN:VEVENT
+    SUMMARY:{event.title}
+    DESCRIPTION:{getattr(event, 'description', '')}
+    LOCATION:{getattr(event, 'location_name', '')}
+    DTSTART:{start_date}
+    DTEND:{start_date}
+    END:VEVENT
+    END:VCALENDAR"""
     
     response = HttpResponse(ics_content, content_type='text/calendar')
     response['Content-Disposition'] = f'attachment; filename="{event.slug}.ics"'
     return response
 
-
-def rsvp_confirmed_view(request, pk):
-    rsvp = get_object_or_404(RSVP, pk=pk)
-    event = rsvp.event
+def attendee_confirmed_view(request, pk):
+    attendee = get_object_or_404(EventAttendee, pk=pk)
+    event = attendee.event
 
     session_id = request.GET.get('session_id')
 
@@ -1250,143 +1447,232 @@ def rsvp_confirmed_view(request, pk):
             stripe.api_key = settings.STRIPE_SECRET_KEY
             session = stripe.checkout.Session.retrieve(session_id)
 
-            # Verify that the session belongs to this RSVP.
-            if session.client_reference_id != str(rsvp.pk):
+            # Verify that the session belongs to this attendee.
+            if session.client_reference_id != str(attendee.pk):
                 messages.error(request, "Invalid payment session.")
-                return redirect('events:public_rsvp', slug=event.slug)
+                return redirect('events:public_event_attendance', slug=event.slug)
 
             if session.payment_status == 'paid':
-                if not rsvp.is_paid:
-                    rsvp.is_paid = True
-                    rsvp.save(update_fields=['is_paid', 'updated_at'])
+                if not attendee.is_paid:
+                    attendee.is_paid = True
+                    attendee.save(update_fields=['is_paid', 'updated_at'])
 
-                    # Increase sold count only when marking this RSVP paid.
-                    if rsvp.ticket_tier:
-                        rsvp.ticket_tier.sold_count += rsvp.ticket_quantity
-                        rsvp.ticket_tier.save(
+                    # Increase sold count only when marking this attendee paid.
+                    if attendee.ticket_tier:
+                        attendee.ticket_tier.sold_count += attendee.ticket_quantity
+                        attendee.ticket_tier.save(
                             update_fields=['sold_count']
                         )
             else:
                 messages.error(request, "Payment has not been completed.")
-                return redirect('events:public_rsvp', slug=event.slug)
+                return redirect('events:public_event_attendance', slug=event.slug)
 
         except Exception as e:
             print(f"Stripe Session Verification Error: {e}")
             messages.error(request, "Unable to verify your payment.")
-            return redirect('events:public_rsvp', slug=event.slug)
+            return redirect('events:public_event_attendance', slug=event.slug)
 
-    # Create any missing individual tickets for paid orders.
-    # This also handles orders that were already marked paid.
-    if rsvp.is_paid and event.enable_qr_checkins:
-        for ticket_number in range(1, rsvp.ticket_quantity + 1):
+    # Create any missing individual tickets for paid attendees.
+    # This also handles attendees already marked as paid.
+    if attendee.is_paid and event.enable_qr_checkins:
+        for ticket_number in range(1, attendee.ticket_quantity + 1):
             IndividualTicket.objects.get_or_create(
-                rsvp=rsvp,
+                event_attendee=attendee,
                 ticket_number=ticket_number,
             )
 
-    # Preserve your existing session authorization.
-    request.session[f'rsvp_verified_{event.pk}'] = rsvp.pk
+    # Preserve the session authorization using attendee terminology.
+    request.session[f'attendee_verified_{event.pk}'] = attendee.pk
 
     return render(
         request,
-        'events/rsvp_confirmed.html',
-        {'rsvp': rsvp, 'event': event},
+        'events/attendee_confirmed.html',
+        {
+            'attendee': attendee,
+            'event': event,
+        },
     )
-
-# @login_required
-# def verify_checkin(request, slug, token):
-#     event = get_object_or_404(Event, slug=slug, host=request.user)
-    
-#     if not event.enable_qr_checkins:
-#         messages.error(request, "QR check-ins are not enabled for this event.")
-#         #return redirect('events:dashboard', slug=event.slug)
-#         return redirect('events:door_dashboard', slug=event.slug)
-        
-#     rsvp = get_object_or_404(RSVP, event=event, checkin_token=token)
-    
-#     if not rsvp.checked_in:
-#         rsvp.checked_in = True
-#         rsvp.checked_in_at = timezone.now()
-#         rsvp.save()
-#         messages.success(request, f"Checked in: {rsvp.first_name} {rsvp.last_name}!")
-#     else:
-#         messages.warning(request, f"Guest already checked in at {rsvp.checked_in_at.strftime('%H:%M')}.")
-        
-#     return redirect('events:door_dashboard', slug=event.slug)
 
 @login_required
 def verify_checkin(request, slug, token):
-    event = get_object_or_404(Event, slug=slug, host=request.user)
-    rsvp = get_object_or_404(RSVP, event=event, checkin_token=token)
+    event = get_object_or_404(
+        Event,
+        slug=slug,
+        host=request.user,
+    )
 
-    if not event.enable_qr_checkins:
-        messages.warning(request, "QR check-ins are disabled, but host override was applied.")
-
-    # Check if host explicitly wants to undo check-in (via query param or toggle button)
     is_undo = request.GET.get("undo") == "true"
 
-    if is_undo and rsvp.checked_in:
-        # Host explicitly undoing check-in from dashboard link
-        rsvp.checked_in = False
-        rsvp.checked_in_at = None
-        messages.info(request, f"Check-in undone for: {rsvp.first_name} {rsvp.last_name}")
-    else:
-        # Standard scan or manual check-in click
-        if not rsvp.checked_in:
-            rsvp.checked_in = True
-            rsvp.checked_in_at = timezone.now()
-            messages.success(request, f"Checked in: {rsvp.first_name} {rsvp.last_name}!")
+    if event.is_ticketed:
+        ticket = get_object_or_404(
+            IndividualTicket,
+            event_attendee__event=event,
+            checkin_token=token,
+        )
+
+        if is_undo and ticket.checked_in:
+            ticket.checked_in = False
+            ticket.checked_in_at = None
+            messages.info(
+                request,
+                f"Check-in undone for ticket #{ticket.ticket_number}.",
+            )
+        elif not ticket.checked_in:
+            ticket.checked_in = True
+            ticket.checked_in_at = timezone.now()
+            messages.success(
+                request,
+                f"Checked in: {ticket.event_attendee.full_name}, "
+                f"ticket #{ticket.ticket_number}.",
+            )
         else:
-            # Re-scanning an already checked-in guest
             checkin_time = (
-                rsvp.checked_in_at.strftime("%H:%M")
-                if rsvp.checked_in_at
+                ticket.checked_in_at.strftime("%H:%M")
+                if ticket.checked_in_at
                 else "earlier"
             )
-            messages.warning(request, f"{rsvp.first_name} {rsvp.last_name} was already checked in at {checkin_time}.")
+            messages.warning(
+                request,
+                f"Ticket #{ticket.ticket_number} was already "
+                f"checked in at {checkin_time}.",
+            )
 
-    rsvp.save(update_fields=["checked_in", "checked_in_at"])
+        ticket.save(update_fields=["checked_in", "checked_in_at"])
+
+    else:
+        attendee = get_object_or_404(
+            EventAttendee,
+            event=event,
+            checkin_token=token,
+        )
+
+        if is_undo and attendee.checked_in:
+            attendee.checked_in = False
+            attendee.checked_in_at = None
+            messages.info(
+                request,
+                f"Check-in undone for {attendee.full_name}.",
+            )
+        elif not attendee.checked_in:
+            attendee.checked_in = True
+            attendee.checked_in_at = timezone.now()
+            messages.success(
+                request,
+                f"Checked in: {attendee.full_name}.",
+            )
+        else:
+            checkin_time = (
+                attendee.checked_in_at.strftime("%H:%M")
+                if attendee.checked_in_at
+                else "earlier"
+            )
+            messages.warning(
+                request,
+                f"{attendee.full_name} was already checked in "
+                f"at {checkin_time}.",
+            )
+
+        attendee.save(update_fields=["checked_in", "checked_in_at"])
 
     return redirect("events:door_dashboard", slug=event.slug)
 
-
 def event_door_dashboard(request, slug):
     event = get_object_or_404(Event, slug=slug, host=request.user)
-    #rsvps = event.rsvps.all()
-    rsvps = event.rsvps.select_related('ticket_tier').all()
 
-    search_query = request.GET.get('q', '').strip()
-    if search_query:
-        rsvps = rsvps.annotate(
-            computed_full_name=Concat('first_name', Value(' '), 'last_name')
-        ).filter(
-            Q(first_name__icontains=search_query) | 
-            Q(last_name__icontains=search_query) | 
-            Q(computed_full_name__icontains=search_query) |
-            Q(email__icontains=search_query) |
-            Q(phone__icontains=search_query)
+    search_query = request.GET.get("q", "").strip()
+    status_filter = request.GET.get("status", "").strip()
+
+    if event.is_ticketed:
+        # Paid tickets must be checked in individually.
+        ticket_rows = IndividualTicket.objects.filter(
+            event_attendee__event=event,
+        ).select_related(
+            "event_attendee",
+            "event_attendee__ticket_tier",
         )
 
-    status_filter = request.GET.get('status', '').strip()
-    if status_filter == 'ATTENDING':
-        rsvps = rsvps.filter(status='ATTENDING')
-    elif status_filter == 'DECLINED':
-        rsvps = rsvps.filter(status='DECLINED')
-    elif status_filter == 'checked_in':
-        rsvps = rsvps.filter(checked_in=True)
-    elif status_filter == 'pending':
-        rsvps = rsvps.filter(checked_in=False)
+        if search_query:
+            ticket_rows = ticket_rows.filter(
+                Q(event_attendee__first_name__icontains=search_query)
+                | Q(event_attendee__last_name__icontains=search_query)
+                | Q(event_attendee__email__icontains=search_query)
+                | Q(event_attendee__phone__icontains=search_query)
+            )
 
-    context = {
-        'event': event,
-        'rsvps': rsvps,
-        'total_rsvps': event.rsvps.count(),
-        'checked_in_count': event.rsvps.filter(checked_in=True).count(),
-        'pending_count': event.rsvps.filter(checked_in=False).count(),
-        'search_query': search_query,
-        'status_filter': status_filter,
-    }
-    return render(request, 'events/door_dashboard.html', context)
+        if status_filter == "ATTENDING":
+            ticket_rows = ticket_rows.filter(
+                event_attendee__status="ATTENDING",
+            )
+        elif status_filter == "DECLINED":
+            ticket_rows = ticket_rows.filter(
+                event_attendee__status="DECLINED",
+            )
+        elif status_filter == "checked_in":
+            ticket_rows = ticket_rows.filter(checked_in=True)
+        elif status_filter == "pending":
+            ticket_rows = ticket_rows.filter(checked_in=False)
+
+        context = {
+            "event": event,
+            "ticket_rows": ticket_rows,
+            "total_attendees": IndividualTicket.objects.filter(
+                event_attendee__event=event,
+            ).count(),
+            "checked_in_count": IndividualTicket.objects.filter(
+                event_attendee__event=event,
+                checked_in=True,
+            ).count(),
+            "pending_count": IndividualTicket.objects.filter(
+                event_attendee__event=event,
+                checked_in=False,
+            ).count(),
+            "search_query": search_query,
+            "status_filter": status_filter,
+        }
+
+    else:
+        # Preserve the existing free-event attendee check-in flow.
+        attendees = event.attendees.select_related("ticket_tier").all()
+
+        if search_query:
+            attendees = attendees.annotate(
+                computed_full_name=Concat(
+                    "first_name",
+                    Value(" "),
+                    "last_name",
+                )
+            ).filter(
+                Q(first_name__icontains=search_query)
+                | Q(last_name__icontains=search_query)
+                | Q(computed_full_name__icontains=search_query)
+                | Q(email__icontains=search_query)
+                | Q(phone__icontains=search_query)
+            )
+
+        if status_filter == "ATTENDING":
+            attendees = attendees.filter(status="ATTENDING")
+        elif status_filter == "DECLINED":
+            attendees = attendees.filter(status="DECLINED")
+        elif status_filter == "checked_in":
+            attendees = attendees.filter(checked_in=True)
+        elif status_filter == "pending":
+            attendees = attendees.filter(checked_in=False)
+
+        context = {
+            "event": event,
+            "attendees": attendees,
+            "total_attendees": event.attendees.count(),
+            "checked_in_count": event.attendees.filter(
+                checked_in=True,
+            ).count(),
+            "pending_count": event.attendees.filter(
+                checked_in=False,
+            ).count(),
+            "search_query": search_query,
+            "status_filter": status_filter,
+        }
+
+    return render(request, "events/door_dashboard.html", context)
 
 def features_view(request):
     return render(request, 'events/features_page.html')
@@ -1458,7 +1744,7 @@ def manage_event_tiers(request, slug):
             form.save()
             formset.save()
             messages.success(request, "Ticket tiers updated successfully!")
-            return redirect('events:event_rsvps_management', slug=event.slug)
+            return redirect('events:event_attendees_management', slug=event.slug)
         else:
             print("Form errors:", form.errors)
             print("Formset errors:", formset.errors)
@@ -1474,26 +1760,35 @@ def manage_event_tiers(request, slug):
     return render(request, 'events/manage_event_tiers.html', context)
 
 @login_required
-def export_rsvps_csv(request, slug):
+def export_attendees_csv(request, slug):
     event = get_object_or_404(Event, slug=slug, host=request.user)
-    rsvps = event.rsvps.all()
+    attendees = event.attendees.all()
 
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="{event.slug}_rsvps.csv"'
+    response['Content-Disposition'] = (
+        f'attachment; filename="{event.slug}_attendees.csv"'
+    )
 
     writer = csv.writer(response)
-    writer.writerow(['First Name', 'Last Name', 'Email', 'Status', 'Updated At'])
+    writer.writerow([
+        'First Name',
+        'Last Name',
+        'Email',
+        'Status',
+        'Updated At',
+    ])
 
-    for rsvp in rsvps:
+    for attendee in attendees:
         writer.writerow([
-            rsvp.first_name,
-            rsvp.last_name,
-            rsvp.email or 'N/A',
-            rsvp.status,
-            rsvp.updated_at
+            attendee.first_name,
+            attendee.last_name,
+            attendee.email or 'N/A',
+            attendee.status,
+            attendee.updated_at,
         ])
 
     return response
+
 
 # def bento_view(request):
 #     return render(request, 'events/layouts/bento.html')
@@ -1509,8 +1804,6 @@ def export_rsvps_csv(request, slug):
 
 # def story_teller_view(request):
 #     return render(request, 'events/layouts/story_teller_festival.html')
-
-
 
 # CONNECT
 @login_required
@@ -1612,16 +1905,16 @@ def event_analytics_dashboard(request, slug):
         Uses TicketTier.sold_count and reserved_count.
 
     Paid ticket orders:
-        Uses PendingTicketOrder.status. Refunded orders are
+        Uses TicketOrder.status. Refunded orders are
         excluded from currently paid orders.
 
     Estimated sales:
         Uses current ticket-tier prices and quantities on paid
         orders. This is an estimate, not a historical Stripe ledger.
 
-    RSVP analytics:
-        Keeps RSVP record counts separate from ticket inventory.
-        Free-event headcount includes confirmed RSVPGuest records.
+    EventAttendee analytics:
+        Keeps EventAttendee record counts separate from ticket inventory.
+        Free-event headcount includes confirmed FreeAttendeeGuest records.
 
     Marketing attribution:
         Reports tracked visits, attributed ticket-order records,
@@ -1658,43 +1951,43 @@ def event_analytics_dashboard(request, slug):
     has_ticket_tiers = bool(ticket_tiers)
 
     # ---------------------------------------------------------
-    # RSVP RECORD COUNTS
-    # These are RSVP records, not ticket quantities.
+    # EventAttendee RECORD COUNTS
+    # These are EventAttendee records, not ticket quantities.
     # ---------------------------------------------------------
 
-    rsvps = RSVP.objects.filter(event=event)
+    attendees = EventAttendee.objects.filter(event=event)
 
-    total_rsvps = rsvps.count()
+    total_attendees = attendees.count()
 
-    confirmed_rsvps = rsvps.filter(
+    confirmed_attendees = attendees.filter(
         status="ATTENDING",
     ).count()
 
-    pending_rsvps = rsvps.filter(
+    pending_attendees = attendees.filter(
         status="PENDING",
     ).count()
 
-    declined_rsvps = rsvps.filter(
+    declined_attendees = attendees.filter(
         status="DECLINED",
     ).count()
 
-    checked_in_guests = rsvps.filter(
+    checked_in_guests = attendees.filter(
         checked_in=True,
     ).count()
 
-    # RSVPGuest headcount applies to the free-RSVP presentation.
+    # FreeAttendeeGuest headcount applies to the free-EventAttendee presentation.
     # Ticketed events must use ticket quantities instead.
     if has_ticket_tiers:
         total_headcount = 0
     else:
-        confirmed_rsvp_records = rsvps.filter(
+        confirmed_attendee_records = attendees.filter(
             status="ATTENDING",
         )
 
         total_headcount = (
-            confirmed_rsvps
-            + RSVPGuest.objects.filter(
-                rsvp__in=confirmed_rsvp_records,
+            confirmed_attendees
+            + FreeAttendeeGuest.objects.filter(
+                event_attendee__in=confirmed_attendee_records,
             ).count()
         )
 
@@ -1702,16 +1995,16 @@ def event_analytics_dashboard(request, slug):
     # TICKET ORDERS
     # ---------------------------------------------------------
 
-    ticket_orders = PendingTicketOrder.objects.filter(
+    ticket_orders = TicketOrder.objects.filter(
         event=event,
     ).select_related("ticket_tier")
 
     paid_ticket_orders = ticket_orders.filter(
-        status=PendingTicketOrder.STATUS_PAID,
+        status=TicketOrder.STATUS_PAID,
     )
 
     unpaid_ticket_orders = ticket_orders.filter(
-        status=PendingTicketOrder.STATUS_PENDING,
+        status=TicketOrder.STATUS_PENDING,
     )
 
     paid_orders = paid_ticket_orders.count()
@@ -1755,7 +2048,7 @@ def event_analytics_dashboard(request, slug):
                 "medium": "",
                 "campaign_name": f"Campaign #{campaign_id}",
                 "tracked_visits": 0,
-                "attributed_rsvps": 0,
+                "attributed_orders": 0,
                 "paid_orders": 0,
                 "estimated_revenue": zero_money,
             }
@@ -1787,8 +2080,6 @@ def event_analytics_dashboard(request, slug):
             metric["medium"] = visit["medium"]
 
     # Attributed ticket-order records.
-    # Keep the existing "attributed_rsvps" key for template
-    # compatibility; each increment here represents an order row.
     attributed_ticket_orders = ticket_orders.filter(
         campaign_id__isnull=False,
     ).values(
@@ -1804,7 +2095,7 @@ def event_analytics_dashboard(request, slug):
             order_row["campaign_platform"],
         )
 
-        metric["attributed_rsvps"] += 1
+        metric["attributed_orders"] += 1
 
         if order_row["campaign_source"]:
             metric["source"] = order_row["campaign_source"]
@@ -1885,7 +2176,7 @@ def event_analytics_dashboard(request, slug):
     campaign_performance.sort(
         key=lambda row: (
             row["tracked_visits"],
-            row["attributed_rsvps"],
+            row["attributed_orders"],
             row["paid_orders"],
         ),
         reverse=True,
@@ -1903,7 +2194,7 @@ def event_analytics_dashboard(request, slug):
     # ]
 
     channel_attribution_data = [
-        row["attributed_rsvps"] for row in campaign_performance
+        row["attributed_orders"] for row in campaign_performance
     ]
 
     # ---------------------------------------------------------
@@ -2025,7 +2316,7 @@ def event_analytics_dashboard(request, slug):
     trend_start = now - timedelta(days=29)
 
     daily_registrations = (
-        rsvps.filter(
+        attendees.filter(
             created_at__gte=trend_start,
         )
         .extra(
@@ -2060,7 +2351,7 @@ def event_analytics_dashboard(request, slug):
     # Uses actual recorded check-in timestamps.
     # ---------------------------------------------------------
 
-    recorded_checkins = rsvps.filter(
+    recorded_checkins = attendees.filter(
         checked_in=True,
         checked_in_at__isnull=False,
     ).values_list(
@@ -2097,7 +2388,7 @@ def event_analytics_dashboard(request, slug):
     # ---------------------------------------------------------
 
     refunded_ticket_orders = ticket_orders.filter(
-        status=PendingTicketOrder.STATUS_REFUNDED,
+        status=TicketOrder.STATUS_REFUNDED,
     )
 
     refunded_ticket_quantity = (
@@ -2127,11 +2418,11 @@ def event_analytics_dashboard(request, slug):
         "event": event,
         "currency": currency,
 
-        # RSVP records and attendance
-        "total_rsvps": total_rsvps,
-        "confirmed_rsvps": confirmed_rsvps,
-        "pending_rsvps": pending_rsvps,
-        "declined_rsvps": declined_rsvps,
+        # EventAttendee records and attendance
+        "total_attendees": total_attendees,
+        "confirmed_attendees": confirmed_attendees,
+        "pending_attendees": pending_attendees,
+        "declined_attendees": declined_attendees,
         "checked_in_guests": checked_in_guests,
         "total_headcount": total_headcount,
 
@@ -2186,11 +2477,11 @@ def get_event_lifecycle_context(event):
 def post_event_public_view(request, event_slug):
     """
     Public-facing landing page for guests.
-    Transitions dynamically between RSVP registration and the post-event community hub.
+    Transitions dynamically between EventAttendee registration and the post-event community hub.
     """
     event = get_object_or_404(Event, slug=event_slug)
     context = get_event_lifecycle_context(event)
-    return render(request, 'events/public_rsvp.html', context)
+    return render(request, 'events/public_event_attendance.html', context)
 
 @login_required
 def post_event_detail_view(request, event_slug):
@@ -2205,18 +2496,21 @@ def post_event_detail_view(request, event_slug):
 # @login_required
 def submit_feedback(request, slug):
     event = get_object_or_404(Event, slug=slug)
-    
-    # Retrieve the guest's verified RSVP from the session
-    rsvp_id = request.session.get(f'rsvp_verified_{event.pk}')
-    user_rsvp = event.rsvps.filter(pk=rsvp_id, status='ATTENDING').first() if rsvp_id else None
-    
-    if not user_rsvp:
+
+    # Retrieve the guest's verified EventAttendee from the session
+    attendee_id = request.session.get(f'attendee_verified_{event.pk}')
+    user_attendee = event.attendees.filter(
+        pk=attendee_id,
+        status='ATTENDING',
+    ).first() if attendee_id else None
+
+    if not user_attendee:
         messages.error(request, "You must be a confirmed attendee to submit feedback.")
         referer = request.META.get('HTTP_REFERER')
         return redirect(referer) if referer else redirect('events:event_detail', slug=event.slug)
 
-    # Prevent duplicate feedback from the same RSVP
-    if event.feedbacks.filter(rsvp=user_rsvp).exists():
+    # Prevent duplicate feedback from the same EventAttendee
+    if event.feedbacks.filter(event_attendee=user_attendee).exists():
         messages.error(request, "You have already submitted feedback for this event.")
         referer = request.META.get('HTTP_REFERER')
         return redirect(referer) if referer else redirect('events:event_detail', slug=event.slug)
@@ -2226,18 +2520,16 @@ def submit_feedback(request, slug):
         if form.is_valid():
             feedback = form.save(commit=False)
             feedback.event = event
-            feedback.rsvp = user_rsvp  # Link directly to their verified RSVP
+            feedback.event_attendee = user_attendee  # Link directly to their verified EventAttendee
             if request.user.is_authenticated:
                 feedback.user = request.user  # Attach user account if logged in, otherwise leaves it null for public guests
             feedback.save()
             messages.success(request, "Thank you for your feedback!")
-            
+
     referer = request.META.get('HTTP_REFERER')
     if referer:
         return redirect(referer)
     return redirect('events:event_detail', slug=event.slug)
-
-
 
 def download_certificate(request, event_slug):
     """
@@ -2245,94 +2537,123 @@ def download_certificate(request, event_slug):
     Allows the event host to download/test, and verifies checked-in attendees.
     """
     event = get_object_or_404(Event, slug=event_slug)
-    
+
     # 1. Ensure certificates are enabled for this event
     if not event.enable_certificates:
         raise Http404("Certificates are not enabled for this event.")
-        
-    rsvp = None
-    
+
+    attendee = None
+
     # 2. Allow Host to bypass check for testing/preview purposes
     if request.user.is_authenticated and event.host == request.user:
-        # Grab the first checked-in RSVP for preview, or create a mock name if none exist
-        rsvp = RSVP.objects.filter(event=event, checked_in=True).first()
-        if not rsvp:
+        # Grab the first checked-in EventAttendee for preview, or create a mock name if none exist
+        attendee = EventAttendee.objects.filter(
+            event=event,
+            checked_in=True,
+        ).first()
+
+        if not attendee:
             # Fallback for host testing if no attendees are checked in yet
-            rsvp = type('obj', (object,), {'full_name': request.user.get_full_name() or request.user.username})
+            attendee = type(
+                'obj',
+                (object,),
+                {
+                    'full_name': request.user.get_full_name() or request.user.username
+                },
+            )
     else:
         # 3. Standard Attendee Lookup for regular users
         if request.user.is_authenticated:
-            rsvp = RSVP.objects.filter(event=event, email=request.user.email, checked_in=True).first()
-        
+            attendee = EventAttendee.objects.filter(
+                event=event,
+                email=request.user.email,
+                checked_in=True,
+            ).first()
+
         # Fallback to session-verified attendee email if not logged in
-        if not rsvp:
-            verified_email = request.session.get(f'verified_rsvp_{event.slug}')
+        if not attendee:
+            verified_email = request.session.get(
+                f'verified_attendee_{event.slug}'
+            )
+
             if verified_email:
-                rsvp = RSVP.objects.filter(event=event, email=verified_email, checked_in=True).first()
-                
-    if not rsvp:
+                attendee = EventAttendee.objects.filter(
+                    event=event,
+                    email=verified_email,
+                    checked_in=True,
+                ).first()
+
+    if not attendee:
         return HttpResponse(
-            f"Access Denied: No checked-in RSVP found for email '{request.user.email if request.user.is_authenticated else 'Guest'}'. Make sure your RSVP is marked as checked-in in the admin dashboard.", 
-            status=403
+            f"Access Denied: No checked-in EventAttendee found for email "
+            f"'{request.user.email if request.user.is_authenticated else 'Guest'}'. "
+            "Make sure your EventAttendee is marked as checked-in in the admin dashboard.",
+            status=403,
         )
-        
-    attendee_name = getattr(rsvp, 'full_name', f"{getattr(rsvp, 'first_name', '')} {getattr(rsvp, 'last_name', '')}".strip() or "Valued Attendee")
+
+    attendee_name = getattr(
+        attendee,
+        'full_name',
+        f"{getattr(attendee, 'first_name', '')} "
+        f"{getattr(attendee, 'last_name', '')}".strip()
+        or "Valued Attendee",
+    )
 
     # 4. Create the PDF buffer using landscape Letter size
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=landscape(letter))
     width, height = landscape(letter)
-    
+
     # --- Certificate Styling & Borders ---
     p.setStrokeColor(colors.HexColor("#0f172a"))
     p.setLineWidth(4)
     p.rect(30, 30, width - 60, height - 60)
-    
+
     p.setStrokeColor(colors.HexColor("#3b82f6"))
     p.setLineWidth(1)
     p.rect(40, 40, width - 80, height - 80)
-    
+
     # --- Header Typography ---
     p.setFillColor(colors.HexColor("#0f172a"))
     p.setFont("Helvetica-Bold", 26)
     p.drawCentredString(width / 2.0, height - 110, "CERTIFICATE OF ATTENDANCE")
-    
+
     p.setFont("Helvetica", 13)
     p.setFillColor(colors.HexColor("#64748b"))
     p.drawCentredString(width / 2.0, height - 145, "This is proudly presented to")
-    
+
     # --- Attendee Name ---
     p.setFont("Helvetica-Bold", 30)
     p.setFillColor(colors.HexColor("#2563eb"))
     p.drawCentredString(width / 2.0, height - 200, attendee_name)
-    
+
     # --- Subtitle & Event Context ---
     p.setFont("Helvetica", 13)
     p.setFillColor(colors.HexColor("#334155"))
     p.drawCentredString(
-        width / 2.0, 
-        height - 250, 
+        width / 2.0,
+        height - 250,
         "for successfully participating and completing the gathering for"
     )
-    
+
     # --- Event Title ---
     p.setFont("Helvetica-Bold", 18)
     p.setFillColor(colors.HexColor("#0f172a"))
     p.drawCentredString(width / 2.0, height - 290, event.title)
-    
+
     # --- Footer Details ---
     p.setFont("Helvetica", 11)
     p.setFillColor(colors.HexColor("#64748b"))
     date_str = event.event_date.strftime("%B %d, %Y") if event.event_date else "2026"
     p.drawString(70, 70, f"Date Issued: {date_str}")
-    
+
     p.drawRightString(width - 70, 70, "Authorized Host Signature")
     p.setStrokeColor(colors.HexColor("#cbd5e1"))
     p.line(width - 240, 90, width - 70, 90)
-    
+
     p.showPage()
     p.save()
-    
+
     # 5. Stream Response to Browser
     buffer.seek(0)
     filename = f"Certificate_{event.slug}_{attendee_name.replace(' ', '_')}.pdf"
@@ -2342,89 +2663,48 @@ def download_certificate(request, event_slug):
 
 def google_pass_view(request, token):
     """
-    Supports both new IndividualTicket tokens and existing RSVP tokens.
+    Supports both new IndividualTicket tokens and existing EventAttendee tokens.
     """
     individual_ticket = IndividualTicket.objects.select_related(
-        'rsvp__event'
+        'event_attendee__event'
     ).filter(checkin_token=token).first()
 
     if individual_ticket:
-        rsvp = individual_ticket.rsvp
+        attendee = individual_ticket.event_attendee
         google_wallet_url = generate_google_wallet_link(
-            rsvp,
+            attendee,
             ticket=individual_ticket,
         )
     else:
-        rsvp = get_object_or_404(RSVP, checkin_token=token)
-        google_wallet_url = generate_google_wallet_link(rsvp)
+        attendee = get_object_or_404(
+            EventAttendee,
+            checkin_token=token,
+        )
+        google_wallet_url = generate_google_wallet_link(attendee)
 
     return redirect(google_wallet_url)
-
 
 def web_ticket_view(request, token):
     """
     Displays an individual ticket when its token is supplied,
-    while retaining support for existing RSVP-level tickets.
+    while retaining support for existing EventAttendee-level tickets.
     """
     individual_ticket = IndividualTicket.objects.select_related(
-        'rsvp__event'
+        'event_attendee__event'
     ).filter(checkin_token=token).first()
 
     if individual_ticket:
-        rsvp = individual_ticket.rsvp
-    else:
-        rsvp = get_object_or_404(RSVP, checkin_token=token)
-
-    event = rsvp.event
-
-    # Use the token belonging to the specific ticket when available.
-    checkin_token = (
-        individual_ticket.checkin_token
-        if individual_ticket
-        else rsvp.checkin_token
-    )
-
-    verify_url = request.build_absolute_uri(
-        reverse(
-            'events:verify_checkin',
-            kwargs={
-                'slug': event.slug,
-                'token': checkin_token,
-            },
-        )
-    )
-
-    ticket_data = get_ticket_context(
-        rsvp,
-        ticket=individual_ticket,
-    )
-
-    context = {
-        'rsvp': rsvp,
-        'event': event,
-        'verify_url': verify_url,
-        'ticket_data': ticket_data,
-        'individual_ticket': individual_ticket,
-    }
-
-    return render(request, 'events/web_ticket.html', context)
-
-
-def web_ticket_view(request, token):
-    # First, look for the individual ticket whose token is in the URL.
-    individual_ticket = IndividualTicket.objects.select_related(
-        'rsvp__event'
-    ).filter(checkin_token=token).first()
-
-    if individual_ticket:
-        rsvp = individual_ticket.rsvp
+        attendee = individual_ticket.event_attendee
         checkin_token = individual_ticket.checkin_token
     else:
-        # Backward compatibility for older RSVP-level ticket links.
-        rsvp = get_object_or_404(RSVP, checkin_token=token)
-        checkin_token = rsvp.checkin_token
+        # Backward compatibility for older EventAttendee-level ticket links.
+        attendee = get_object_or_404(
+            EventAttendee,
+            checkin_token=token,
+        )
+        checkin_token = attendee.checkin_token
 
-    event = rsvp.event
+    event = attendee.event
 
     verify_url = request.build_absolute_uri(
         reverse(
@@ -2437,12 +2717,12 @@ def web_ticket_view(request, token):
     )
 
     ticket_data = get_ticket_context(
-        rsvp,
+        attendee,
         ticket=individual_ticket,
     )
 
     context = {
-        'rsvp': rsvp,
+        'attendee': attendee,
         'event': event,
         'verify_url': verify_url,
         'ticket_data': ticket_data,
@@ -2583,13 +2863,13 @@ def pricing(request):
     return render(request, 'events/pricing.html')
 
 # TICKET PENDING
-def pending_rsvp_confirmed_view(request, pending_order_id):
-    pending_order = get_object_or_404(
-        PendingTicketOrder.objects.select_related(
+def ticket_order_confirmed_view(request, ticket_order_id):
+    ticket_order = get_object_or_404(
+        TicketOrder.objects.select_related(
             "event",
-            "rsvp",
+            "event_attendee",
         ),
-        pk=pending_order_id,
+        pk=ticket_order_id,
     )
 
     session_id = request.GET.get("session_id")
@@ -2597,8 +2877,8 @@ def pending_rsvp_confirmed_view(request, pending_order_id):
     if not session_id:
         messages.error(request, "Payment confirmation is missing.")
         return redirect(
-            "events:public_rsvp",
-            slug=pending_order.event.slug,
+            "events:public_event_attendance",
+            slug=ticket_order.event.slug,
         )
 
     try:
@@ -2610,52 +2890,52 @@ def pending_rsvp_confirmed_view(request, pending_order_id):
 
         # Use Stripe Session attributes, not dictionary .get() calls.
         if checkout_session.client_reference_id != str(
-            pending_order.pk
+            ticket_order.pk
         ):
             messages.error(
                 request,
                 "We couldn't verify this payment.",
             )
             return redirect(
-                "events:public_rsvp",
-                slug=pending_order.event.slug,
+                "events:public_event_attendance",
+                slug=ticket_order.event.slug,
             )
 
-        # Retrieve and verify the payment before creating the RSVP.
+        # Retrieve and verify the payment before creating the EventAttendee.
         if checkout_session.payment_status != "paid":
             messages.error(
                 request,
                 "Payment has not been confirmed yet. Please try again shortly.",
             )
             return redirect(
-                "events:public_rsvp",
-                slug=pending_order.event.slug,
+                "events:public_event_attendance",
+                slug=ticket_order.event.slug,
             )
 
-        rsvp = finalize_pending_ticket_order(
+        attendee = finalize_ticket_order(
             checkout_session
         )
 
-        if not rsvp:
+        if not attendee:
             messages.error(
                 request,
                 "Your payment has not been confirmed.",
             )
             return redirect(
-                "events:public_rsvp",
-                slug=pending_order.event.slug,
+                "events:public_event_attendance",
+                slug=ticket_order.event.slug,
             )
 
         request.session[
-            f"rsvp_verified_{rsvp.event_id}"
-        ] = rsvp.pk
+            f"attendee_verified_{attendee.event_id}"
+        ] = attendee.pk
 
         return render(
             request,
-            "events/rsvp_confirmed.html",
+            "events/attendee_confirmed.html",
             {
-                "rsvp": rsvp,
-                "event": rsvp.event,
+                "attendee": attendee,
+                "event": attendee.event,
             },
         )
 
@@ -2669,8 +2949,8 @@ def pending_rsvp_confirmed_view(request, pending_order_id):
             "We couldn't confirm your payment yet. Please try again shortly.",
         )
         return redirect(
-            "events:public_rsvp",
-            slug=pending_order.event.slug,
+            "events:public_event_attendance",
+            slug=ticket_order.event.slug,
         )
 
 #============================== 
@@ -2982,12 +3262,12 @@ def verify_visitor_follow(request, token):
         verification.save(update_fields=["is_used"])
 
         user = User.objects.filter(email__iexact=email).first()
-        has_rsvp = RSVP.objects.filter(email__iexact=email).exists()
+        has_attendee = EventAttendee.objects.filter(email__iexact=email).exists()
 
-        # Existing accounts or visitors with an RSVP can follow
+        # Existing accounts or visitors with an EventAttendee can follow
         # after proving ownership of their email address.
         # This does NOT log the visitor into an existing account.
-        if user is not None or has_rsvp:
+        if user is not None or has_attendee:
             if user is None:
                 user = User.objects.create(
                     username=_create_visitor_username(email),
@@ -3037,7 +3317,7 @@ def verify_visitor_follow(request, token):
                 )
             )
 
-        # A new visitor without an RSVP/ticket must register.
+        # A new visitor without an EventAttendee/ticket must register.
         request.session["visitor_verified_email"] = email
         request.session["visitor_pending_organizer_id"] = organizer.pk
         request.session["visitor_follow_return_url"] = return_url
@@ -3226,7 +3506,7 @@ def notify_followers_of_new_event(event):
     Notify followers when an organizer publishes a new event.
 
     Respects each follower's in-app and email preferences.
-    Uses the existing public_rsvp and unsubscribe URL routes.
+    Uses the existing public_event_attendance and unsubscribe URL routes.
     """
    
     User = get_user_model()
@@ -3239,7 +3519,7 @@ def notify_followers_of_new_event(event):
     )
 
     event_url = reverse(
-        'events:public_rsvp',
+        'events:public_event_attendance',
         kwargs={'slug': event.slug}
     )
 
@@ -3398,7 +3678,7 @@ def capture_event_campaign_attribution(request, event):
         },
     )
 
-    # Preserve attribution for subsequent RSVP or ticket-order creation.
+    # Preserve attribution for subsequent EventAttendee or ticket-order creation.
     request.session[session_attribution_key] = attribution
     request.session.modified = True
 

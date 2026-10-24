@@ -16,21 +16,20 @@ from py_pkpass.models import (
     EventTicket,
 )
 
-from .models import RSVP
-
+from .models import EventAttendee
 
 logger = logging.getLogger(__name__)
 
 
 def download_apple_wallet_pass(request, token):
-    rsvp = get_object_or_404(
-        RSVP.objects.select_related("event", "ticket_tier"),
+    attendee = get_object_or_404(
+        EventAttendee.objects.select_related("event", "ticket_tier"),
         checkin_token=token,
     )
-    event = rsvp.event
+    event = attendee.event
 
     # Only issue Apple Wallet passes for eligible paid RSVPs.
-    if not rsvp.is_paid or not event.enable_qr_checkins:
+    if not attendee.is_paid or not event.enable_qr_checkins:
         return HttpResponse(
             "An Apple Wallet pass is not available for this RSVP.",
             status=403,
@@ -99,7 +98,7 @@ def download_apple_wallet_pass(request, token):
             "events:verify_checkin",
             kwargs={
                 "slug": event.slug,
-                "token": rsvp.checkin_token,
+                "token": attendee.checkin_token,
             },
         )
     )
@@ -113,14 +112,14 @@ def download_apple_wallet_pass(request, token):
     )
     ticket_info.addSecondaryField(
         "attendee",
-        rsvp.full_name or "Guest",
+        attendee.full_name or "Guest",
         "ATTENDEE",
     )
     ticket_info.addSecondaryField(
         "tier",
-        rsvp.ticket_tier.name
-        if rsvp.ticket_tier
-        else "Standard RSVP",
+        attendee.ticket_tier.name
+        if attendee.ticket_tier
+        else "Standard REventAttendee",
         "TICKET TYPE",
     )
 
@@ -143,7 +142,7 @@ def download_apple_wallet_pass(request, token):
         teamIdentifier=team_identifier,
     )
 
-    passfile.serialNumber = str(rsvp.checkin_token)
+    passfile.serialNumber = str(attendee.checkin_token)
     passfile.description = f"Ticket for {event.title}"
     passfile.backgroundColor = "rgb(2, 6, 23)"
     passfile.foregroundColor = "rgb(241, 245, 249)"
@@ -152,7 +151,7 @@ def download_apple_wallet_pass(request, token):
     passfile.barcode = Barcode(
         message=verify_url,
         format=BarcodeFormat.QR,
-        altText=str(rsvp.checkin_token),
+        altText=str(attendee.checkin_token),
     )
 
     # Add required Wallet image assets.
@@ -197,7 +196,7 @@ def download_apple_wallet_pass(request, token):
     except Exception:
         logger.exception(
             "Apple Wallet pass generation failed for RSVP %s.",
-            rsvp.pk,
+            attendee.pk,
         )
         return HttpResponseServerError(
             "Unable to generate the Apple Wallet pass."
@@ -219,7 +218,7 @@ from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 
 
-def generate_google_wallet_link(rsvp, ticket=None):
+def generate_google_wallet_link(attendee, ticket=None):
     """
     Generate a Google Wallet pass for an individual ticket or
     an older RSVP-level pass.
@@ -242,20 +241,20 @@ def generate_google_wallet_link(rsvp, ticket=None):
     credentials.refresh(auth_req)
 
     issuer_id = settings.GOOGLE_WALLET_ISSUER_ID
-    event = rsvp.event
+    event = attendee.event
 
     # Each individual ticket gets its own token and Wallet object.
     checkin_token = (
-        ticket.checkin_token if ticket else rsvp.checkin_token
+        ticket.checkin_token if ticket else attendee.checkin_token
     )
 
     if ticket:
         object_id = f"{issuer_id}.ticket_{checkin_token}"
         ticket_number = str(ticket.ticket_number)
     else:
-        # Preserve compatibility with existing RSVP-level passes.
+        # Preserve compatibility with existing EventAttendee-level passes.
         object_id = f"{issuer_id}.rsvp_{checkin_token}"
-        ticket_number = str(rsvp.id)
+        ticket_number = str(attendee.id)
 
     class_id = f"{issuer_id}.{event.slug}"
 
@@ -264,8 +263,8 @@ def generate_google_wallet_link(rsvp, ticket=None):
         ticket_number = str(ticket.ticket_number)
     else:
         # Preserve compatibility with existing RSVP-level passes.
-        object_id = f"{issuer_id}.rsvp_{rsvp.checkin_token}"
-        ticket_number = str(rsvp.id)
+        object_id = f"{issuer_id}.rsvp_{attendee.checkin_token}"
+        ticket_number = str(attendee.id)
 
     session = requests.Session()
     session.headers.update({
@@ -351,9 +350,9 @@ def generate_google_wallet_link(rsvp, ticket=None):
                     'classId': class_id,
                     'state': 'ACTIVE',
                     'ticketHolderName': getattr(
-                        rsvp,
+                        attendee,
                         'full_name',
-                        getattr(rsvp, 'name', 'Guest'),
+                        getattr(attendee, 'name', 'Guest'),
                     ),
                     'ticketNumber': ticket_number,
 
@@ -369,7 +368,7 @@ def generate_google_wallet_link(rsvp, ticket=None):
                             'defaultValue': {
                                 'language': 'en-US',
                                 'value': getattr(
-                                    rsvp,
+                                    attendee,
                                     'seat',
                                     'General Admission',
                                 ),
@@ -395,29 +394,29 @@ def generate_google_wallet_link(rsvp, ticket=None):
     )
 
 
-def get_ticket_context(rsvp, ticket=None):
+def get_ticket_context(attendee, ticket=None):
     """
     Gather ticket information for an individual ticket or an
     existing RSVP-level pass.
     """
-    event = rsvp.event
+    event = attendee.event
 
     checkin_token = (
-        ticket.checkin_token if ticket else rsvp.checkin_token
+        ticket.checkin_token if ticket else attendee.checkin_token
     )
 
     qr_code_data_uri = (
         ticket.get_qr_code_data_uri()
         if ticket
-        else rsvp.get_qr_code_data_uri()
+        else attendee.get_qr_code_data_uri()
     )
 
     return {
         "event_title": event.title,
-        "attendee_name": rsvp.full_name,
+        "attendee_name": attendee.full_name,
         "tier_name": (
-            rsvp.ticket_tier.name
-            if rsvp.ticket_tier
+            attendee.ticket_tier.name
+            if attendee.ticket_tier
             else "Standard RSVP"
         ),
         "serial_number": str(checkin_token),

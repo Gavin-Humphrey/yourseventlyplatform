@@ -41,7 +41,7 @@
                         <p class="text-xs" style="color: {{ style_muted }} !important;">Send this link to your guests so they can view the event and RSVP.</p>
                     </div>
                 </div>
-                <a href="{% url 'events:public_rsvp' slug=event.slug %}" target="_blank" class="text-xs font-semibold hover:opacity-80 flex items-center gap-1" style="color: {{ style_primary }} !important;">
+                <a href="{% url 'events:public_event_attendance' slug=event.slug %}" target="_blank" class="text-xs font-semibold hover:opacity-80 flex items-center gap-1" style="color: {{ style_primary }} !important;">
                     Preview Link
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -54,7 +54,7 @@
                     type="text" 
                     readonly 
                     id="publicRsvpUrl"
-                    value="{{ request.scheme }}://{{ request.get_host }}{% url 'events:public_rsvp' slug=event.slug %}"
+                    value="{{ request.scheme }}://{{ request.get_host }}{% url 'events:public_event_attendance' slug=event.slug %}"
                     class="flex-1 px-3.5 py-2 rounded-lg border border-slate-200 text-xs font-mono focus:outline-none select-all"
                     style="background-color: {{ style_section_bg }} !important; color: {{ style_body }} !important;"
                 />
@@ -508,7 +508,7 @@
                                     RSVP For This Event
                                 {% endif %}
                             </h2>
-                            <form method="post" action="{% url 'events:submit_rsvp' slug=event.slug %}" class="space-y-4" id="rsvpFormSplit">
+                            <form method="post" action="{% url 'events:submit_event_attendance' slug=event.slug %}" class="space-y-4" id="rsvpFormSplit">
                                 {% csrf_token %}
                                 <div>
                                     <label class="block text-xs font-semibold uppercase mb-1" style="color: {{ style_muted }} !important;">Full Name *</label>
@@ -1141,7 +1141,7 @@
                                 </p>
                             </div>
                             
-                            <form method="post" action="{% url 'events:submit_rsvp' slug=event.slug %}" class="space-y-4" id="rsvpFormMinimal">
+                            <form method="post" action="{% url 'events:submit_event_attendance' slug=event.slug %}" class="space-y-4" id="rsvpFormMinimal">
                                 {% csrf_token %}
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
@@ -1681,7 +1681,7 @@
                     <div class="p-6 md:p-8 rounded-2xl border border-slate-200 shadow-xl space-y-4" style="background-color: {{ style_section_bg }} !important;">
                         <h2 class="text-xl font-bold border-b border-slate-100 pb-3" style="color: {{ style_heading }} !important;">RSVP For This Event</h2>
                         
-                        <form method="post" action="{% url 'events:submit_rsvp' slug=event.slug %}" class="space-y-4" id="rsvpFormDefault">
+                        <form method="post" action="{% url 'events:submit_event_attendance' slug=event.slug %}" class="space-y-4" id="rsvpFormDefault">
                             {% csrf_token %}
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2337,7 +2337,7 @@
                             </h3>
                         </div>
 
-                        <form method="post" action="{% url 'events:submit_rsvp' slug=event.slug %}" class="space-y-4 w-full box-border" id="rsvpFormDefault">
+                        <form method="post" action="{% url 'events:submit_event_attendance' slug=event.slug %}" class="space-y-4 w-full box-border" id="rsvpFormDefault">
                             {% csrf_token %}
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
@@ -2987,7 +2987,7 @@
                                             </div>
                                         </div>
 
-                                        <form method="post" action="{% url 'events:submit_rsvp' slug=event.slug %}" class="space-y-4" id="rsvpFormShowcase">
+                                        <form method="post" action="{% url 'events:submit_event_attendance' slug=event.slug %}" class="space-y-4" id="rsvpFormShowcase">
                                             {% csrf_token %}
                                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div>
@@ -3476,7 +3476,7 @@
                                         </h2>
                                     </div>
 
-                                    <form method="post" action="{% url 'events:submit_rsvp' slug=event.slug %}" class="space-y-4">
+                                    <form method="post" action="{% url 'events:submit_event_attendance' slug=event.slug %}" class="space-y-4">
                                         {% csrf_token %}
                                         <div>
                                             <label class="block text-xs font-bold uppercase mb-1" style="color: {{ style_muted }} !important;">Full Name *</label>
@@ -3968,7 +3968,7 @@
                                     </h2>
                                 </div>
 
-                                <form method="post" action="{% url 'events:submit_rsvp' slug=event.slug %}" class="space-y-3">
+                                <form method="post" action="{% url 'events:submit_event_attendance' slug=event.slug %}" class="space-y-3">
                                     {% csrf_token %}
                                     
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -4642,7 +4642,7 @@
                                 <button type="button" onclick="event.preventDefault(); document.getElementById('rsvpEditorialSection').classList.add('hidden');" class="text-xs font-bold px-2.5 py-1 rounded-lg default-subcard opacity-80 hover:opacity-100 cursor-pointer transition" style="color: {{ style_body }} !important;">Close ✕</button>
                             </div>
                             
-                            <form method="post" action="{% url 'events:submit_rsvp' slug=event.slug %}" class="space-y-4">
+                            <form method="post" action="{% url 'events:submit_event_attendance' slug=event.slug %}" class="space-y-4">
                                 {% csrf_token %}
                                 
                                 <div>

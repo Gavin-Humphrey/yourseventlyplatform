@@ -68,13 +68,13 @@
     <!-- Action Buttons -->
     <div class="rsvp-action-footer">
       {% if not event.is_past %}
-      <a href="{% url 'events:edit_rsvp' event.slug rsvp.pk %}" class="rsvp-btn-primary">Edit RSVP</a>
+      <a href="{% url 'events:edit_attendee' event.slug rsvp.pk %}" class="rsvp-btn-primary">Edit RSVP</a>
       {% else %}
           <span class="rsvp-locked-pill">
               🔒 Event Concluded (Locked)
           </span>
       {% endif %}
-      <a href="{% url 'events:event_rsvps_management' event.slug %}" class="rsvp-btn-secondary">Back to List</a>
+      <a href="{% url 'events:event_attendees_management' event.slug %}" class="rsvp-btn-secondary">Back to List</a>
     </div>
 
   </div>

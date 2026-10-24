@@ -93,7 +93,7 @@
             🎟️ Manage Ticket Tiers
           </a>
 
-          <a href="{% url 'events:export_rsvps_csv' event.slug %}"
+          <a href="{% url 'events:export_attendees_csv' event.slug %}"
              class="dashboard-action-badge"
              style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
             📥 Export CSV
@@ -105,7 +105,7 @@
             🚪 Open Door Dashboard
           </a>
 
-          <a href="{% url 'events:public_rsvp' event.slug %}"
+          <a href="{% url 'events:public_event_attendance' event.slug %}"
              target="_blank"
              class="dashboard-action-badge"
              style="text-decoration: none;">
@@ -233,7 +233,7 @@
 
         <div>
           <p class="dashboard-metric-label">Total Responses</p>
-          <p class="dashboard-metric-value">{{ total_rsvps }}</p>
+          <p class="dashboard-metric-value">{{ total_attendees }}</p>
         </div>
       </div>
 
@@ -318,7 +318,7 @@
     </div>
 
     <!--  Table / Empty States -->
-    {% if has_any_rsvps %}
+    {% if has_any_attendees %}
       <div class="dashboard-card">
 
         <!-- Search and Status Filters -->
@@ -329,7 +329,7 @@
                 type="text"
                 name="q"
                 value="{{ search_query }}"
-                placeholder="Search RSVPs..."
+                placeholder="Search Attendees..."
                 class="dashboard-input w-full sm:w-auto"
                 style="width: 400px; max-width: 55vw;"
               >
@@ -372,13 +372,13 @@
               </button>
             </div>
 
-            <span class="dashboard-badge">{{ filtered_rsvp_count }} Record{{ filtered_rsvp_count|pluralize }}</span>
+            <span class="dashboard-badge">{{ filtered_attendee_count }} Record{{ filtered_attendee_count|pluralize }}</span>
           </form>
         </div>
 
         <!-- Table -->
         <div class="rsvp-table-container">
-          {% if rsvps %}
+          {% if attendees %}
             <table class="rsvp-table">
               <thead>
                 <tr>
@@ -399,26 +399,26 @@
               </thead>
 
               <tbody>
-                {% for rsvp in rsvps %}
+                {% for attendee in attendees %}
                   <tr>
                     <!-- Attendee Name -->
                     <td class="rsvp-col-name">
-                      {{ rsvp.first_name }} {{ rsvp.last_name }}
+                      {{ attendee.first_name }} {{ attendee.last_name }}
                     </td>
 
                     <!-- Email -->
                     <td class="rsvp-col-email">
-                      {{ rsvp.email|default:"N/A" }}
+                      {{ attendee.email|default:"N/A" }}
                     </td>
 
-                    <!-- RSVP / Ticket Order Status -->
+                    <!-- Attendee / Ticket Order Status -->
                     <td>
-                      {% if event.is_ticketed and rsvp.ticket_tier and rsvp.ticket_order_status == 'refunded' %}
+                      {% if event.is_ticketed and attendee.ticket_tier and attendee.ticket_order_status == 'refunded' %}
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">
                           Refunded
                         </span>
 
-                      {% elif event.is_ticketed and rsvp.ticket_tier and rsvp.ticket_order_status == 'cancelled' %}
+                      {% elif event.is_ticketed and attendee.ticket_tier and attendee.ticket_order_status == 'cancelled' %}
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/15 text-slate-400 border border-slate-500/30">
                           Cancelled
                         </span>
@@ -432,7 +432,7 @@
                           {% else %}
                             bg-amber-500/15 text-amber-400 border border-amber-500/30
                           {% endif %}">
-                          {{ rsvp.get_status_display|default:rsvp.status|title }}
+                          {{ attendee.get_status_display|default:attendee.status|title }}
                         </span>
                       {% endif %}
                     </td>
@@ -440,44 +440,44 @@
                     <!-- Ticket Details -->
                     {% if event.is_ticketed %}
                       <td class="text-sm">
-                        {% if rsvp.ticket_tier %}
+                        {% if attendee.ticket_tier %}
                           <span class="font-medium text-[var(--text-main)]">
-                            {{ rsvp.ticket_tier.name }}
+                            {{ attendee.ticket_tier.name }}
                           </span>
 
                           <span class="text-xs text-[var(--text-muted)] block">
-                            ${{ rsvp.ticket_tier.price }} per ticket
+                            ${{ attendee.ticket_tier.price }} per ticket
                           </span>
 
                           <span class="text-xs text-[var(--text-muted)] block">
-                            Quantity: {{ rsvp.ticket_quantity }}
+                            Quantity: {{ attendee.ticket_quantity }}
                           </span>
 
                           <span class="text-xs text-[var(--text-muted)] block">
-                            Order subtotal: ${% widthratio rsvp.ticket_tier.price 1 rsvp.ticket_quantity %}
+                            Order subtotal: ${% widthratio attendee.ticket_tier.price 1 attendee.ticket_quantity %}
                           </span>
 
-                          {% if rsvp.ticket_order_status == 'refunded' %}
+                          {% if attendee.ticket_order_status == 'refunded' %}
                             <span class="text-xs text-rose-400 block">
                               Payment refunded
                             </span>
 
-                          {% elif rsvp.ticket_order_status == 'cancelled' %}
+                          {% elif attendee.ticket_order_status == 'cancelled' %}
                             <span class="text-xs text-[var(--text-muted)] block">
                               Order cancelled
                             </span>
 
-                          {% elif rsvp.ticket_order_status == 'paid' and rsvp.is_paid %}
+                          {% elif attendee.ticket_order_status == 'paid' and attendee.is_paid %}
                             <span class="text-xs text-emerald-400 block">
                               Payment confirmed
                             </span>
 
-                          {% elif rsvp.ticket_order_status == 'pending' %}
+                          {% elif attendee.ticket_order_status == 'pending' %}
                             <span class="text-xs text-amber-400 block">
                               Payment pending
                             </span>
 
-                          {% elif rsvp.is_paid %}
+                          {% elif attendee.is_paid %}
                             <span class="text-xs text-emerald-400 block">
                               Payment confirmed
                             </span>
@@ -493,19 +493,19 @@
                             No ticket selected
                           </span>
 
-                          {% if rsvp.status == 'ATTENDING' %}
+                          {% if attendee.status == 'ATTENDING' %}
                             <span class="text-xs text-emerald-400 block">
                               RSVP confirmed
                             </span>
 
-                          {% elif rsvp.status == 'DECLINED' %}
+                          {% elif attendee.status == 'DECLINED' %}
                             <span class="text-xs text-rose-400 block">
-                              RSVP declined
+                              Attendee declined
                             </span>
 
                           {% else %}
                             <span class="text-xs text-amber-400 block">
-                              RSVP pending
+                              Attendee pending
                             </span>
                           {% endif %}
                         {% endif %}
@@ -515,9 +515,9 @@
                     <!-- Plus-Ones for Free Events -->
                     {% if not event.is_ticketed %}
                       <td class="rsvp-col-plusone">
-                        {{ rsvp.plus_ones_count|default:0 }}
+                        {{ attendee.plus_ones_count|default:0 }}
 
-                        {% with plus_ones=rsvp.plus_ones.all %}
+                        {% with plus_ones=attendee.plus_ones.all %}
                           {% if plus_ones %}
                             <span class="rsvp-plusone-sublist">
                               {% for p in plus_ones %}
@@ -532,7 +532,7 @@
                     <!-- Row Actions -->
                     <td class="rsvp-col-actions space-x-2">
                       <a
-                        href="{% url 'events:view_rsvp_detail' event.slug rsvp.pk %}"
+                        href="{% url 'events:view_attendee_detail' event.slug attendee.pk %}"
                         class="dashboard-action-badge inline-flex items-center py-1.5 px-3 text-xs"
                         style="text-decoration: none;"
                       >
@@ -541,7 +541,7 @@
 
                       {% if not event.is_past %}
                         <a
-                          href="{% url 'events:edit_rsvp' event.slug rsvp.pk %}"
+                          href="{% url 'events:edit_attendee' event.slug attendee.pk %}"
                           class="dashboard-clone-btn inline-flex items-center py-1.5 px-3 text-xs"
                           style="text-decoration: none;"
                         >
@@ -567,7 +567,7 @@
               class="rsvp-empty-state-standalone"
               style="padding: 3rem 1.5rem; text-align: center;"
             >
-              <div class="rsvp-empty-title">No RSVPs found</div>
+              <div class="rsvp-empty-title">No Attendees found</div>
               <div class="rsvp-empty-desc">
                 No records match your current filter or search criteria.
               </div>
@@ -579,7 +579,7 @@
     {% else %}
       <!-- Zero RSVPs Overall State -->
       <div class="dashboard-card" style="padding: 3rem 1.5rem; text-align: center;">
-        <div class="rsvp-empty-title">No RSVPs yet</div>
+        <div class="rsvp-empty-title">No Attendees yet</div>
         <div class="rsvp-empty-desc">
           Share your public event link to start collecting registrations.
         </div>

@@ -476,7 +476,7 @@
                     <div class="fav-card-body">
 
                         <h3 class="fav-card-title">
-                            <a href="{% url 'events:public_rsvp' slug=ev.slug %}">
+                            <a href="{% url 'events:public_event_attendance' slug=ev.slug %}">
                                 {{ ev.title }}
                             </a>
                         </h3>
@@ -509,7 +509,7 @@
                         </div>
 
                         <a
-                            href="{% url 'events:public_rsvp' slug=ev.slug %}"
+                            href="{% url 'events:public_event_attendance' slug=ev.slug %}"
                             class="fav-card-link"
                         >
                             <span>Explore Vibe</span>
