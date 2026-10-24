@@ -1,6 +1,3 @@
-# =============================================================================
-# 2. SIGNALS / WORKFLOW (Add to events/signals.py)
-# =============================================================================
 from django.conf import settings
 from django.utils import timezone
 from django.db.models.signals import post_save, pre_save

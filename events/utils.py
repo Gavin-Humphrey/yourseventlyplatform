@@ -4,162 +4,24 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.urls import reverse
-from .models import InAppNotification, EventFollowerAnnouncement, FollowNotificationPreference, OrganizerFollow, PendingTicketOrder
+from .models import InAppNotification, EventFollowerAnnouncement, FollowNotificationPreference, OrganizerFollow, TicketOrder
 import base64
 import logging
 import uuid
 from decimal import Decimal, ROUND_HALF_UP
 from email.mime.image import MIMEImage
 import stripe
-
+from django.db import transaction
 
 
 
 logger = logging.getLogger(__name__)
 
-# def send_rsvp_confirmation(rsvp, request=None):
-#     event = rsvp.event
-#     subject = f"Confirmation: You're attending {event.title}!"
-    
-#     theme = getattr(event, 'theme', None)
-#     style_card_bg = getattr(theme, 'card_bg', '#ffffff') if theme else '#ffffff'
-#     style_body = getattr(theme, 'body_color', '#334155') if theme else '#334155'
-#     style_muted = getattr(theme, 'muted_color', '#64748b') if theme else '#64748b'
-    
-#     # Generate the dynamic Apple Wallet URL
-#     # pass_relative_url = reverse('events:apple_pass', kwargs={'token': rsvp.checkin_token})
-#     # if request:
-#     #     pass_absolute_url = request.build_absolute_uri(pass_relative_url)
-#     # else:
-#     #     # Fallback if triggered from a background task without a request object
-#     #     pass_absolute_url = f"http://127.0.0.1:8000{pass_relative_url}"
-#     # Generate the Apple Wallet URL only if the route exists.
-#     pass_absolute_url = ''
 
-#     try:
-#         pass_relative_url = reverse(
-#             'events:apple_pass',
-#             kwargs={'token': rsvp.checkin_token}
-#         )
-
-#         if request:
-#             pass_absolute_url = request.build_absolute_uri(
-#                 pass_relative_url
-#             )
-#         else:
-#             pass_absolute_url = (
-#                 f"{settings.SITE_URL.rstrip('/')}{pass_relative_url}"
-#                 if getattr(settings, 'SITE_URL', None)
-#                 else pass_relative_url
-#             )
-
-#     except Exception as exc:
-#         print(f"Apple Wallet URL unavailable: {exc}")
-
-#     context = {
-#         'rsvp': rsvp,
-#         'event': event,
-#         'style_card_bg': style_card_bg,
-#         'style_body': style_body,
-#         'style_muted': style_muted,
-#         'pass_absolute_url': pass_absolute_url, # <--- Added here
-#     }
-    
-#     html_message = render_to_string('events/emails/rsvp_confirmation.html', context)
-#     plain_message = strip_tags(html_message)
-    
-#     email = EmailMultiAlternatives(
-#         subject=subject,
-#         body=plain_message,
-#         from_email=settings.DEFAULT_FROM_EMAIL,
-#         to=[rsvp.email]
-#     )
-#     email.attach_alternative(html_message, "text/html")
-#     #email.send(fail_silently=False)
-
-#     sent_count = email.send(fail_silently=False)
-#     print(
-#         f"RSVP CONFIRMATION EMAIL: recipient={rsvp.email}, "
-#         f"sent_count={sent_count}, backend={settings.EMAIL_BACKEND}, "
-#         f"smtp_host={settings.EMAIL_HOST}, "
-#         f"smtp_user_configured={bool(settings.EMAIL_HOST_USER)}, "
-#         f"smtp_password_configured={bool(settings.EMAIL_HOST_PASSWORD)}"
-#     )
-
-#     ##########
-    
-#     rsvp.confirmation_sent = True
-#     rsvp.save(update_fields=['confirmation_sent'])
-
-
-# WORKING
-# def send_rsvp_confirmation(rsvp, request=None):
-#     """Send an RSVP confirmation email and record success only if sent."""
-#     event = rsvp.event
-#     subject = f"Confirmation: You're attending {event.title}!"
-
-#     theme = getattr(event, "theme", None)
-#     style_card_bg = getattr(theme, "card_bg", "#ffffff") if theme else "#ffffff"
-#     style_body = getattr(theme, "body_color", "#334155") if theme else "#334155"
-#     style_muted = getattr(theme, "muted_color", "#64748b") if theme else "#64748b"
-
-#     # Do not reverse the Apple Wallet URL here: the route is not configured.
-#     context = {
-#         "rsvp": rsvp,
-#         "event": event,
-#         "style_card_bg": style_card_bg,
-#         "style_body": style_body,
-#         "style_muted": style_muted,
-#         "pass_absolute_url": "",
-#     }
-
-#     try:
-#         html_message = render_to_string(
-#             "events/emails/rsvp_confirmation.html",
-#             context,
-#         )
-#         plain_message = strip_tags(html_message)
-
-#         email = EmailMultiAlternatives(
-#             subject=subject,
-#             body=plain_message,
-#             from_email=settings.DEFAULT_FROM_EMAIL,
-#             to=[rsvp.email],
-#         )
-#         email.attach_alternative(html_message, "text/html")
-
-#         sent_count = email.send(fail_silently=False)
-
-#         print(
-#             f"RSVP CONFIRMATION EMAIL: recipient={rsvp.email}, "
-#             f"sent_count={sent_count}, "
-#             f"backend={settings.EMAIL_BACKEND}, "
-#             f"smtp_host={settings.EMAIL_HOST}, "
-#             f"smtp_user_configured={bool(settings.EMAIL_HOST_USER)}, "
-#             f"smtp_password_configured={bool(settings.EMAIL_HOST_PASSWORD)}"
-#         )
-
-#         if sent_count == 1:
-#             rsvp.confirmation_sent = True
-#             rsvp.save(update_fields=["confirmation_sent"])
-#             return True
-
-#         print(f"RSVP confirmation email was not sent to {rsvp.email}.")
-#         return False
-
-#     except Exception as exc:
-#         print(
-#             f"RSVP confirmation email failed for {rsvp.email}: "
-#             f"{type(exc).__name__}: {exc}"
-#         )
-#         return False
-
-
-
-def send_rsvp_confirmation(rsvp, request=None):
+def send_attendance_confirmation(attendee, request=None):
     """Send an RSVP confirmation with payment details and ticket QR codes."""
-    
-    event = rsvp.event
+
+    event = attendee.event
 
     subject = f"Confirmation: You're attending {event.title}!"
 
@@ -178,7 +40,7 @@ def send_rsvp_confirmation(rsvp, request=None):
     )
 
     context = {
-        "rsvp": rsvp,
+        "rsvp": attendee,
         "event": event,
         "style_card_bg": style_card_bg,
         "style_body": style_body,
@@ -192,12 +54,12 @@ def send_rsvp_confirmation(rsvp, request=None):
     try:
         paid_order = None
 
-        if rsvp.is_paid:
+        if attendee.is_paid:
             paid_order = (
-                PendingTicketOrder.objects
+                TicketOrder.objects
                 .filter(
-                    rsvp=rsvp,
-                    status=PendingTicketOrder.STATUS_PAID,
+                    event_attendee=attendee,
+                    status=TicketOrder.STATUS_PAID,
                 )
                 .select_related("ticket_tier")
                 .first()
@@ -298,7 +160,7 @@ def send_rsvp_confirmation(rsvp, request=None):
 
             # Include each existing individual ticket and its own QR.
             if event.enable_qr_checkins:
-                for ticket in rsvp.individual_tickets.all():
+                for ticket in attendee.individual_tickets.all():
                     data_uri = ticket.get_qr_code_data_uri()
                     qr_cid = None
 
@@ -330,7 +192,7 @@ def send_rsvp_confirmation(rsvp, request=None):
             subject=subject,
             body=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[rsvp.email],
+            to=[attendee.email],
         )
         email.attach_alternative(html_message, "text/html")
 
@@ -358,7 +220,7 @@ def send_rsvp_confirmation(rsvp, request=None):
         logger.info(
             "RSVP CONFIRMATION EMAIL: recipient=%s, sent_count=%s, "
             "paid=%s, order_id=%s, ticket_qr_count=%s, backend=%s",
-            rsvp.email,
+            attendee.email,
             sent_count,
             bool(paid_order),
             paid_order.pk if paid_order else None,
@@ -370,8 +232,8 @@ def send_rsvp_confirmation(rsvp, request=None):
         )
 
         if sent_count == 1:
-            rsvp.confirmation_sent = True
-            rsvp.save(update_fields=["confirmation_sent"])
+            attendee.confirmation_sent = True
+            attendee.save(update_fields=["confirmation_sent"])
             return True
 
         return False
@@ -379,10 +241,9 @@ def send_rsvp_confirmation(rsvp, request=None):
     except Exception:
         logger.exception(
             "RSVP confirmation email failed for recipient %s",
-            rsvp.email,
+            attendee.email,
         )
         return False
-
 
 def send_visitor_follow_verification(verification, request):
     organizer = verification.organizer
@@ -430,20 +291,6 @@ def notify_organizer_of_new_follower(follower, organizer):
         message=f"{follower_name} is now following you.",
         url="/",
     )
-
-
-from django.conf import settings
-from django.core.mail import send_mail
-from django.db import transaction
-from django.urls import reverse
-
-from .models import (
-    EventFollowerAnnouncement,
-    FollowNotificationPreference,
-    InAppNotification,
-    OrganizerFollow,
-)
-
 
 def notify_followers_of_new_event(event):
     """Notify an organizer's followers about a newly created event."""
@@ -542,9 +389,6 @@ def notify_followers_of_new_event(event):
             announcement.save(
                 update_fields=['in_app_sent', 'email_sent']
             )
-
-
-
 
 def country_flag_emoji(country_code):
     """Generate a flag emoji from a two-letter ISO country code."""

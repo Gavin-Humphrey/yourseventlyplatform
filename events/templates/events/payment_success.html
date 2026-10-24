@@ -296,7 +296,7 @@
 
 <script>
     function copyPublicEventLink(btn) {
-        const publicUrl = "{% if event and event.slug %}{{ request.scheme }}://{{ request.get_host }}{% url 'events:public_rsvp' slug=event.slug %}{% endif %}";
+        const publicUrl = "{% if event and event.slug %}{{ request.scheme }}://{{ request.get_host }}{% url 'events:public_event_attendance' slug=event.slug %}{% endif %}";
 
         if (!publicUrl) {
             alert("The event link is unavailable because the event could not be found.");

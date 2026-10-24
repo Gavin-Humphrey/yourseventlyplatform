@@ -24,13 +24,7 @@ urlpatterns = [
     
     # Global Auth Routes
     #path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
-    path(
-        'login/',
-        auth_views.LoginView.as_view(
-            next_page='events:dashboard'
-        ),
-        name='login',
-    ),
+    path('login/', auth_views.LoginView.as_view(next_page='events:dashboard'), name='login',),
     path('logout/', event_views.logout_host, name='logout'),
     path('register/', event_views.register_host, name='register'),
     
@@ -40,5 +34,4 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),  # Temporary until selector replacement
 
     path("dashboard/marketing-studio/", include("marketing_studio.urls"),),
-    
 ]

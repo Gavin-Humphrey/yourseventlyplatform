@@ -11,6 +11,7 @@ import re
 from datetime import date, datetime
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from urllib.parse import urlencode
 
 from decouple import config
 from django.conf import settings
@@ -107,12 +108,12 @@ def _event_public_url(event, request):
     """Build the public RSVP URL for an event."""
     try:
         path = reverse(
-            "events:public_rsvp",
+            "events:public_event_attendance",
             kwargs={"slug": event.slug},
         )
     except NoReverseMatch:
         logger.exception(
-            "Could not reverse events:public_rsvp for event %s.",
+            "Could not reverse events:public_event_attendance for event %s.",
             event.pk,
         )
         return ""
@@ -567,10 +568,6 @@ def generate_groq_campaign(
         selected_platforms,
     )
 
-
-
-
-
 def format_campaign_document(campaign, selected_platforms):
     """Format campaign data as a clean, modern, social-first campaign brief."""
     import re
@@ -992,9 +989,6 @@ def format_campaign_document(campaign, selected_platforms):
 
     return output.strip()
 
-
-
-
 def _owned_draft(user, draft_id):
     """Retrieve a campaign draft only if it belongs to the current host."""
     if not draft_id:
@@ -1410,12 +1404,6 @@ def ai_marketing_studio(request):
         "marketing_studio/studio.html",
         context,
     )
-
-
-
-######################
-from urllib.parse import urlencode
-
 
 def _tracked_campaign_links(draft, request):
     """Build a separate, attributable public event URL for each platform."""

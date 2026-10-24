@@ -14,16 +14,16 @@
             <span class="yv-eyebrow">REGISTRATION UPDATE</span>
 
             <h1>
-                {% if rsvp.status == "DECLINED" %}
+                {% if attendee.status == "DECLINED" %}
                     Response Recorded
                 {% else %}
-                    RSVP Confirmed!
+                    Attendee Confirmed!
                 {% endif %}
             </h1>
 
             <p class="yv-intro">
-                Thank you, {{ rsvp.first_name }}{% if rsvp.last_name %} {{ rsvp.last_name }}{% endif %}.
-                {% if rsvp.status == "DECLINED" %}
+                Thank you, <strong>{{ attendee.first_name }}{% if attendee.last_name %} {{ attendee.last_name }}{% endif %}</strong>.
+                {% if attendee.status == "DECLINED" %}
                     Your response has been recorded.
                 {% else %}
                     Your response for <strong>{{ event.title }}</strong>
@@ -33,7 +33,7 @@
 
             <div class="yv-status-pill">
                 <span class="yv-status-dot"></span>
-                {{ rsvp.get_status_display }}
+                {{ attendee.get_status_display }}
             </div>
         </header>
 
@@ -77,16 +77,16 @@
 
                 <div class="yv-detail-row">
                     <span class="yv-detail-label">Response</span>
-                    <span class="yv-detail-value">{{ rsvp.get_status_display }}</span>
+                    <span class="yv-detail-value">{{ attendee.get_status_display }}</span>
                 </div>
 
-                {% if rsvp.status == "ATTENDING" and rsvp.plus_ones_count > 0 %}
+                {% if attendee.status == "ATTENDING" and attendee.plus_ones_count > 0 %}
                     <div class="yv-detail-row yv-detail-row-guests">
                         <span class="yv-detail-label">Additional guests</span>
                         <div class="yv-detail-value">
-                            <strong>{{ rsvp.plus_ones_count }}</strong>
+                            <strong>{{ attendee.plus_ones_count }}</strong>
 
-                            {% for guest in rsvp.plus_ones.all %}
+                            {% for guest in attendee.plus_ones.all %}
                                 <div class="yv-guest-name">
                                     {{ guest.full_name }}
                                 </div>
@@ -98,7 +98,7 @@
         </section>
 
         <!-- Ticket summary -->
-        {% if rsvp.ticket_tier %}
+        {% if attendee.ticket_tier %}
             <section class="yv-section">
                 <div class="yv-section-heading">
                     <span class="yv-heading-icon" aria-hidden="true">
@@ -123,15 +123,15 @@
                 <div class="yv-ticket-summary">
                     <div>
                         <span class="yv-summary-label">Ticket type</span>
-                        <strong>{{ rsvp.ticket_tier.name }}</strong>
+                        <strong>{{ attendee.ticket_tier.name }}</strong>
                     </div>
 
                     <div>
                         <span class="yv-summary-label">Quantity</span>
-                        <strong>{{ rsvp.ticket_quantity }}</strong>
+                        <strong>{{ attendee.ticket_quantity }}</strong>
                     </div>
 
-                    {% if rsvp.ticket_tier.price == 0 %}
+                    {% if attendee.ticket_tier.price == 0 %}
                         <p class="yv-free-ticket-note">
                             Your free ticket selection has been recorded.
                         </p>
@@ -141,7 +141,7 @@
         {% endif %}
 
         <!-- Individual digital tickets -->
-        {% if rsvp.event.enable_qr_checkins and rsvp.is_paid %}
+        {% if attendee.event.enable_qr_checkins and attendee.is_paid %}
             <section class="yv-section yv-digital-section">
                 <div class="yv-section-heading">
                     <span class="yv-heading-icon" aria-hidden="true">
@@ -164,7 +164,7 @@
                 </div>
 
                 <div class="ticket-grid">
-                    {% for ticket in rsvp.individual_tickets.all %}
+                    {% for ticket in attendee.individual_tickets.all %}
                         <article class="ticket-card">
                             <div class="ticket-card-top">
                                 <span class="ticket-label">DIGITAL TICKET</span>
@@ -179,9 +179,9 @@
                                 Ticket {{ ticket.ticket_number }}
                             </h3>
 
-                            {% if rsvp.ticket_tier %}
+                            {% if attendee.ticket_tier %}
                                 <p class="ticket-tier-name">
-                                    {{ rsvp.ticket_tier.name }}
+                                    {{ attendee.ticket_tier.name }}
                                 </p>
                             {% endif %}
 
@@ -250,7 +250,7 @@
 
         <!-- Return to event -->
         <footer class="yv-confirmation-footer">
-            <a href="{% url 'events:public_rsvp' event.slug %}"
+            <a href="{% url 'events:public_event_attendance' event.slug %}"
                class="yv-back-button">
                 <span aria-hidden="true">←</span>
                 Back to event page
@@ -986,7 +986,7 @@
 
 <style>
     /* =========================================================
-       YoursEvently — RSVP Confirmation
+       YAttendee Confirmation
        ========================================================= */
 
     .yv-confirmation {

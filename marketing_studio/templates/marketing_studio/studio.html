@@ -50,215 +50,215 @@
     {% endif %}
 
     <div class="ms-workspace">
-<section class="ms-card ms-editor-card">
-  <div class="ms-card-heading">
-    <div class="ms-section-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
-    </div>
-    <div>
-      <div class="ms-kicker">{% trans "CAMPAIGN BUILDER" %}</div>
-      <h2>{% if selected_draft %}{% trans "Edit campaign" %}{% else %}{% trans "Build a campaign" %}{% endif %}</h2>
-    </div>
-    {% if selected_draft %}
-      <span class="ms-pill ms-pill-active"><span class="ms-status-dot"></span>{% trans "Editing draft" %}</span>
-    {% else %}
-      <span class="ms-pill">{% trans "New campaign" %}</span>
-    {% endif %}
-  </div>
-
-  {% if events %}
-    <form method="post" action="{% url 'marketing_studio:studio' %}" id="marketing-campaign-form">
-      {% csrf_token %}
-      <input type="hidden" name="action" id="marketing-action" value="save">
-
-      {% if selected_draft %}
-        <input type="hidden" name="draft_id" value="{{ selected_draft.pk }}">
-      {% endif %}
-
-      <div class="ms-form-section">
-        <div class="ms-form-section-title">
-          <span class="ms-step">01</span>
-          <div>
-            <h3>{% trans "Campaign setup" %}</h3>
-            <p>{% trans "Name your campaign and connect it to an event." %}</p>
-          </div>
+    <section class="ms-card ms-editor-card">
+      <div class="ms-card-heading">
+        <div class="ms-section-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
         </div>
-
-        <div class="ms-field">
-          <label for="campaign-name">{% trans "Campaign name" %}</label>
-          <input class="ms-control" type="text" id="campaign-name" name="name" maxlength="200" value="{{ name }}" placeholder="{% trans 'e.g. Autumn event launch campaign' %}">
+        <div>
+          <div class="ms-kicker">{% trans "CAMPAIGN BUILDER" %}</div>
+          <h2>{% if selected_draft %}{% trans "Edit campaign" %}{% else %}{% trans "Build a campaign" %}{% endif %}</h2>
         </div>
-
-        <div class="ms-field">
-          <label for="event-id">{% trans "Your event" %}<span class="ms-required">*</span></label>
-          <select class="ms-control" id="event-id" name="event_id" required>
-            <option value="">{% trans "Choose one of your events" %}</option>
-            {% for event in events %}
-              <option value="{{ event.pk }}" {% if selected_event and selected_event.pk == event.pk %}selected{% endif %}>{{ event.title }}</option>
-            {% endfor %}
-          </select>
-          <p class="ms-help">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
-            {% trans "Only events belonging to your account are available. The campaign uses the event's saved details and public event URL where available." %}
-          </p>
-        </div>
-
-        <div class="ms-field">
-          <label for="campaign-goal">{% trans "Campaign objective" %}<span class="ms-required">*</span></label>
-          <select class="ms-control" id="campaign-goal" name="objective" required>
-            {% for value, label in objectives %}
-              <option value="{{ value }}" {% if selected_objective == value %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
-
-      <div class="ms-form-section">
-        <div class="ms-form-section-title">
-          <span class="ms-step">02</span>
-          <div>
-            <h3>{% trans "Channel selection" %}</h3>
-            <p>{% trans "Choose where your campaign needs platform-specific copy." %}</p>
-          </div>
-        </div>
-
-        <fieldset class="ms-platform-field">
-          <legend class="ms-field-label">{% trans "Social platforms" %}<span class="ms-required">*</span></legend>
-          <div class="ms-platform-grid">
-            {% for value, label in available_platforms %}
-              <label class="ms-platform-option ms-platform-{{ value }}">
-                <input type="checkbox" name="platforms" value="{{ value }}" {% if value in selected_platforms %}checked{% endif %}>
-                <span class="ms-platform-icon" aria-hidden="true">
-                  {% if value == 'facebook' %}
-                    <svg viewBox="0 0 24 24"><path d="M14 21v-8h3l.5-3H14V8.1c0-.9.3-1.6 1.7-1.6h1.9V3.8c-.9-.1-1.8-.2-2.7-.2-2.8 0-4.7 1.7-4.7 4.8V10H7v3h3.2v8Z"/></svg>
-                  {% elif value == 'instagram' %}
-                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>
-                  {% elif value == 'linkedin' %}
-                    <svg viewBox="0 0 24 24"><path d="M5 9v10M5 5v.01M10 19v-6a4 4 0 0 1 8 0v6M10 9v10"/></svg>
-                  {% else %}
-                    <svg viewBox="0 0 24 24"><path d="m3 3 7.8 10.4L3.5 21H7l5.4-5.7L16.7 21H21l-8.3-11L20.5 3H17l-5 5.3L8 3Z"/></svg>
-                  {% endif %}
-                </span>
-                <span class="ms-platform-copy">
-                  <strong>{{ label }}</strong>
-                  <small>
-                    {% if value == 'facebook' %}{% trans "Community & sharing" %}
-                    {% elif value == 'instagram' %}{% trans "Visual storytelling" %}
-                    {% elif value == 'linkedin' %}{% trans "Professional reach" %}
-                    {% else %}{% trans "Short-form updates" %}{% endif %}
-                  </small>
-                </span>
-                <span class="ms-checkmark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span>
-              </label>
-            {% endfor %}
-          </div>
-          <p class="ms-help">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
-            {% trans "Each selected platform receives its own copy, written for its audience and format." %}
-          </p>
-        </fieldset>
-      </div>
-
-      <div class="ms-form-section ms-content-section">
-        <div class="ms-form-section-title ms-content-heading">
-          <span class="ms-step">03</span>
-          <div>
-            <h3>{% trans "Campaign plan & content" %}</h3>
-            <p>{% trans "Review and refine your strategy, timeline, and ready-to-edit copy." %}</p>
-          </div>
-          <span class="ms-character-count" id="campaign-character-count">0 characters</span>
-        </div>
-
-        <div class="ms-editor-toolbar">
-          <span class="ms-editor-dot"></span><span class="ms-editor-dot"></span><span class="ms-editor-dot"></span>
-          <span class="ms-editor-toolbar-label">{% trans "CAMPAIGN DOCUMENT" %}</span>
-          <span class="ms-editor-toolbar-format">TXT</span>
-        </div>
-
-        <textarea class="ms-control ms-campaign-content" id="campaign-content" name="campaign_content" rows="22" maxlength="50000" spellcheck="true" placeholder="{% trans 'Generate a strategic campaign plan or write/edit your own. The plan includes a promotion timeline, platform copy, audience angles, creative direction, and optimization ideas.' %}">{{ campaign_content }}</textarea>
-
-        <div class="ms-editor-footer">
-          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v5c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6Z"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Your edits are included when you save." %}</span>
-          <span>{% trans "Up to 50,000 characters" %}</span>
-        </div>
-        <p class="ms-help ms-content-help">{% trans "This is an editable campaign document. Verify all event facts, links, ticket details, and any proposed offer before publishing. Generating or saving a campaign does not publish or schedule posts." %}</p>
-      </div>
-
-      <div class="ms-actions">
-        <button class="ms-button ms-button-primary" type="submit" name="action" value="save" id="save-campaign-button">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3Z"/><path d="M7 3v6h10V3M7 21v-8h10v8"/></svg>
-          {% trans "Save campaign" %}
-        </button>
-        <button class="ms-button ms-button-generate" type="submit" name="action" value="generate" id="generate-campaign-button">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2Z"/><path d="m19 14 .9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9Z"/></svg>
-          {% trans "Generate AI campaign plan" %}
-        </button>
-        <button class="ms-button ms-button-light" type="button" id="copy-campaign-button">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
-          {% trans "Copy campaign text" %}
-        </button>
         {% if selected_draft %}
-          <a class="ms-button ms-button-light" href="{% url 'marketing_studio:studio' %}">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-            {% trans "New campaign" %}
-          </a>
+          <span class="ms-pill ms-pill-active"><span class="ms-status-dot"></span>{% trans "Editing draft" %}</span>
+        {% else %}
+          <span class="ms-pill">{% trans "New campaign" %}</span>
         {% endif %}
       </div>
-      <p id="marketing-form-status" class="ms-form-status" role="status" aria-live="polite"></p>
-    </form>
 
-    {% if selected_draft and tracked_links %}
-      <section class="ms-form-section" aria-labelledby="tracked-links-heading">
-        <div class="ms-form-section-title">
-          <span class="ms-step">04</span>
-          <div>
-            <h3 id="tracked-links-heading">{% trans "Campaign tracking links" %}</h3>
-            <p>{% trans "Use these links in your selected social platforms to identify campaign traffic." %}</p>
-          </div>
-        </div>
+      {% if events %}
+        <form method="post" action="{% url 'marketing_studio:studio' %}" id="marketing-campaign-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" id="marketing-action" value="save">
 
-        <p class="ms-help">
-          {% trans "Each link includes campaign tracking parameters. Share the matching link on each platform to help attribute visits and supported conversions to this campaign." %}
-        </p>
+          {% if selected_draft %}
+            <input type="hidden" name="draft_id" value="{{ selected_draft.pk }}">
+          {% endif %}
 
-        <div class="ms-tracked-links-list">
-          {% for item in tracked_links %}
-            <div class="ms-field">
-              <label for="tracked-link-{{ forloop.counter }}">{{ item.label }} {% trans "tracking link" %}</label>
-              <div class="ms-tracked-link-row">
-                <input
-                  class="ms-control"
-                  type="url"
-                  id="tracked-link-{{ forloop.counter }}"
-                  value="{{ item.url }}"
-                  readonly
-                  aria-label="{{ item.label }} {% trans 'tracking link' %}"
-                >
-                <button
-                  class="ms-button ms-button-light"
-                  type="button"
-                  data-copy-tracked-link="tracked-link-{{ forloop.counter }}"
-                >
-                  {% trans "Copy link" %}
-                </button>
+          <div class="ms-form-section">
+            <div class="ms-form-section-title">
+              <span class="ms-step">01</span>
+              <div>
+                <h3>{% trans "Campaign setup" %}</h3>
+                <p>{% trans "Name your campaign and connect it to an event." %}</p>
               </div>
             </div>
-          {% endfor %}
+
+            <div class="ms-field">
+              <label for="campaign-name">{% trans "Campaign name" %}</label>
+              <input class="ms-control" type="text" id="campaign-name" name="name" maxlength="200" value="{{ name }}" placeholder="{% trans 'e.g. Autumn event launch campaign' %}">
+            </div>
+
+            <div class="ms-field">
+              <label for="event-id">{% trans "Your event" %}<span class="ms-required">*</span></label>
+              <select class="ms-control" id="event-id" name="event_id" required>
+                <option value="">{% trans "Choose one of your events" %}</option>
+                {% for event in events %}
+                  <option value="{{ event.pk }}" {% if selected_event and selected_event.pk == event.pk %}selected{% endif %}>{{ event.title }}</option>
+                {% endfor %}
+              </select>
+              <p class="ms-help">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+                {% trans "Only events belonging to your account are available. The campaign uses the event's saved details and public event URL where available." %}
+              </p>
+            </div>
+
+            <div class="ms-field">
+              <label for="campaign-goal">{% trans "Campaign objective" %}<span class="ms-required">*</span></label>
+              <select class="ms-control" id="campaign-goal" name="objective" required>
+                {% for value, label in objectives %}
+                  <option value="{{ value }}" {% if selected_objective == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="ms-form-section">
+            <div class="ms-form-section-title">
+              <span class="ms-step">02</span>
+              <div>
+                <h3>{% trans "Channel selection" %}</h3>
+                <p>{% trans "Choose where your campaign needs platform-specific copy." %}</p>
+              </div>
+            </div>
+
+            <fieldset class="ms-platform-field">
+              <legend class="ms-field-label">{% trans "Social platforms" %}<span class="ms-required">*</span></legend>
+              <div class="ms-platform-grid">
+                {% for value, label in available_platforms %}
+                  <label class="ms-platform-option ms-platform-{{ value }}">
+                    <input type="checkbox" name="platforms" value="{{ value }}" {% if value in selected_platforms %}checked{% endif %}>
+                    <span class="ms-platform-icon" aria-hidden="true">
+                      {% if value == 'facebook' %}
+                        <svg viewBox="0 0 24 24"><path d="M14 21v-8h3l.5-3H14V8.1c0-.9.3-1.6 1.7-1.6h1.9V3.8c-.9-.1-1.8-.2-2.7-.2-2.8 0-4.7 1.7-4.7 4.8V10H7v3h3.2v8Z"/></svg>
+                      {% elif value == 'instagram' %}
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>
+                      {% elif value == 'linkedin' %}
+                        <svg viewBox="0 0 24 24"><path d="M5 9v10M5 5v.01M10 19v-6a4 4 0 0 1 8 0v6M10 9v10"/></svg>
+                      {% else %}
+                        <svg viewBox="0 0 24 24"><path d="m3 3 7.8 10.4L3.5 21H7l5.4-5.7L16.7 21H21l-8.3-11L20.5 3H17l-5 5.3L8 3Z"/></svg>
+                      {% endif %}
+                    </span>
+                    <span class="ms-platform-copy">
+                      <strong>{{ label }}</strong>
+                      <small>
+                        {% if value == 'facebook' %}{% trans "Community & sharing" %}
+                        {% elif value == 'instagram' %}{% trans "Visual storytelling" %}
+                        {% elif value == 'linkedin' %}{% trans "Professional reach" %}
+                        {% else %}{% trans "Short-form updates" %}{% endif %}
+                      </small>
+                    </span>
+                    <span class="ms-checkmark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span>
+                  </label>
+                {% endfor %}
+              </div>
+              <p class="ms-help">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+                {% trans "Each selected platform receives its own copy, written for its audience and format." %}
+              </p>
+            </fieldset>
+          </div>
+
+          <div class="ms-form-section ms-content-section">
+            <div class="ms-form-section-title ms-content-heading">
+              <span class="ms-step">03</span>
+              <div>
+                <h3>{% trans "Campaign plan & content" %}</h3>
+                <p>{% trans "Review and refine your strategy, timeline, and ready-to-edit copy." %}</p>
+              </div>
+              <span class="ms-character-count" id="campaign-character-count">0 characters</span>
+            </div>
+
+            <div class="ms-editor-toolbar">
+              <span class="ms-editor-dot"></span><span class="ms-editor-dot"></span><span class="ms-editor-dot"></span>
+              <span class="ms-editor-toolbar-label">{% trans "CAMPAIGN DOCUMENT" %}</span>
+              <span class="ms-editor-toolbar-format">TXT</span>
+            </div>
+
+            <textarea class="ms-control ms-campaign-content" id="campaign-content" name="campaign_content" rows="22" maxlength="50000" spellcheck="true" placeholder="{% trans 'Generate a strategic campaign plan or write/edit your own. The plan includes a promotion timeline, platform copy, audience angles, creative direction, and optimization ideas.' %}">{{ campaign_content }}</textarea>
+
+            <div class="ms-editor-footer">
+              <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v5c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6Z"/><path d="m9 12 2 2 4-4"/></svg>{% trans "Your edits are included when you save." %}</span>
+              <span>{% trans "Up to 50,000 characters" %}</span>
+            </div>
+            <p class="ms-help ms-content-help">{% trans "This is an editable campaign document. Verify all event facts, links, ticket details, and any proposed offer before publishing. Generating or saving a campaign does not publish or schedule posts." %}</p>
+          </div>
+
+          <div class="ms-actions">
+            <button class="ms-button ms-button-primary" type="submit" name="action" value="save" id="save-campaign-button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3Z"/><path d="M7 3v6h10V3M7 21v-8h10v8"/></svg>
+              {% trans "Save campaign" %}
+            </button>
+            <button class="ms-button ms-button-generate" type="submit" name="action" value="generate" id="generate-campaign-button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2Z"/><path d="m19 14 .9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9Z"/></svg>
+              {% trans "Generate AI campaign plan" %}
+            </button>
+            <button class="ms-button ms-button-light" type="button" id="copy-campaign-button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+              {% trans "Copy campaign text" %}
+            </button>
+            {% if selected_draft %}
+              <a class="ms-button ms-button-light" href="{% url 'marketing_studio:studio' %}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                {% trans "New campaign" %}
+              </a>
+            {% endif %}
+          </div>
+          <p id="marketing-form-status" class="ms-form-status" role="status" aria-live="polite"></p>
+        </form>
+
+        {% if selected_draft and tracked_links %}
+          <section class="ms-form-section" aria-labelledby="tracked-links-heading">
+            <div class="ms-form-section-title">
+              <span class="ms-step">04</span>
+              <div>
+                <h3 id="tracked-links-heading">{% trans "Campaign tracking links" %}</h3>
+                <p>{% trans "Use these links in your selected social platforms to identify campaign traffic." %}</p>
+              </div>
+            </div>
+
+            <p class="ms-help">
+              {% trans "Each link includes campaign tracking parameters. Share the matching link on each platform to help attribute visits and supported conversions to this campaign." %}
+            </p>
+
+            <div class="ms-tracked-links-list">
+              {% for item in tracked_links %}
+                <div class="ms-field">
+                  <label for="tracked-link-{{ forloop.counter }}">{{ item.label }} {% trans "tracking link" %}</label>
+                  <div class="ms-tracked-link-row">
+                    <input
+                      class="ms-control"
+                      type="url"
+                      id="tracked-link-{{ forloop.counter }}"
+                      value="{{ item.url }}"
+                      readonly
+                      aria-label="{{ item.label }} {% trans 'tracking link' %}"
+                    >
+                    <button
+                      class="ms-button ms-button-light"
+                      type="button"
+                      data-copy-tracked-link="tracked-link-{{ forloop.counter }}"
+                    >
+                      {% trans "Copy link" %}
+                    </button>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <p id="tracked-link-status" class="ms-form-status" role="status" aria-live="polite"></p>
+          </section>
+        {% endif %}
+
+      {% else %}
+        <div class="ms-empty-state">
+          <span class="ms-empty-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+          <h3>{% trans "Start with an event" %}</h3>
+          <p>{% trans "Create an event before preparing a campaign. Once your event is saved, return here to build its marketing plan." %}</p>
+          <a class="ms-button ms-button-primary" href="{% url 'events:create_event' %}">{% trans "Create an event" %}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
         </div>
-
-        <p id="tracked-link-status" class="ms-form-status" role="status" aria-live="polite"></p>
-      </section>
-    {% endif %}
-
-  {% else %}
-    <div class="ms-empty-state">
-      <span class="ms-empty-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
-      <h3>{% trans "Start with an event" %}</h3>
-      <p>{% trans "Create an event before preparing a campaign. Once your event is saved, return here to build its marketing plan." %}</p>
-      <a class="ms-button ms-button-primary" href="{% url 'events:create_event' %}">{% trans "Create an event" %}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-    </div>
-  {% endif %}
-</section>
+      {% endif %}
+    </section>
 
       <aside class="ms-card ms-sidebar-card">
         <div class="ms-card-heading ms-sidebar-title">

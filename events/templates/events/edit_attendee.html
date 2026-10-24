@@ -80,7 +80,7 @@
 
       <div class="rsvp-edit-footer">
         <button type="submit" class="rsvp-btn-save">Save Changes</button>
-        <a href="{% url 'events:view_rsvp_detail' event.slug rsvp.pk %}" class="rsvp-btn-cancel">Cancel</a>
+        <a href="{% url 'events:view_attendee_detail' event.slug rsvp.pk %}" class="rsvp-btn-cancel">Cancel</a>
       </div>
     </form>
   </div>

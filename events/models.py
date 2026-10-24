@@ -5,7 +5,6 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from urllib.parse import urlencode
-
 import qrcode
 import base64
 from io import BytesIO
@@ -298,7 +297,6 @@ class Event(models.Model):
         has_active_subscription = profile.is_subscriber if profile else False
         
         return self.is_pro_upgraded or has_active_subscription
-    ############
 
     @property
     def is_past(self):
@@ -353,7 +351,6 @@ class GalleryImage(models.Model):
     def __str__(self):
         status = "Post-Event" if self.is_post_event else "Preview"
         return f"{self.description or 'Gallery Image'} ({status}) for {self.event.title}"
-#############
 
 class PendingUpgrade(models.Model):
     PLAN_CHOICES = [
@@ -440,16 +437,16 @@ class PlatformFee(models.Model):
         return f"{self.name} ({self.percentage}%)"
   
 
-class RSVP(models.Model):
+class EventAttendee(models.Model):
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
         ('ATTENDING', 'Attending'),
         ('DECLINED', 'Declined'),
     ]
 
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='rsvps')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='attendees')
     # ticket relation and payment status tracking
-    ticket_tier = models.ForeignKey('TicketTier', on_delete=models.SET_NULL, null=True, blank=True, related_name='rsvps')
+    ticket_tier = models.ForeignKey('TicketTier', on_delete=models.SET_NULL, null=True, blank=True, related_name='attendees')
     ticket_quantity = models.PositiveIntegerField(default=1) ##
     is_paid = models.BooleanField(default=False)
 
@@ -515,21 +512,25 @@ class RSVP(models.Model):
         return f"data:image/png;base64,{encoded_img}"
 
 
-class RSVPGuest(models.Model):
-    rsvp = models.ForeignKey(RSVP, on_delete=models.CASCADE, related_name='plus_ones')
+class FreeAttendeeGuest(models.Model):
+    event_attendee = models.ForeignKey(EventAttendee, on_delete=models.CASCADE, related_name='plus_ones',)
     full_name = models.CharField(max_length=255)
     dietary_restrictions = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.full_name} (Guest of {self.rsvp.first_name} {self.rsvp.last_name})"
+        return (
+            f"{self.full_name} (Guest of "
+            f"{self.event_attendee.first_name} "
+            f"{self.event_attendee.last_name})"
+        )
 
 
 class IndividualTicket(models.Model):
-    rsvp = models.ForeignKey(
-        'RSVP',
+    event_attendee = models.ForeignKey(
+        "EventAttendee",
         on_delete=models.CASCADE,
-        related_name='individual_tickets',
+        related_name="individual_tickets",
     )
     ticket_number = models.PositiveIntegerField()
     checkin_token = models.UUIDField(
@@ -542,28 +543,30 @@ class IndividualTicket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['ticket_number']
+        ordering = ["ticket_number"]
         constraints = [
             models.UniqueConstraint(
-                fields=['rsvp', 'ticket_number'],
-                name='unique_ticket_number_per_rsvp',
+                fields=["event_attendee", "ticket_number"],
+                name="unique_ticket_number_per_attendee",
             )
         ]
 
     def __str__(self):
-        return f"Ticket {self.ticket_number} - RSVP {self.rsvp_id}"
+        return (
+            f"Ticket {self.ticket_number} - "
+            f"Attendee {self.event_attendee_id}"
+        )
 
     def get_qr_code_data_uri(self):
         """Return this ticket's check-in QR code as a PNG data URI."""
-    
 
-        if not self.rsvp.event.enable_qr_checkins:
+        if not self.event_attendee.event.enable_qr_checkins:
             return None
 
         checkin_url = reverse(
             "events:verify_checkin",
             kwargs={
-                "slug": self.rsvp.event.slug,
+                "slug": self.event_attendee.event.slug,
                 "token": self.checkin_token,
             },
         )
@@ -594,9 +597,7 @@ class IndividualTicket(models.Model):
 
         return f"data:image/png;base64,{encoded_img}"
 
-
-
-class PendingTicketOrder(models.Model):
+class TicketOrder(models.Model):
     STATUS_PENDING = "pending"
     STATUS_PAID = "paid"
     STATUS_CANCELLED = "cancelled"
@@ -612,13 +613,13 @@ class PendingTicketOrder(models.Model):
     event = models.ForeignKey(
         "Event",
         on_delete=models.CASCADE,
-        related_name="pending_ticket_orders",
+        related_name="ticket_orders",
     )
 
     ticket_tier = models.ForeignKey(
         "TicketTier",
         on_delete=models.PROTECT,
-        related_name="pending_orders",
+        related_name="ticket_orders",
     )
 
     ticket_quantity = models.PositiveIntegerField(default=1)
@@ -645,12 +646,12 @@ class PendingTicketOrder(models.Model):
         blank=True,
     )
 
-    rsvp = models.OneToOneField(
-        "RSVP",
+    event_attendee = models.OneToOneField(
+        "EventAttendee",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="pending_ticket_order",
+        related_name="ticket_order",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -671,13 +672,11 @@ class PendingTicketOrder(models.Model):
 
     inventory_released = models.BooleanField(default=False)
 
-    # NEWLY ADDED ANALYTICS FIELDS:
-    # Campaign attribution
+    # Campaign attribution.
     campaign_id = models.PositiveIntegerField(null=True, blank=True, db_index=True)
     campaign_platform = models.CharField(max_length=30, blank=True, default="")
     campaign_source = models.CharField(max_length=50, blank=True, default="")
     campaign_medium = models.CharField(max_length=50, blank=True, default="")
-    #######
 
     class Meta:
         ordering = ["-created_at"]
@@ -689,26 +688,16 @@ class PendingTicketOrder(models.Model):
         )
 
 
-# class Feedback(models.Model):
-#     event = models.ForeignKey('Event', on_delete=models.CASCADE, related_name='feedbacks')
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-#     rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], default=5)
-#     comment = models.TextField()
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.user} - {self.rating} Stars"
-
 class Feedback(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='feedbacks')
-    rsvp = models.ForeignKey('RSVP', on_delete=models.SET_NULL, null=True, blank=True, related_name='feedbacks')
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True) # Optional now if guests are unauthenticated
+    event_attendee = models.ForeignKey("EventAttendee", on_delete=models.SET_NULL, null=True, blank=True, related_name='feedbacks')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True) # Optional if guests are unauthenticated
     rating = models.PositiveIntegerField()
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.rsvp} - {self.rating} Stars"
+        return f"{self.event_attendee} - {self.rating} Stars"
 
 
 # -------------------------------------------------------------------------
@@ -863,7 +852,7 @@ class TranslationCache(models.Model):
         )
 
 
-##### NEWLY ADDED CAMPAIGN ANALYTICS
+##### CAMPAIGN ANALYTICS
 class CampaignVisit(models.Model):
     """
     A deduplicated campaign visit for an event within a Django session.

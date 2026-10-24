@@ -1,4 +1,4 @@
- {% extends "events/landing_base.html" %}
+{% extends "events/landing_base.html" %}
 {% load humanize i18n static %}
 
 {% block title %}{{ event.title }} — {% trans "Executive Event Analytics" %} | YoursEvently Pro{% endblock %}
@@ -95,12 +95,12 @@
                     {% trans "Edit Settings" %}
                 </a>
 
-                <a href="{% url 'events:event_rsvps_management' event.slug %}" class="analytics-btn analytics-btn-primary">
+                <a href="{% url 'events:event_attendees_management' event.slug %}" class="analytics-btn analytics-btn-primary">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     {% trans "Manage Guests & QR" %}
                 </a>
 
-                <a href="{% url 'events:public_rsvp' event.slug %}" target="_blank" class="analytics-btn analytics-btn-secondary" title="{% trans 'View Public Event Page' %}">
+                <a href="{% url 'events:public_event_attendance' event.slug %}" target="_blank" class="analytics-btn analytics-btn-secondary" title="{% trans 'View Public Event Page' %}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 </a>
             </div>
@@ -201,13 +201,13 @@
                     </div>
                 </div>
                 <strong class="analytics-metric-value analytics-text-success">
-                    {{ confirmed_rsvps|default:0|intcomma }}
+                    {{ confirmed_attendees|default:0|intcomma }}
                 </strong>
                 <div class="analytics-metric-footer">
                     <span>{% trans "Attending Guests" %}</span>
                     <span style="color: var(--electric-green); font-weight: 700;">
-                        {% if total_rsvps %}
-                            {% widthratio confirmed_rsvps total_rsvps 100 %}% {% trans "yield" %}
+                        {% if total_attendees %}
+                            {% widthratio confirmed_attendees total_attendees 100 %}% {% trans "yield" %}
                         {% else %}
                             100%
                         {% endif %}
@@ -224,14 +224,14 @@
                     </div>
                 </div>
                 <strong class="analytics-metric-value" style="color: #f472b6;">
-                    {% if confirmed_rsvps %}
-                        {% widthratio checked_in_guests confirmed_rsvps 100 %}%
+                    {% if confirmed_attendees %}
+                        {% widthratio checked_in_guests confirmed_attendees 100 %}%
                     {% else %}
                         0%
                     {% endif %}
                 </strong>
                 <div class="analytics-metric-footer">
-                    <span>{{ checked_in_guests|default:0|intcomma }} / {{ confirmed_rsvps|default:0|intcomma }}</span>
+                    <span>{{ checked_in_guests|default:0|intcomma }} / {{ confirmed_attendees|default:0|intcomma }}</span>
                     <span style="color: var(--accent-pink); font-weight: 700;">{% trans "Door Active" %}</span>
                 </div>
             </article>
@@ -271,7 +271,7 @@
                 </div>
             </section>
 
-            
+
 <!-- Chart 2: RSVP & Ticket Distribution -->
 <section class="analytics-card">
     <div class="analytics-card-header">
@@ -298,7 +298,7 @@
 
     <div class="analytics-donut-container">
         <canvas
-            id="rsvpBreakdownDonutChart"
+            id="attendeeBreakdownDonutChart"
             role="img"
             aria-label="Attendance distribution chart">
         </canvas>
@@ -308,7 +308,7 @@
         {% if event.is_ticketed and has_ticket_tiers %}
             {{ total_ticket_capacity|default:0 }}
         {% else %}
-            {{ total_rsvps|default:0 }}
+            {{ total_attendees|default:0 }}
         {% endif %}
     </div>
 
@@ -361,7 +361,7 @@
         <div>
             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--electric-green);"></span>
             <div style="font-weight:700;color:var(--text-main);margin-top:0.2rem;">
-                {{ confirmed_rsvps|default:0 }}
+                {{ confirmed_attendees|default:0 }}
             </div>
             <div style="color:var(--text-muted);font-size:0.7rem;">
                 {% trans "Confirmed Attending" %}
@@ -381,7 +381,7 @@
         <div>
             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent-rose);"></span>
             <div style="font-weight:700;color:var(--text-main);margin-top:0.2rem;">
-                {{ pending_rsvps|default:0 }}
+                {{ pending_attendees|default:0 }}
             </div>
             <div style="color:var(--text-muted);font-size:0.7rem;">
                 {% trans "Pending" %}
@@ -391,7 +391,7 @@
         <div>
             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent-rose);"></span>
             <div style="font-weight:700;color:var(--text-main);margin-top:0.2rem;">
-                {{ declined_rsvps|default:0 }}
+                {{ declined_attendees|default:0 }}
             </div>
             <div style="color:var(--text-muted);font-size:0.7rem;">
                 {% trans "Declined" %}
@@ -402,7 +402,7 @@
                 {% endif %}
             </div>
         </section>
-           
+
         </div>
 
         <!-- ================= ENTERPRISE CHARTS SUITE: GATE VELOCITY & ATTRIBUTION ================= -->
@@ -441,8 +441,8 @@
                     </p>
                 </div>
             </section>
-           
-           
+
+
             <!-- Chart 5: Marketing & Referral Channel Attribution (Enterprise Vertical Bars with Base Icons) -->
             <section class="analytics-card">
                 <div class="analytics-card-header">
@@ -496,7 +496,7 @@
                                 <!-- <th>{% trans "Campaign" %}</th> -->
                                 <th>{% trans "Platform" %}</th>
                                 <th style="text-align: right;">{% trans "Visits" %}</th>
-                                <th style="text-align: right;">{% trans "Attributed RSVPs" %}</th>
+                                <th style="text-align: right;">{% trans "Attributed Attendees" %}</th>
                                 <th style="text-align: right;">{% trans "Paid Orders" %}</th>
                                 <th style="text-align: right;">{% trans "Est. Revenue" %}</th>
                             </tr>
@@ -518,7 +518,7 @@
                                     {{ row.tracked_visits|intcomma }}
                                 </td>
                                 <td style="text-align: right;">
-                                    {{ row.attributed_rsvps|intcomma }}
+                                    {{ row.attributed_orders|intcomma }}
                                 </td>
                                 <td style="text-align: right;">
                                     {{ row.paid_orders|intcomma }}
@@ -535,7 +535,7 @@
             </section>
 
         </div>
-    
+
         {% if event.is_ticketed %}
         <!-- ================= FINANCIAL LEDGER & RECONCILIATION ================= -->
         <section class="analytics-content-grid">
@@ -731,7 +731,7 @@
         <!-- ================= ATTENDANCE & CHECK-IN OPERATIONS ================= -->
         <section class="analytics-content-grid">
 
-            <!-- RSVP Status Matrix -->
+            <!-- Attendee Status Matrix -->
             <article class="analytics-card">
                 <div class="analytics-card-header">
                     <div>
@@ -740,7 +740,7 @@
                             {% trans "Guest Engagement Metrics" %}
                         </h2>
                         <p class="analytics-card-desc">
-                            {% trans "Current RSVP pipeline states." %}
+                            {% trans "Current Attendee pipeline states." %}
                         </p>
                     </div>
                 </div>
@@ -748,22 +748,22 @@
                 <div class="analytics-stats-list">
                     <div class="analytics-stats-row">
                         <span class="analytics-stats-key">{% trans "Total Principal Attendee Records Logged" %}</span>
-                        <span class="analytics-stats-val" style="color: #ffffff;">{{ total_rsvps|default:0|intcomma }}</span>
+                        <span class="analytics-stats-val" style="color: #ffffff;">{{ total_attendees|default:0|intcomma }}</span>
                     </div>
 
                     <div class="analytics-stats-row">
                         <span class="analytics-stats-key">{% trans "Confirmed Attendees" %}</span>
-                        <span class="analytics-stats-val" style="color: var(--electric-green);">{{ confirmed_rsvps|default:0|intcomma }}</span>
+                        <span class="analytics-stats-val" style="color: var(--electric-green);">{{ confirmed_attendees|default:0|intcomma }}</span>
                     </div>
 
                     <div class="analytics-stats-row">
                         <span class="analytics-stats-key">{% trans "Pending / Unconfirmed" %}</span>
-                        <span class="analytics-stats-val" style="color: var(--accent-indigo);">{{ pending_rsvps|default:0|intcomma }}</span>
+                        <span class="analytics-stats-val" style="color: var(--accent-indigo);">{{ pending_attendees|default:0|intcomma }}</span>
                     </div>
 
                     <div class="analytics-stats-row">
                         <span class="analytics-stats-key">{% trans "Declined" %}</span>
-                        <span class="analytics-stats-val" style="color: var(--text-dimmed);">{{ declined_rsvps|default:0|intcomma }}</span>
+                        <span class="analytics-stats-val" style="color: var(--text-dimmed);">{{ declined_attendees|default:0|intcomma }}</span>
                     </div>
                 </div>
             </article>
@@ -788,15 +788,15 @@
                         <div class="analytics-stats-row">
                             <span class="analytics-stats-key">{% trans "Guests Verified at Door" %}</span>
                             <span class="analytics-stats-val" style="color: var(--electric-green);">
-                                {{ checked_in_guests|default:0|intcomma }} / {{ confirmed_rsvps|default:0|intcomma }}
+                                {{ checked_in_guests|default:0|intcomma }} / {{ confirmed_attendees|default:0|intcomma }}
                             </span>
                         </div>
 
                         <div class="analytics-stats-row">
                             <span class="analytics-stats-key">{% trans "Gate Check-In Ratio" %}</span>
                             <span class="analytics-stats-val" style="color: #ffffff;">
-                                {% if confirmed_rsvps %}
-                                    {% widthratio checked_in_guests confirmed_rsvps 100 %}%
+                                {% if confirmed_attendees %}
+                                    {% widthratio checked_in_guests confirmed_attendees 100 %}%
                                 {% else %}
                                     0%
                                 {% endif %}
@@ -813,7 +813,7 @@
                 </div>
 
                 <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
-                    <a href="{% url 'events:event_rsvps_management' event.slug %}" class="analytics-btn analytics-btn-primary" style="flex: 1;">
+                    <a href="{% url 'events:event_attendees_management' event.slug %}" class="analytics-btn analytics-btn-primary" style="flex: 1;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
                         {% trans "Open Gate Check-In" %}
                     </a>
@@ -981,8 +981,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    // 3. RSVP Distribution Doughnut Chart
-    const donutCanvas = document.getElementById("rsvpBreakdownDonutChart");
+    // 3. Attendee Distribution Doughnut Chart
+    const donutCanvas = document.getElementById("attendeeBreakdownDonutChart");
 
     if (donutCanvas && typeof Chart !== "undefined") {
         const hasTicketTiers =
@@ -1002,11 +1002,11 @@ document.addEventListener("DOMContentLoaded", function () {
             chartData = [sold, pending, refunded];
         } else {
             // Free RSVP event: attendee responses
-            const confirmed = parseInt("{{ confirmed_rsvps|default:0 }}", 10) || 0;
-            const pending = parseInt("{{ pending_rsvps|default:0 }}", 10) || 0;
-            const declined = parseInt("{{ declined_rsvps|default:0 }}", 10) || 0;
-            
-            console.log("RSVP doughnut data:", {
+            const confirmed = parseInt("{{ confirmed_attendees|default:0 }}", 10) || 0;
+            const pending = parseInt("{{ pending_attendees|default:0 }}", 10) || 0;
+            const declined = parseInt("{{ declined_attendees|default:0 }}", 10) || 0;
+
+            console.log("Attendee doughnut data:", {
                 confirmed,
                 pending,
                 declined,
@@ -1245,7 +1245,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const BAR_WIDTH = 52;
             const BAR_GAP = 3;
             const totalWidth = activeItems.length * (BAR_WIDTH + BAR_GAP) + 38; // +38px for Y-axis numbers
-            
+
             if (channelStage) {
                 channelStage.style.width = Math.min(totalWidth, 560) + "px";
                 channelStage.style.margin = "0 auto";
@@ -1346,9 +1346,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 ["Unpaid Orders", "{{ unpaid_ticket_orders|default:0 }}"],
                 ["Estimated Gross Sales", "${{ estimated_gross_sales|floatformat:2 }}"],
                 ["Estimated Net Sales", "${{ estimated_after_platform_fee|floatformat:2 }}"],
-                ["Confirmed Attendees", "{{ confirmed_rsvps|default:0 }}"],
+                ["Confirmed Attendees", "{{ confirmed_attendees|default:0 }}"],
                 ["Checked-In Guests", "{{ checked_in_guests|default:0 }}"],
-                ["Total Attendees", "{{ total_rsvps|default:0 }}"]
+                ["Total Attendees", "{{ total_attendees|default:0 }}"]
             ];
 
             const table = document.getElementById("analyticsTierTable");

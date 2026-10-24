@@ -1,20 +1,28 @@
-from django.contrib import admin
-from .models import (
-    Event, GalleryImage, OrganizerProfile, RSVP, 
-    Feedback, PlatformFee, FavoriteUpcomingEvent, 
-    PendingTicketOrder, FavoriteUpcomingEvent, TicketTier,
-    )
+from django.contrib import admin, messages
 from django import forms
-from django.utils import timezone
-from django.contrib import messages
-import logging
 from django.db import transaction
+from django.db.models import Sum
+from django.utils import timezone
+import logging
+
+from .models import (
+    Event,
+    GalleryImage,
+    OrganizerProfile,
+    EventAttendee,
+    FreeAttendeeGuest,
+    Feedback,
+    PlatformFee,
+    FavoriteUpcomingEvent,
+    TicketOrder,
+    TicketTier,
+)
 
 
 logger = logging.getLogger(__name__)
 
 class GuestInline(admin.TabularInline):
-    model = RSVP
+    model = EventAttendee
     extra = 1
 
 class GalleryImageInline(admin.TabularInline):
@@ -29,8 +37,8 @@ class EventAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
     inlines = [GuestInline, GalleryImageInline]
 
-@admin.register(RSVP)
-class GuestAdmin(admin.ModelAdmin):
+@admin.register(EventAttendee)
+class EventAttendeeAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'email', 'event', 'status', 'checked_in', 'plus_ones_count', 'dietary_restrictions', 'guest_message')
     list_filter = ('status', 'checked_in', 'event')
     search_fields = ('first_name', 'last_name', 'email', 'guest_message', 'event__title')
@@ -44,14 +52,8 @@ class FeedbackAdmin(admin.ModelAdmin):
     list_per_page = 25
 
     def get_guest_name(self, obj):
-        return getattr(obj, 'rsvp', None) and obj.rsvp.full_name or "Anonymous"
-    get_guest_name.short_description = 'Guest Name'
-
-# @admin.register(OrganizerProfile)
-# class OrganizerProfileAdmin(admin.ModelAdmin):
-#     list_display = ('user', 'created_at')  
-#     search_fields = ('user__username', 'user__email')
-#     list_filter = ('created_at',)
+        attendee = getattr(obj, "event_attendee", None)
+        return attendee.full_name if attendee else "Anonymous"
 
 @admin.register(OrganizerProfile)
 class OrganizerProfileAdmin(admin.ModelAdmin):
@@ -84,8 +86,8 @@ class PlatformFeeAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 ######
-@admin.register(PendingTicketOrder)
-class PendingTicketOrderAdmin(admin.ModelAdmin):
+@admin.register(TicketOrder)
+class TicketOrderAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "event",
@@ -128,29 +130,29 @@ class PendingTicketOrderAdmin(admin.ModelAdmin):
     )
 
     actions = (
-        "cancel_pending_orders",
+        "cancel_ticket_orders",
         "refund_paid_orders",
     )
 
     @admin.action(description="Cancel selected pending ticket orders")
-    def cancel_pending_orders(self, request, queryset):
+    def cancel_ticket_orders(self, request, queryset):
         cancelled_count = 0
         skipped_count = 0
 
         for order_id in queryset.values_list("pk", flat=True):
             with transaction.atomic():
                 order = (
-                    PendingTicketOrder.objects
+                    TicketOrder.objects
                     .select_for_update()
                     .get(pk=order_id)
                 )
 
-                if order.status != PendingTicketOrder.STATUS_PENDING:
+                if order.status != TicketOrder.STATUS_PENDING:
                     skipped_count += 1
                     continue
 
                 # This checkout flow does not reserve inventory.
-                order.status = PendingTicketOrder.STATUS_CANCELLED
+                order.status = TicketOrder.STATUS_CANCELLED
                 order.save(update_fields=["status", "updated_at"])
                 cancelled_count += 1
 
@@ -173,7 +175,7 @@ class PendingTicketOrderAdmin(admin.ModelAdmin):
         description="Refund selected paid or cancelled ticket orders"
     )
     def refund_paid_orders(self, request, queryset):
-        from .stripe_utils import refund_pending_ticket_order
+        from .stripe_utils import refund_ticket_order
 
         refunded_count = 0
         skipped_count = 0
@@ -181,20 +183,20 @@ class PendingTicketOrderAdmin(admin.ModelAdmin):
 
         for order_id in queryset.values_list("pk", flat=True):
             try:
-                order = PendingTicketOrder.objects.get(pk=order_id)
+                order = TicketOrder.objects.get(pk=order_id)
 
                 if order.status not in (
-                    PendingTicketOrder.STATUS_PAID,
-                    PendingTicketOrder.STATUS_CANCELLED,
+                    TicketOrder.STATUS_PAID,
+                    TicketOrder.STATUS_CANCELLED,
                 ):
                     skipped_count += 1
                     continue
 
-                refunded_order = refund_pending_ticket_order(order_id)
+                refunded_order = refund_ticket_order(order_id)
 
                 if (
                     refunded_order.status
-                    == PendingTicketOrder.STATUS_REFUNDED
+                    == TicketOrder.STATUS_REFUNDED
                 ):
                     refunded_count += 1
                 else:
@@ -232,14 +234,6 @@ class PendingTicketOrderAdmin(admin.ModelAdmin):
                 level=messages.ERROR,
             )
 
-
-
-from django.contrib import admin
-from django.db.models import Sum
-
-from .models import TicketTier, PendingTicketOrder, RSVP
-
-
 @admin.register(TicketTier)
 class TicketTierAdmin(admin.ModelAdmin):
     list_display = (
@@ -251,8 +245,8 @@ class TicketTierAdmin(admin.ModelAdmin):
         "sold_count",
         "reserved_count",
         "pending_ticket_quantity",
-        "refunded_ticket_quantity",
-        "declined_rsvp_quantity",
+        "refunded_ticket_order_quantity",
+        "declined_attendee_ticket_quantity",
         "remaining_count",
     )
 
@@ -263,15 +257,15 @@ class TicketTierAdmin(admin.ModelAdmin):
         "sold_count",
         "reserved_count",
         "pending_ticket_quantity",
-        "refunded_ticket_quantity",
-        "declined_rsvp_quantity",
+        "refunded_ticket_order_quantity",
+        "declined_attendee_ticket_quantity",
         "remaining_count",
     )
 
     @admin.display(description="Pending tickets")
     def pending_ticket_quantity(self, obj):
         return (
-            PendingTicketOrder.objects.filter(
+            TicketOrder.objects.filter(
                 ticket_tier=obj,
                 status__iexact="pending",
             ).aggregate(
@@ -280,9 +274,9 @@ class TicketTierAdmin(admin.ModelAdmin):
         )
 
     @admin.display(description="Refunded tickets")
-    def refunded_ticket_quantity(self, obj):
+    def refunded_ticket_order_quantity(self, obj):
         return (
-            PendingTicketOrder.objects.filter(
+            TicketOrder.objects.filter(
                 ticket_tier=obj,
                 status__iexact="refunded",
             ).aggregate(
@@ -290,10 +284,10 @@ class TicketTierAdmin(admin.ModelAdmin):
             )["total"] or 0
         )
 
-    @admin.display(description="Declined RSVP tickets")
-    def declined_rsvp_quantity(self, obj):
+    @admin.display(description="Declined attendee tickets")
+    def declined_attendee_ticket_quantity(self, obj):
         return (
-            RSVP.objects.filter(
+            EventAttendee.objects.filter(
                 ticket_tier=obj,
                 status__iexact="declined",
             ).aggregate(
